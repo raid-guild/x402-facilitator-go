@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/subtle"
 	"database/sql"
 	"errors"
 	"net/http"
@@ -33,7 +34,7 @@ func Authenticate(r *http.Request) error {
 	if staticKey != "" {
 
 		// Check if the provided key does not match the static key
-		if providedKey != staticKey {
+		if subtle.ConstantTimeCompare([]byte(providedKey), []byte(staticKey)) != 1 {
 			return utils.NewStatusError(
 				errors.New("unauthorized"),
 				http.StatusUnauthorized,
@@ -60,15 +61,17 @@ func Authenticate(r *http.Request) error {
 				http.StatusInternalServerError,
 			)
 		}
+		defer db.Close()
 
-		// Get the API key from the database
-		row := db.QueryRow(
+		// Check the API key exists in the database
+		var apiKey string
+		err = db.QueryRow(
 			"SELECT api_key FROM users WHERE api_key = $1",
 			providedKey,
-		)
+		).Scan(&apiKey)
 
 		// Check if the query returned a no rows error
-		if row.Err() == sql.ErrNoRows {
+		if err == sql.ErrNoRows {
 			return utils.NewStatusError(
 				errors.New("unauthorized"),
 				http.StatusUnauthorized,
@@ -76,7 +79,7 @@ func Authenticate(r *http.Request) error {
 		}
 
 		// Check if the query returned a different error
-		if row.Err() != nil {
+		if err != nil {
 			return utils.NewStatusError(
 				errors.New("failed to get key from database"),
 				http.StatusInternalServerError,
