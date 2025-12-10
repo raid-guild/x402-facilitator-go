@@ -8,7 +8,7 @@ import (
 	"github.com/raid-guild/x402-facilitator-go/utils"
 )
 
-// Verify is the main function that is called by Vercel.
+// Verify is the handler function called by Vercel.
 func Verify(w http.ResponseWriter, r *http.Request) {
 
 	// Authenticate request

@@ -8,7 +8,7 @@ import (
 	"github.com/raid-guild/x402-facilitator-go/utils"
 )
 
-// Settle is the main function that is called by Vercel.
+// Settle is the handler function called by Vercel.
 func Settle(w http.ResponseWriter, r *http.Request) {
 
 	// Authenticate request

@@ -44,6 +44,14 @@ func Authenticate(r *http.Request) error {
 	// Check if the API key is required (dynamic key)
 	if databaseURL != "" {
 
+		// Check if the provided key is empty
+		if providedKey == "" {
+			return utils.NewStatusError(
+				errors.New("unauthorized"),
+				http.StatusUnauthorized,
+			)
+		}
+
 		// Connect to the database
 		db, err := sql.Open("postgres", databaseURL)
 		if err != nil {
@@ -59,7 +67,7 @@ func Authenticate(r *http.Request) error {
 			providedKey,
 		)
 
-		// Check if the query returned no rows
+		// Check if the query returned a no rows error
 		if row.Err() == sql.ErrNoRows {
 			return utils.NewStatusError(
 				errors.New("unauthorized"),
