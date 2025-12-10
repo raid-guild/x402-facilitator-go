@@ -40,7 +40,6 @@ func TestVerify_NoAuthentication(t *testing.T) {
 
 func TestVerify_StaticAPIKey(t *testing.T) {
 
-	// Set up a test API key for authentication
 	os.Setenv("STATIC_API_KEY", "valid-api-key")
 	defer os.Unsetenv("STATIC_API_KEY")
 
@@ -84,8 +83,11 @@ func TestVerify_StaticAPIKey(t *testing.T) {
 func TestVerify_DatabaseURL(t *testing.T) {
 
 	t.Run("with valid api key in the request header", func(t *testing.T) {
-		mockDB, _, cleanup := setupMockDatabase(t, "verify-0")
+		mockDB, dsn, cleanup := setupMockDatabase(t, "verify-0")
 		defer cleanup()
+
+		os.Setenv("DATABASE_URL", dsn)
+		defer os.Unsetenv("DATABASE_URL")
 
 		rows := sqlmock.NewRows([]string{"api_key"}).AddRow("valid-api-key")
 		mockDB.ExpectQuery("SELECT api_key FROM users WHERE api_key = \\$1").
@@ -108,8 +110,11 @@ func TestVerify_DatabaseURL(t *testing.T) {
 	})
 
 	t.Run("with invalid api key in the request header", func(t *testing.T) {
-		mockDB, _, cleanup := setupMockDatabase(t, "verify-1")
+		mockDB, dsn, cleanup := setupMockDatabase(t, "verify-1")
 		defer cleanup()
+
+		os.Setenv("DATABASE_URL", dsn)
+		defer os.Unsetenv("DATABASE_URL")
 
 		mockDB.ExpectQuery("SELECT api_key FROM users WHERE api_key = \\$1").
 			WithArgs("invalid-api-key").

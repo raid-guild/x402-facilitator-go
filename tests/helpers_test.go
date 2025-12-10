@@ -2,7 +2,6 @@ package tests
 
 import (
 	"database/sql"
-	"os"
 	"sync"
 	"testing"
 
@@ -25,10 +24,8 @@ func setupMockDatabase(t *testing.T, dsnID string) (sqlmock.Sqlmock, string, fun
 		sql.Register("postgres", driver)
 	})
 
-	os.Setenv("DATABASE_URL", dsn)
 	cleanup := func() {
 		db.Close()
-		os.Unsetenv("DATABASE_URL")
 	}
 
 	return mock, dsn, cleanup
