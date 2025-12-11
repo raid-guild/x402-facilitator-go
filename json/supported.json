@@ -1,0 +1,9 @@
+{
+    "kinds": [
+        {
+            "x402Version": 2,
+            "scheme":      "exact",
+            "network":     "eip155:11155111"
+        }
+    ]
+}
