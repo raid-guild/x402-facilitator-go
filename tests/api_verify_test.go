@@ -45,36 +45,36 @@ var authenticationBody = `{
 
 func TestVerify_Authentication(t *testing.T) {
 
-	t.Run("with no api key in the request header", func(t *testing.T) {
+	t.Run("with no api key set and no api key in the request header", func(t *testing.T) {
 		verify(t, "", authenticationBody, http.StatusOK, nil)
 	})
 
-	t.Run("with irrelevant api key in the request header", func(t *testing.T) {
+	t.Run("with no api key set and irrelevant api key in the request header", func(t *testing.T) {
 		verify(t, "test-api-key", authenticationBody, http.StatusOK, nil)
 	})
 
-	t.Run("with valid api key in the request header", func(t *testing.T) {
+	t.Run("with static api key set and valid api key in the request header", func(t *testing.T) {
 		os.Setenv("STATIC_API_KEY", "valid-api-key")
 		defer os.Unsetenv("STATIC_API_KEY")
 
 		verify(t, "valid-api-key", authenticationBody, http.StatusOK, nil)
 	})
 
-	t.Run("with invalid api key in the request header", func(t *testing.T) {
+	t.Run("with static api key set and invalid api key in the request header", func(t *testing.T) {
 		os.Setenv("STATIC_API_KEY", "valid-api-key")
 		defer os.Unsetenv("STATIC_API_KEY")
 
 		verify(t, "invalid-api-key", authenticationBody, http.StatusUnauthorized, nil)
 	})
 
-	t.Run("with no api key in the request header", func(t *testing.T) {
+	t.Run("with static api key set and no api key in the request header", func(t *testing.T) {
 		os.Setenv("STATIC_API_KEY", "valid-api-key")
 		defer os.Unsetenv("STATIC_API_KEY")
 
 		verify(t, "", authenticationBody, http.StatusUnauthorized, nil)
 	})
 
-	t.Run("with valid api key in the request header", func(t *testing.T) {
+	t.Run("with database url set and valid api key in the request header", func(t *testing.T) {
 		mockDB, dsn, cleanup := setupMockDatabase(t, "verify-0")
 		defer cleanup()
 
@@ -93,7 +93,7 @@ func TestVerify_Authentication(t *testing.T) {
 		}
 	})
 
-	t.Run("with invalid api key in the request header", func(t *testing.T) {
+	t.Run("with database url set and invalid api key in the request header", func(t *testing.T) {
 		mockDB, dsn, cleanup := setupMockDatabase(t, "verify-1")
 		defer cleanup()
 
@@ -111,7 +111,7 @@ func TestVerify_Authentication(t *testing.T) {
 		}
 	})
 
-	t.Run("with no api key in the request header", func(t *testing.T) {
+	t.Run("with database url set and no api key in the request header", func(t *testing.T) {
 		os.Setenv("DATABASE_URL", "test-database-url")
 		defer os.Unsetenv("DATABASE_URL")
 
