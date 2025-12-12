@@ -3,7 +3,7 @@
         {
             "x402Version": 1,
             "scheme": "exact",
-            "network": "eip155:11155111"
+            "network": "sepolia"
         }
     ]
 }
