@@ -223,7 +223,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) (VerifyResult, error
 	if err != nil {
 		return VerifyResult{}, utils.NewStatusError(
 			fmt.Errorf("failed to decode nonce: %v", err),
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 		)
 	}
 
