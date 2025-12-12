@@ -219,9 +219,11 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) (VerifyResult, error
 		}, nil
 	}
 
+	// Convert the chain ID to hex or decimal
 	bigChainID := big.NewInt(11155111) // Sepolia
 	hexChainID := math.HexOrDecimal256(*bigChainID)
 
+	// Decode the nonce from hex to bytes
 	nonceBytes, err := hex.DecodeString(strings.TrimPrefix(p.Authorization.Nonce, "0x"))
 	if err != nil {
 		return VerifyResult{}, utils.NewStatusError(
@@ -230,6 +232,15 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) (VerifyResult, error
 		)
 	}
 
+	// Validate that the nonce is exactly 32 bytes (bytes32)
+	if len(nonceBytes) != 32 {
+		return VerifyResult{}, utils.NewStatusError(
+			fmt.Errorf("nonce must be exactly 32 bytes, got %d bytes", len(nonceBytes)),
+			http.StatusBadRequest,
+		)
+	}
+
+	// Convert the nonce bytes to a 32 byte array
 	var nonce [32]byte
 	copy(nonce[:], nonceBytes)
 
@@ -329,7 +340,15 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) (VerifyResult, error
 		)
 	}
 
-	// Adjust the V value (27/28 → 0/1)
+	// Validate that the signature is exactly 65 bytes (32 bytes r + 32 bytes s + 1 byte v)
+	if len(signature) != 65 {
+		return VerifyResult{}, utils.NewStatusError(
+			fmt.Errorf("signature must be exactly 65 bytes, got %d bytes", len(signature)),
+			http.StatusBadRequest,
+		)
+	}
+
+	// Convert the V value if necessary (27/28 → 0/1)
 	if signature[64] == 27 || signature[64] == 28 {
 		signature[64] -= 27
 	}
