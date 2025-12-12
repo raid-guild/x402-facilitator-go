@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -46,11 +45,19 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 	// Unmarshal the payment payload
 	paymentPayload := PaymentPayload{}
-	json.Unmarshal(requestBody.PaymentPayload, &paymentPayload)
+	err = json.Unmarshal(requestBody.PaymentPayload, &paymentPayload)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to unmarshal payment payload: %v", err), http.StatusBadRequest)
+		return
+	}
 
 	// Unmarshal the payment requirements
 	paymentRequirements := PaymentRequirements{}
-	json.Unmarshal(requestBody.PaymentRequirements, &paymentRequirements)
+	err = json.Unmarshal(requestBody.PaymentRequirements, &paymentRequirements)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to unmarshal payment requirements: %v", err), http.StatusBadRequest)
+		return
+	}
 
 	// Check the payment version
 	if requestBody.X402Version == 1 {
@@ -174,13 +181,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) (VerifyResult, error
 	now := time.Now()
 
 	// Verify the authorization valid after time is in the past
-	validAfter, err := time.Parse(time.RFC3339, strconv.FormatInt(p.Authorization.ValidAfter, 10))
-	if err != nil {
-		return VerifyResult{}, utils.NewStatusError(
-			errors.New("invalid valid after time"),
-			http.StatusBadRequest,
-		)
-	}
+	validAfter := time.Unix(p.Authorization.ValidAfter, 0)
 	if !now.After(validAfter) {
 		return VerifyResult{
 			Valid:  false,
@@ -189,13 +190,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) (VerifyResult, error
 	}
 
 	// Verify the authorization valid before time is in the future
-	validBefore, err := time.Parse(time.RFC3339, strconv.FormatInt(p.Authorization.ValidBefore, 10))
-	if err != nil {
-		return VerifyResult{}, utils.NewStatusError(
-			errors.New("invalid valid before time"),
-			http.StatusBadRequest,
-		)
-	}
+	validBefore := time.Unix(p.Authorization.ValidBefore, 0)
 	if !now.Before(validBefore) {
 		return VerifyResult{
 			Valid:  false,
