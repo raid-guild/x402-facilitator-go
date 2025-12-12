@@ -164,7 +164,7 @@ type PaymentRequirements struct {
 	Extra             Extra  `json:"extra"`
 }
 
-// Extra is the extra for the payment.
+// Extra is the extra for the payment requirements.
 type Extra struct {
 	Name    string `json:"assetName"`
 	Version string `json:"assetVersion"`
@@ -182,7 +182,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) (VerifyResult, error
 
 	// Verify the authorization valid after time is in the past
 	validAfter := time.Unix(p.Authorization.ValidAfter, 0)
-	if !now.After(validAfter) {
+	if !now.After(validAfter) || now.Equal(validAfter) {
 		return VerifyResult{
 			Valid:  false,
 			Reason: "authorization is not valid yet",
@@ -198,16 +198,16 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) (VerifyResult, error
 		}, nil
 	}
 
-	// Verify the authorization value matches the required amount
-	if p.Authorization.Value < r.MaxAmountRequired {
+	// Verify the authorization value does not exceed the maximum allowed amount
+	if p.Authorization.Value > r.MaxAmountRequired {
 		return VerifyResult{
 			Valid:  false,
-			Reason: "authorization value is less than the required maximum amount",
+			Reason: "authorization value exceeds the required maximum amount",
 		}, nil
 	}
 
 	// Verify the authorization to matches the required pay to address
-	if p.Authorization.To != r.PayTo {
+	if common.HexToAddress(p.Authorization.To) != common.HexToAddress(r.PayTo) {
 		return VerifyResult{
 			Valid:  false,
 			Reason: "authorization to does not match required pay to address",
@@ -235,7 +235,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) (VerifyResult, error
 		)
 	}
 
-	// Convert the nonce bytes to a 32 byte array
+	// Convert the nonce bytes to 32 byte slice
 	var nonce [32]byte
 	copy(nonce[:], nonceBytes)
 
@@ -323,7 +323,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) (VerifyResult, error
 	}
 
 	// Construct the signature hash
-	rawData := []byte("\x19\x01" + string(domainSeparator) + string(typedDataHash))
+	rawData := append(append([]byte("\x19\x01"), domainSeparator...), typedDataHash...)
 	sighash := crypto.Keccak256(rawData)
 
 	// Parse the payload signature
@@ -357,8 +357,23 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) (VerifyResult, error
 		)
 	}
 
+	// Check public key format
+	var pubkeyBytes []byte
+	if len(pubkey) == 64 {
+		// Prepend 0x04 for uncompressed public key format
+		pubkeyBytes = append([]byte{0x04}, pubkey...)
+	} else if len(pubkey) == 65 {
+		// Already in correct format
+		pubkeyBytes = pubkey
+	} else {
+		return VerifyResult{}, utils.NewStatusError(
+			fmt.Errorf("invalid public key length: expected 64 or 65 bytes, got %d", len(pubkey)),
+			http.StatusInternalServerError,
+		)
+	}
+
 	// Unmarshal the public key
-	recoveredPubkey, err := crypto.UnmarshalPubkey(pubkey)
+	recoveredPubkey, err := crypto.UnmarshalPubkey(pubkeyBytes)
 	if err != nil {
 		return VerifyResult{}, utils.NewStatusError(
 			fmt.Errorf("failed to unmarshal public key: %v", err),
