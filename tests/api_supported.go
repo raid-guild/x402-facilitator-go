@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	handler "github.com/raid-guild/x402-facilitator-go/api"
@@ -29,14 +30,16 @@ func TestSupported(t *testing.T) {
 
 		respBody := w.Body.String()
 
-		var jsonData any
-		if err := json.Unmarshal([]byte(respBody), &jsonData); err != nil {
-			t.Errorf("response body is not valid JSON: %v", err)
-		}
-
 		expectedBytes := jsonfile.SupportedJSON
 
-		if respBody != string(expectedBytes) {
+		var expected, actual any
+		if err := json.Unmarshal(expectedBytes, &expected); err != nil {
+			t.Fatalf("failed to unmarshal expected JSON: %v", err)
+		}
+		if err := json.Unmarshal([]byte(respBody), &actual); err != nil {
+			t.Fatalf("failed to unmarshal actual JSON: %v", err)
+		}
+		if !reflect.DeepEqual(expected, actual) {
 			t.Errorf("expected body %s, got %s", string(expectedBytes), respBody)
 		}
 	})

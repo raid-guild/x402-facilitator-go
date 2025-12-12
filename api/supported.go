@@ -10,5 +10,8 @@ import (
 func Supported(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(json.SupportedJSON)
+	if _, err := w.Write(json.SupportedJSON); err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 }
