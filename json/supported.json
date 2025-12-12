@@ -1,0 +1,9 @@
+{
+    "kinds": [
+        {
+            "x402Version": 1,
+            "scheme": "exact",
+            "network": "sepolia"
+        }
+    ]
+}
