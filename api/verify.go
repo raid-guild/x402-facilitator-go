@@ -50,7 +50,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(requestBody.PaymentRequirements, &paymentRequirements)
 
 	// Check the payment version
-	if requestBody.X402Version == "1" {
+	if requestBody.X402Version == 1 {
 
 		// Check the payment scheme
 		if paymentPayload.Scheme == "exact" {
@@ -104,7 +104,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 // RequestBody is the request body.
 type RequestBody struct {
-	X402Version         string          `json:"x402Version"`
+	X402Version         int             `json:"x402Version"`
 	PaymentPayload      json.RawMessage `json:"paymentPayload"`
 	PaymentRequirements json.RawMessage `json:"paymentRequirements"`
 }
