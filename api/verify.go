@@ -43,24 +43,24 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Unmarshal the payment payload
-	paymentPayload := PaymentPayload{}
-	err = json.Unmarshal(requestBody.PaymentPayload, &paymentPayload)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to unmarshal payment payload: %v", err), http.StatusBadRequest)
-		return
-	}
-
-	// Unmarshal the payment requirements
-	paymentRequirements := PaymentRequirements{}
-	err = json.Unmarshal(requestBody.PaymentRequirements, &paymentRequirements)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to unmarshal payment requirements: %v", err), http.StatusBadRequest)
-		return
-	}
-
 	// Check the payment version
 	if requestBody.X402Version == 1 {
+
+		// Unmarshal the payment payload
+		paymentPayload := PaymentPayload{}
+		err = json.Unmarshal(requestBody.PaymentPayload, &paymentPayload)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("failed to unmarshal payment payload: %v", err), http.StatusBadRequest)
+			return
+		}
+
+		// Unmarshal the payment requirements
+		paymentRequirements := PaymentRequirements{}
+		err = json.Unmarshal(requestBody.PaymentRequirements, &paymentRequirements)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("failed to unmarshal payment requirements: %v", err), http.StatusBadRequest)
+			return
+		}
 
 		// Check the payment payload and requirements scheme
 		if paymentPayload.Scheme != paymentRequirements.Scheme {
