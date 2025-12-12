@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	handler "github.com/raid-guild/x402-facilitator-go/api"
+	jsonfile "github.com/raid-guild/x402-facilitator-go/json"
 )
 
 func TestSupported(t *testing.T) {
@@ -34,10 +34,7 @@ func TestSupported(t *testing.T) {
 			t.Errorf("response body is not valid JSON: %v", err)
 		}
 
-		expectedBytes, err := os.ReadFile("json/supported.json")
-		if err != nil {
-			t.Fatalf("failed to read supported.json: %v", err)
-		}
+		expectedBytes := jsonfile.SupportedJSON
 
 		if respBody != string(expectedBytes) {
 			t.Errorf("expected body %s, got %s", string(expectedBytes), respBody)
