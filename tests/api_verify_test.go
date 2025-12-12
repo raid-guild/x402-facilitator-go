@@ -167,7 +167,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {invalid json},
-			"paymentRequirements": "paymentRequirements": {
+			"paymentRequirements": {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
