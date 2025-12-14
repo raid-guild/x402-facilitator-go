@@ -424,17 +424,17 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		}`
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 			var result struct {
-				Valid  bool   `json:"valid"`
-				Reason string `json:"reason"`
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
 			}
 			if err := json.Unmarshal([]byte(body), &result); err != nil {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
-			if result.Valid {
-				t.Errorf("expected authorization to be invalid (expired), but got valid=true")
+			if result.IsValid {
+				t.Errorf("expected authorization to be invalid (valid before check failed), but got valid=true")
 			}
-			if result.Reason != "authorization is expired" {
-				t.Errorf("expected reason 'authorization is expired', got '%s'", result.Reason)
+			if result.InvalidReason != "authorization valid before" {
+				t.Errorf("expected reason 'authorization valid before', got '%s'", result.InvalidReason)
 			}
 		})
 	})
@@ -471,17 +471,17 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		}`
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 			var result struct {
-				Valid  bool   `json:"valid"`
-				Reason string `json:"reason"`
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
 			}
 			if err := json.Unmarshal([]byte(body), &result); err != nil {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
-			if result.Valid {
-				t.Errorf("expected authorization to be invalid (not valid yet), but got valid=true")
+			if result.IsValid {
+				t.Errorf("expected authorization to be invalid (valid after check failed), but got valid=true")
 			}
-			if result.Reason != "authorization is not valid yet" {
-				t.Errorf("expected reason 'authorization is not valid yet', got '%s'", result.Reason)
+			if result.InvalidReason != "authorization valid after" {
+				t.Errorf("expected reason 'authorization valid after', got '%s'", result.InvalidReason)
 			}
 		})
 	})
@@ -518,17 +518,17 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		}`
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 			var result struct {
-				Valid  bool   `json:"valid"`
-				Reason string `json:"reason"`
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
 			}
 			if err := json.Unmarshal([]byte(body), &result); err != nil {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
-			if result.Valid {
-				t.Errorf("expected authorization to be invalid (value exceeds maximum), but got valid=true")
+			if result.IsValid {
+				t.Errorf("expected authorization to be invalid (value greater than max amount required), but got valid=true")
 			}
-			if result.Reason != "authorization value exceeds the required maximum amount" {
-				t.Errorf("expected reason 'authorization value exceeds the required maximum amount', got '%s'", result.Reason)
+			if result.InvalidReason != "authorization value greater than max amount required" {
+				t.Errorf("expected reason 'authorization value greater than max amount required', got '%s'", result.InvalidReason)
 			}
 		})
 	})
@@ -565,17 +565,17 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		}`
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 			var result struct {
-				Valid  bool   `json:"valid"`
-				Reason string `json:"reason"`
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
 			}
 			if err := json.Unmarshal([]byte(body), &result); err != nil {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
-			if result.Valid {
+			if result.IsValid {
 				t.Errorf("expected authorization to be invalid (address mismatch), but got valid=true")
 			}
-			if result.Reason != "authorization to does not match required pay to address" {
-				t.Errorf("expected reason 'authorization to does not match required pay to address', got '%s'", result.Reason)
+			if result.InvalidReason != "authorization to address does not match pay to address" {
+				t.Errorf("expected reason 'authorization to address does not match pay to address', got '%s'", result.InvalidReason)
 			}
 		})
 	})
@@ -610,7 +610,21 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		verify(t, "", body, http.StatusBadRequest, nil)
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var result struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &result); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if result.IsValid {
+				t.Errorf("expected authorization to be invalid (invalid nonce length), but got valid=true")
+			}
+			if !strings.Contains(result.InvalidReason, "authorization nonce length") {
+				t.Errorf("expected reason to contain 'authorization nonce length', got '%s'", result.InvalidReason)
+			}
+		})
 	})
 
 	t.Run("invalid nonce hex format", func(t *testing.T) {
@@ -643,7 +657,21 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		verify(t, "", body, http.StatusBadRequest, nil)
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var result struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &result); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if result.IsValid {
+				t.Errorf("expected authorization to be invalid (invalid nonce hex format), but got valid=true")
+			}
+			if !strings.Contains(result.InvalidReason, "authorization nonce") {
+				t.Errorf("expected reason to contain 'authorization nonce', got '%s'", result.InvalidReason)
+			}
+		})
 	})
 
 	t.Run("invalid signature length", func(t *testing.T) {
@@ -676,7 +704,21 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		verify(t, "", body, http.StatusBadRequest, nil)
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var result struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &result); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if result.IsValid {
+				t.Errorf("expected authorization to be invalid (invalid signature length), but got valid=true")
+			}
+			if !strings.Contains(result.InvalidReason, "signature length") {
+				t.Errorf("expected reason to contain 'signature length', got '%s'", result.InvalidReason)
+			}
+		})
 	})
 
 	t.Run("invalid signature hex format", func(t *testing.T) {
@@ -709,7 +751,21 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		verify(t, "", body, http.StatusBadRequest, nil)
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var result struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &result); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if result.IsValid {
+				t.Errorf("expected authorization to be invalid (invalid signature hex format), but got valid=true")
+			}
+			if !strings.Contains(result.InvalidReason, "signature") {
+				t.Errorf("expected reason to contain 'signature', got '%s'", result.InvalidReason)
+			}
+		})
 	})
 
 	t.Run("invalid signature - address mismatch", func(t *testing.T) {
@@ -758,17 +814,17 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		}`
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 			var result struct {
-				Valid  bool   `json:"valid"`
-				Reason string `json:"reason"`
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
 			}
 			if err := json.Unmarshal([]byte(body), &result); err != nil {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
-			if result.Valid {
-				t.Errorf("expected authorization to be invalid (signature address mismatch), but got valid=true. Signature was for %s but from was %s", signerAddress.Hex(), validAddress1)
+			if result.IsValid {
+				t.Errorf("expected authorization to be invalid (signature sender does not match authorization from address), but got valid=true. Signature was for %s but from was %s", signerAddress.Hex(), validAddress1)
 			}
-			if result.Reason != "invalid signature" {
-				t.Errorf("expected reason 'invalid signature', got '%s'", result.Reason)
+			if result.InvalidReason != "signature sender does not match authorization from address" {
+				t.Errorf("expected reason 'signature sender does not match authorization from address', got '%s'", result.InvalidReason)
 			}
 		})
 	})
@@ -819,14 +875,14 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		}`
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 			var result struct {
-				Valid  bool   `json:"valid"`
-				Reason string `json:"reason"`
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
 			}
 			if err := json.Unmarshal([]byte(body), &result); err != nil {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
-			if !result.Valid {
-				t.Errorf("expected authorization to be valid (signature matches), but got valid=false. Reason: %s", result.Reason)
+			if !result.IsValid {
+				t.Errorf("expected authorization to be valid (signature matches), but got valid=false. Reason: %s", result.InvalidReason)
 			}
 		})
 	})
@@ -878,14 +934,14 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		}`
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 			var result struct {
-				Valid  bool   `json:"valid"`
-				Reason string `json:"reason"`
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
 			}
 			if err := json.Unmarshal([]byte(body), &result); err != nil {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
-			if !result.Valid {
-				t.Errorf("expected signature to be valid, but got invalid. Reason: %s", result.Reason)
+			if !result.IsValid {
+				t.Errorf("expected signature to be valid, but got invalid. Reason: %s", result.InvalidReason)
 			}
 		})
 	})
@@ -937,14 +993,14 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		}`
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 			var result struct {
-				Valid  bool   `json:"valid"`
-				Reason string `json:"reason"`
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
 			}
 			if err := json.Unmarshal([]byte(body), &result); err != nil {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
-			if !result.Valid {
-				t.Errorf("expected signature to be valid, but got invalid. Reason: %s", result.Reason)
+			if !result.IsValid {
+				t.Errorf("expected signature to be valid, but got invalid. Reason: %s", result.InvalidReason)
 			}
 		})
 	})
