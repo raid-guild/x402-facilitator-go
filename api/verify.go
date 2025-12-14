@@ -216,10 +216,6 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 		}
 	}
 
-	// Convert the chain ID to hex or decimal
-	bigChainID := big.NewInt(11155111) // Sepolia
-	hexChainID := math.HexOrDecimal256(*bigChainID)
-
 	// Decode the nonce from hex to bytes
 	nonceBytes, err := hex.DecodeString(strings.TrimPrefix(p.Authorization.Nonce, "0x"))
 	if err != nil {
@@ -236,6 +232,34 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 			InvalidReason: fmt.Sprintf("authorization nonce length: %v", len(nonceBytes)),
 		}
 	}
+
+	// Verify requirements asset is a valid address
+	if !common.IsHexAddress(r.Asset) {
+		return VerifyResult{
+			IsValid:       false,
+			InvalidReason: "requirements asset",
+		}
+	}
+
+	// Verify requirements extra name is not empty
+	if r.Extra.Name == "" {
+		return VerifyResult{
+			IsValid:       false,
+			InvalidReason: "requirements extra name",
+		}
+	}
+
+	// Verify requirements extra version is not empty
+	if r.Extra.Version == "" {
+		return VerifyResult{
+			IsValid:       false,
+			InvalidReason: "requirements extra version",
+		}
+	}
+
+	// Convert the chain ID to hex or decimal
+	bigChainID := big.NewInt(11155111) // Sepolia
+	hexChainID := math.HexOrDecimal256(*bigChainID)
 
 	// Convert the nonce bytes to 32 byte slice
 	var nonce [32]byte
@@ -370,7 +394,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 	} else {
 		return VerifyResult{
 			IsValid:       false,
-			InvalidReason: fmt.Sprintf("public key length: %v", len(pubkey)),
+			InvalidReason: fmt.Sprintf("signature pubkey length: %v", len(pubkey)),
 		}
 	}
 
@@ -379,7 +403,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 	if err != nil {
 		return VerifyResult{
 			IsValid:       false,
-			InvalidReason: fmt.Sprintf("public key: %v", err),
+			InvalidReason: fmt.Sprintf("signature pubkey: %v", err),
 		}
 	}
 
