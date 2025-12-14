@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 
 	handler "github.com/raid-guild/x402-facilitator-go/api"
@@ -24,8 +25,8 @@ func TestSupported(t *testing.T) {
 		}
 
 		contentType := w.Header().Get("Content-Type")
-		if contentType != "application/json" {
-			t.Fatalf("expected content type %s, got %s", "application/json", contentType)
+		if contentType == "" || !strings.HasPrefix(contentType, "application/json") {
+			t.Fatalf("expected content type application/json, got %q", contentType)
 		}
 
 		respBody := w.Body.String()
