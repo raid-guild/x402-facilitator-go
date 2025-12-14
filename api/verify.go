@@ -174,6 +174,14 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 
 	now := time.Now()
 
+	// Verify the authorization time window is valid
+	if p.Authorization.ValidAfter >= p.Authorization.ValidBefore {
+		return VerifyResult{
+			IsValid:       false,
+			InvalidReason: "authorization time window",
+		}
+	}
+
 	// Verify the authorization valid after time is in the past
 	validAfter := time.Unix(p.Authorization.ValidAfter, 0)
 	if !now.After(validAfter) || now.Equal(validAfter) {

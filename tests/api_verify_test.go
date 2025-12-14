@@ -13,68 +13,50 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 )
 
-var authBody = `{
-	"x402Version": 1,
-	"paymentPayload": {
-		"scheme": "exact",
-		"network": "sepolia",
-		"payload": {
-			"signature": "0x...",
-			"authorization": {
-				"from": "0x...",
-				"to": "0x...",
-				"value": 1000,
-				"validAfter": 1718201600,
-				"validBefore": 1718201600,
-				"nonce": "0x..."
-			}
-		}
-	},
-	"paymentRequirements": {
-		"scheme": "exact",
-		"network": "sepolia",
-		"maxAmountRequired": 1000,
-		"asset": "0x...",
-		"payTo": "0x...",
-		"extra": {
-			"assetName": "Coin",
-			"assetVersion": "1"
-		}
-	}
-}`
-
 func TestVerify_Authentication(t *testing.T) {
 
-	t.Run("with no api key set and no api key in the request header", func(t *testing.T) {
-		verify(t, "", authBody, http.StatusOK, nil)
+	body := `{
+		"x402Version": 1,
+		"paymentPayload": {
+			"scheme": "exact",
+			"network": "sepolia"
+		},
+		"paymentRequirements": {
+			"scheme": "exact",
+			"network": "sepolia"
+		}
+	}`
+
+	t.Run("no api key required and no api key provided", func(t *testing.T) {
+		verify(t, "", body, http.StatusOK, nil)
 	})
 
-	t.Run("with no api key set and irrelevant api key in the request header", func(t *testing.T) {
-		verify(t, "test-api-key", authBody, http.StatusOK, nil)
+	t.Run("no api key required and irrelevant api key provided", func(t *testing.T) {
+		verify(t, "test-api-key", body, http.StatusOK, nil)
 	})
 
-	t.Run("with static api key set and valid api key in the request header", func(t *testing.T) {
+	t.Run("static api key required and valid api key provided", func(t *testing.T) {
 		os.Setenv("STATIC_API_KEY", "valid-api-key")
 		defer os.Unsetenv("STATIC_API_KEY")
 
-		verify(t, "valid-api-key", authBody, http.StatusOK, nil)
+		verify(t, "valid-api-key", body, http.StatusOK, nil)
 	})
 
-	t.Run("with static api key set and invalid api key in the request header", func(t *testing.T) {
+	t.Run("static api key required and invalid api key provided", func(t *testing.T) {
 		os.Setenv("STATIC_API_KEY", "valid-api-key")
 		defer os.Unsetenv("STATIC_API_KEY")
 
-		verify(t, "invalid-api-key", authBody, http.StatusUnauthorized, nil)
+		verify(t, "invalid-api-key", body, http.StatusUnauthorized, nil)
 	})
 
-	t.Run("with static api key set and no api key in the request header", func(t *testing.T) {
+	t.Run("static api key required and no api key provided", func(t *testing.T) {
 		os.Setenv("STATIC_API_KEY", "valid-api-key")
 		defer os.Unsetenv("STATIC_API_KEY")
 
-		verify(t, "", authBody, http.StatusUnauthorized, nil)
+		verify(t, "", body, http.StatusUnauthorized, nil)
 	})
 
-	t.Run("with database url set and valid api key in the request header", func(t *testing.T) {
+	t.Run("database api key required and valid api key provided", func(t *testing.T) {
 		mockDB, dsn, cleanup := setupMockDatabase(t, "verify-0")
 		defer cleanup()
 
@@ -86,14 +68,14 @@ func TestVerify_Authentication(t *testing.T) {
 			WithArgs("valid-api-key").
 			WillReturnRows(rows)
 
-		verify(t, "valid-api-key", authBody, http.StatusOK, nil)
+		verify(t, "valid-api-key", body, http.StatusOK, nil)
 
 		if err := mockDB.ExpectationsWereMet(); err != nil {
 			t.Errorf("there were unfulfilled expectations: %s", err)
 		}
 	})
 
-	t.Run("with database url set and invalid api key in the request header", func(t *testing.T) {
+	t.Run("database api key required and invalid api key provided", func(t *testing.T) {
 		mockDB, dsn, cleanup := setupMockDatabase(t, "verify-1")
 		defer cleanup()
 
@@ -104,18 +86,18 @@ func TestVerify_Authentication(t *testing.T) {
 			WithArgs("invalid-api-key").
 			WillReturnError(sql.ErrNoRows)
 
-		verify(t, "invalid-api-key", authBody, http.StatusUnauthorized, nil)
+		verify(t, "invalid-api-key", body, http.StatusUnauthorized, nil)
 
 		if err := mockDB.ExpectationsWereMet(); err != nil {
 			t.Errorf("there were unfulfilled expectations: %s", err)
 		}
 	})
 
-	t.Run("with database url set and no api key in the request header", func(t *testing.T) {
+	t.Run("database api key required and no api key provided", func(t *testing.T) {
 		os.Setenv("DATABASE_URL", "test-database-url")
 		defer os.Unsetenv("DATABASE_URL")
 
-		verify(t, "", authBody, http.StatusUnauthorized, nil)
+		verify(t, "", body, http.StatusUnauthorized, nil)
 	})
 
 }
@@ -124,8 +106,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 
 	now := time.Now()
 
-	validAfter := now.Add(-1 * time.Minute).Unix()
-	validBefore := now.Add(1 * time.Minute).Unix()
+	validAfter := now.Add(-2 * time.Minute).Unix()
+	validBefore := now.Add(2 * time.Minute).Unix()
 	expiredBefore := now.Add(-1 * time.Minute).Unix()
 	futureAfter := now.Add(1 * time.Minute).Unix()
 
@@ -141,7 +123,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	invalidSignature := "0x" + strings.Repeat("00", 64)
 	invalidHexSignature := "0xZZ" + strings.Repeat("00", 63)
 
-	t.Run("invalid JSON body", func(t *testing.T) {
+	t.Run("invalid body JSON", func(t *testing.T) {
 		verify(t, "", `{invalid json}`, http.StatusBadRequest, nil)
 	})
 
@@ -229,7 +211,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 
 	t.Run("unsupported x402 version", func(t *testing.T) {
 		body := `{
-			"x402Version": 2,
+			"x402Version": 0,
 			"paymentPayload": {
 				"scheme": "exact",
 				"network": "sepolia",
@@ -392,7 +374,101 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		verify(t, "", body, http.StatusBadRequest, nil)
 	})
 
-	t.Run("authorization expired", func(t *testing.T) {
+	t.Run("authorization time window invalid equals", func(t *testing.T) {
+		body := `{
+			"x402Version": 1,
+			"paymentPayload": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"payload": {
+					"signature": "` + validSignature + `",
+					"authorization": {
+						"from": "` + validAddress1 + `",
+						"to": "` + validAddress2 + `",
+						"value": 1000,
+						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+						"validBefore": ` + strconv.FormatInt(validAfter, 10) + `,
+						"nonce": "` + validNonce + `"
+					}
+				}
+			},
+			"paymentRequirements": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"maxAmountRequired": 1000,
+				"asset": "` + validAddress3 + `",
+				"payTo": "` + validAddress2 + `",
+				"extra": {
+					"assetName": "Coin",
+					"assetVersion": "1"
+				}
+			}
+		}`
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var result struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &result); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if result.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if result.InvalidReason != "authorization time window" {
+				t.Errorf("expected invalid reason 'authorization time window', got '%s'", result.InvalidReason)
+			}
+		})
+	})
+
+	t.Run("authorization time window invalid inverted", func(t *testing.T) {
+		body := `{
+			"x402Version": 1,
+			"paymentPayload": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"payload": {
+					"signature": "` + validSignature + `",
+					"authorization": {
+						"from": "` + validAddress1 + `",
+						"to": "` + validAddress2 + `",
+						"value": 1000,
+						"validAfter": ` + strconv.FormatInt(validBefore, 10) + `,
+						"validBefore": ` + strconv.FormatInt(validAfter, 10) + `,
+						"nonce": "` + validNonce + `"
+					}
+				}
+			},
+			"paymentRequirements": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"maxAmountRequired": 1000,
+				"asset": "` + validAddress3 + `",
+				"payTo": "` + validAddress2 + `",
+				"extra": {
+					"assetName": "Coin",
+					"assetVersion": "1"
+				}
+			}
+		}`
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var result struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &result); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if result.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if result.InvalidReason != "authorization time window" {
+				t.Errorf("expected invalid reason 'authorization time window', got '%s'", result.InvalidReason)
+			}
+		})
+	})
+
+	t.Run("authorization valid before expired", func(t *testing.T) {
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -439,7 +515,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		})
 	})
 
-	t.Run("authorization not valid yet", func(t *testing.T) {
+	t.Run("authorization valid after future", func(t *testing.T) {
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -486,7 +562,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		})
 	})
 
-	t.Run("value exceeds maximum", func(t *testing.T) {
+	t.Run("authorization value exceeds requirements amount", func(t *testing.T) {
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -533,7 +609,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		})
 	})
 
-	t.Run("address mismatch", func(t *testing.T) {
+	t.Run("authorization to does not match requirements pay to", func(t *testing.T) {
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -580,54 +656,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		})
 	})
 
-	t.Run("invalid nonce length", func(t *testing.T) {
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": 1000,
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + invalidNonce + `"
-					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": 1000,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var result struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &result); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if result.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if !strings.Contains(result.InvalidReason, "authorization nonce length") {
-				t.Errorf("expected invalid reason to contain 'authorization nonce length', got '%s'", result.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("invalid nonce hex format", func(t *testing.T) {
+	t.Run("authorization nonce hex invalid", func(t *testing.T) {
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -674,21 +703,21 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		})
 	})
 
-	t.Run("invalid signature length", func(t *testing.T) {
+	t.Run("authorization nonce length invalid", func(t *testing.T) {
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
 				"scheme": "exact",
 				"network": "sepolia",
 				"payload": {
-					"signature": "` + invalidSignature + `",
+					"signature": "` + validSignature + `",
 					"authorization": {
 						"from": "` + validAddress1 + `",
 						"to": "` + validAddress2 + `",
 						"value": 1000,
 						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
 						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+						"nonce": "` + invalidNonce + `"
 					}
 				}
 			},
@@ -715,13 +744,13 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if result.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if !strings.Contains(result.InvalidReason, "signature length") {
-				t.Errorf("expected invalid reason to contain 'signature length', got '%s'", result.InvalidReason)
+			if !strings.Contains(result.InvalidReason, "authorization nonce length") {
+				t.Errorf("expected invalid reason to contain 'authorization nonce length', got '%s'", result.InvalidReason)
 			}
 		})
 	})
 
-	t.Run("invalid signature hex format", func(t *testing.T) {
+	t.Run("signature hex invalid", func(t *testing.T) {
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -768,7 +797,54 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		})
 	})
 
-	t.Run("invalid signature - address mismatch", func(t *testing.T) {
+	t.Run("signature length invalid", func(t *testing.T) {
+		body := `{
+			"x402Version": 1,
+			"paymentPayload": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"payload": {
+					"signature": "` + invalidSignature + `",
+					"authorization": {
+						"from": "` + validAddress1 + `",
+						"to": "` + validAddress2 + `",
+						"value": 1000,
+						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+						"nonce": "` + validNonce + `"
+					}
+				}
+			},
+			"paymentRequirements": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"maxAmountRequired": 1000,
+				"asset": "` + validAddress3 + `",
+				"payTo": "` + validAddress2 + `",
+				"extra": {
+					"assetName": "Coin",
+					"assetVersion": "1"
+				}
+			}
+		}`
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var result struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &result); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if result.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if !strings.Contains(result.InvalidReason, "signature length") {
+				t.Errorf("expected invalid reason to contain 'signature length', got '%s'", result.InvalidReason)
+			}
+		})
+	})
+
+	t.Run("signature address mismatch", func(t *testing.T) {
 		sig, _, err := generateEIP712Signature(
 			validAddress2,
 			validAddress3,
@@ -829,7 +905,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		})
 	})
 
-	t.Run("valid signature - address matches", func(t *testing.T) {
+	t.Run("signature address matches", func(t *testing.T) {
 		sig, signerAddress, err := generateEIP712Signature(
 			validAddress2,
 			validAddress3,
