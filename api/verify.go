@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"math/big"
 	"net/http"
 	"strings"
@@ -90,14 +91,17 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				// Write the result to the response
+				// Set the content type and write the status code
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
+
+				// Write the result to the response body
 				_, err = w.Write(resultBytes)
 				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
+					// Header already written so we log the error
+					log.Fatalf("failed to write response: %v", err)
 				}
+
 				return
 			}
 
@@ -184,7 +188,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 
 	// Verify the authorization valid after time is in the past
 	validAfter := time.Unix(p.Authorization.ValidAfter, 0)
-	if !now.After(validAfter) || now.Equal(validAfter) {
+	if !now.After(validAfter) {
 		return VerifyResult{
 			IsValid:       false,
 			InvalidReason: "authorization valid after",
