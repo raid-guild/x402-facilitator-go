@@ -38,14 +38,12 @@ func setupMockDatabase(t *testing.T, dsnID string) (sqlmock.Sqlmock, string, fun
 func verify(t *testing.T, apiKey string, body string, expectedStatus int, checkResponse func(*testing.T, string)) {
 	t.Helper()
 
-	req := httptest.NewRequest("POST", "/verify", nil)
+	w := httptest.NewRecorder()
 
+	req := httptest.NewRequest("POST", "/verify", nil)
 	if apiKey != "" {
 		req.Header.Set("X-API-Key", apiKey)
 	}
-
-	w := httptest.NewRecorder()
-
 	req.Body = io.NopCloser(strings.NewReader(body))
 
 	handler.Verify(w, req)

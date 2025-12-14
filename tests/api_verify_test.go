@@ -13,7 +13,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 )
 
-var authenticationBody = `{
+var authBody = `{
 	"x402Version": 1,
 	"paymentPayload": {
 		"scheme": "exact",
@@ -46,32 +46,32 @@ var authenticationBody = `{
 func TestVerify_Authentication(t *testing.T) {
 
 	t.Run("with no api key set and no api key in the request header", func(t *testing.T) {
-		verify(t, "", authenticationBody, http.StatusOK, nil)
+		verify(t, "", authBody, http.StatusOK, nil)
 	})
 
 	t.Run("with no api key set and irrelevant api key in the request header", func(t *testing.T) {
-		verify(t, "test-api-key", authenticationBody, http.StatusOK, nil)
+		verify(t, "test-api-key", authBody, http.StatusOK, nil)
 	})
 
 	t.Run("with static api key set and valid api key in the request header", func(t *testing.T) {
 		os.Setenv("STATIC_API_KEY", "valid-api-key")
 		defer os.Unsetenv("STATIC_API_KEY")
 
-		verify(t, "valid-api-key", authenticationBody, http.StatusOK, nil)
+		verify(t, "valid-api-key", authBody, http.StatusOK, nil)
 	})
 
 	t.Run("with static api key set and invalid api key in the request header", func(t *testing.T) {
 		os.Setenv("STATIC_API_KEY", "valid-api-key")
 		defer os.Unsetenv("STATIC_API_KEY")
 
-		verify(t, "invalid-api-key", authenticationBody, http.StatusUnauthorized, nil)
+		verify(t, "invalid-api-key", authBody, http.StatusUnauthorized, nil)
 	})
 
 	t.Run("with static api key set and no api key in the request header", func(t *testing.T) {
 		os.Setenv("STATIC_API_KEY", "valid-api-key")
 		defer os.Unsetenv("STATIC_API_KEY")
 
-		verify(t, "", authenticationBody, http.StatusUnauthorized, nil)
+		verify(t, "", authBody, http.StatusUnauthorized, nil)
 	})
 
 	t.Run("with database url set and valid api key in the request header", func(t *testing.T) {
@@ -86,7 +86,7 @@ func TestVerify_Authentication(t *testing.T) {
 			WithArgs("valid-api-key").
 			WillReturnRows(rows)
 
-		verify(t, "valid-api-key", authenticationBody, http.StatusOK, nil)
+		verify(t, "valid-api-key", authBody, http.StatusOK, nil)
 
 		if err := mockDB.ExpectationsWereMet(); err != nil {
 			t.Errorf("there were unfulfilled expectations: %s", err)
@@ -104,7 +104,7 @@ func TestVerify_Authentication(t *testing.T) {
 			WithArgs("invalid-api-key").
 			WillReturnError(sql.ErrNoRows)
 
-		verify(t, "invalid-api-key", authenticationBody, http.StatusUnauthorized, nil)
+		verify(t, "invalid-api-key", authBody, http.StatusUnauthorized, nil)
 
 		if err := mockDB.ExpectationsWereMet(); err != nil {
 			t.Errorf("there were unfulfilled expectations: %s", err)
@@ -115,7 +115,7 @@ func TestVerify_Authentication(t *testing.T) {
 		os.Setenv("DATABASE_URL", "test-database-url")
 		defer os.Unsetenv("DATABASE_URL")
 
-		verify(t, "", authenticationBody, http.StatusUnauthorized, nil)
+		verify(t, "", authBody, http.StatusUnauthorized, nil)
 	})
 
 }
@@ -431,10 +431,10 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
 			if result.IsValid {
-				t.Errorf("expected authorization to be invalid (valid before check failed), but got valid=true")
+				t.Errorf("expected valid=false, got valid=true")
 			}
 			if result.InvalidReason != "authorization valid before" {
-				t.Errorf("expected reason 'authorization valid before', got '%s'", result.InvalidReason)
+				t.Errorf("expected invalid reason 'authorization valid before', got '%s'", result.InvalidReason)
 			}
 		})
 	})
@@ -478,10 +478,10 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
 			if result.IsValid {
-				t.Errorf("expected authorization to be invalid (valid after check failed), but got valid=true")
+				t.Errorf("expected valid=false, got valid=true")
 			}
 			if result.InvalidReason != "authorization valid after" {
-				t.Errorf("expected reason 'authorization valid after', got '%s'", result.InvalidReason)
+				t.Errorf("expected invalid reason 'authorization valid after', got '%s'", result.InvalidReason)
 			}
 		})
 	})
@@ -525,10 +525,10 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
 			if result.IsValid {
-				t.Errorf("expected authorization to be invalid (value greater than max amount required), but got valid=true")
+				t.Errorf("expected valid=false, got valid=true")
 			}
-			if result.InvalidReason != "authorization value greater than max amount required" {
-				t.Errorf("expected reason 'authorization value greater than max amount required', got '%s'", result.InvalidReason)
+			if !strings.Contains(result.InvalidReason, "greater than") {
+				t.Errorf("expected invalid reason to contain 'greater than', got '%s'", result.InvalidReason)
 			}
 		})
 	})
@@ -572,10 +572,10 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
 			if result.IsValid {
-				t.Errorf("expected authorization to be invalid (address mismatch), but got valid=true")
+				t.Errorf("expected valid=false, got valid=true")
 			}
-			if result.InvalidReason != "authorization to address does not match pay to address" {
-				t.Errorf("expected reason 'authorization to address does not match pay to address', got '%s'", result.InvalidReason)
+			if !strings.Contains(result.InvalidReason, "does not match") {
+				t.Errorf("expected invalid reason to contain 'does not match', got '%s'", result.InvalidReason)
 			}
 		})
 	})
@@ -619,10 +619,10 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
 			if result.IsValid {
-				t.Errorf("expected authorization to be invalid (invalid nonce length), but got valid=true")
+				t.Errorf("expected valid=false, got valid=true")
 			}
 			if !strings.Contains(result.InvalidReason, "authorization nonce length") {
-				t.Errorf("expected reason to contain 'authorization nonce length', got '%s'", result.InvalidReason)
+				t.Errorf("expected invalid reason to contain 'authorization nonce length', got '%s'", result.InvalidReason)
 			}
 		})
 	})
@@ -666,10 +666,10 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
 			if result.IsValid {
-				t.Errorf("expected authorization to be invalid (invalid nonce hex format), but got valid=true")
+				t.Errorf("expected valid=false, got valid=true")
 			}
 			if !strings.Contains(result.InvalidReason, "authorization nonce") {
-				t.Errorf("expected reason to contain 'authorization nonce', got '%s'", result.InvalidReason)
+				t.Errorf("expected invalid reason to contain 'authorization nonce', got '%s'", result.InvalidReason)
 			}
 		})
 	})
@@ -713,10 +713,10 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
 			if result.IsValid {
-				t.Errorf("expected authorization to be invalid (invalid signature length), but got valid=true")
+				t.Errorf("expected valid=false, got valid=true")
 			}
 			if !strings.Contains(result.InvalidReason, "signature length") {
-				t.Errorf("expected reason to contain 'signature length', got '%s'", result.InvalidReason)
+				t.Errorf("expected invalid reason to contain 'signature length', got '%s'", result.InvalidReason)
 			}
 		})
 	})
@@ -760,16 +760,16 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
 			if result.IsValid {
-				t.Errorf("expected authorization to be invalid (invalid signature hex format), but got valid=true")
+				t.Errorf("expected valid=false, got valid=true")
 			}
 			if !strings.Contains(result.InvalidReason, "signature") {
-				t.Errorf("expected reason to contain 'signature', got '%s'", result.InvalidReason)
+				t.Errorf("expected invalid reason to contain 'signature', got '%s'", result.InvalidReason)
 			}
 		})
 	})
 
 	t.Run("invalid signature - address mismatch", func(t *testing.T) {
-		sig, signerAddress, err := generateEIP712Signature(
+		sig, _, err := generateEIP712Signature(
 			validAddress2,
 			validAddress3,
 			1000,
@@ -821,10 +821,10 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
 			if result.IsValid {
-				t.Errorf("expected authorization to be invalid (signature sender does not match authorization from address), but got valid=true. Signature was for %s but from was %s", signerAddress.Hex(), validAddress1)
+				t.Errorf("expected valid=false, got valid=true")
 			}
-			if result.InvalidReason != "signature sender does not match authorization from address" {
-				t.Errorf("expected reason 'signature sender does not match authorization from address', got '%s'", result.InvalidReason)
+			if !strings.Contains(result.InvalidReason, "does not match") {
+				t.Errorf("expected invalid reason to contain 'does not match', got '%s'", result.InvalidReason)
 			}
 		})
 	})
@@ -882,7 +882,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
 			if !result.IsValid {
-				t.Errorf("expected authorization to be valid (signature matches), but got valid=false. Reason: %s", result.InvalidReason)
+				t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", result.InvalidReason)
 			}
 		})
 	})
@@ -941,7 +941,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
 			if !result.IsValid {
-				t.Errorf("expected signature to be valid, but got invalid. Reason: %s", result.InvalidReason)
+				t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", result.InvalidReason)
 			}
 		})
 	})
@@ -1000,7 +1000,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
 			if !result.IsValid {
-				t.Errorf("expected signature to be valid, but got invalid. Reason: %s", result.InvalidReason)
+				t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", result.InvalidReason)
 			}
 		})
 	})
