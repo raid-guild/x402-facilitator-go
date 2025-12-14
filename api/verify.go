@@ -99,7 +99,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				_, err = w.Write(resultBytes)
 				if err != nil {
 					// Header already written so we log the error
-					log.Fatalf("failed to write response: %v", err)
+					log.Printf("failed to write response: %v", err)
 				}
 
 				return
@@ -209,6 +209,14 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 		return VerifyResult{
 			IsValid:       false,
 			InvalidReason: "authorization value greater than max amount required",
+		}
+	}
+
+	// Verify authorization from is a valid address
+	if !common.IsHexAddress(p.Authorization.From) {
+		return VerifyResult{
+			IsValid:       false,
+			InvalidReason: "authorization from",
 		}
 	}
 
