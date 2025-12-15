@@ -373,7 +373,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 		}
 	}
 
-	// Validate that the signature is exactly 65 bytes (32 bytes r + 32 bytes s + 1 byte v)
+	// Verify the signature is exactly 65 bytes (32 bytes r + 32 bytes s + 1 byte v)
 	if len(signature) != 65 {
 		return VerifyResult{
 			IsValid:       false,
@@ -395,7 +395,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 		}
 	}
 
-	// Check public key format
+	// Check the public key format
 	var pubkeyBytes []byte
 	if len(pubkey) == 64 {
 		// Prepend 0x04 for uncompressed public key format
