@@ -562,6 +562,53 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		})
 	})
 
+	t.Run("authorization value negative", func(t *testing.T) {
+		body := `{
+			"x402Version": 1,
+			"paymentPayload": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"payload": {
+					"signature": "` + validSignature + `",
+					"authorization": {
+						"from": "` + validAddress1 + `",
+						"to": "` + validAddress2 + `",
+						"value": -1,
+						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+						"nonce": "` + validNonce + `"
+					}
+				}
+			},
+			"paymentRequirements": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"maxAmountRequired": 1000,
+				"asset": "` + validAddress3 + `",
+				"payTo": "` + validAddress2 + `",
+				"extra": {
+					"assetName": "Coin",
+					"assetVersion": "1"
+				}
+			}
+		}`
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var result struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &result); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if result.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if result.InvalidReason != "authorization value negative" {
+				t.Errorf("expected invalid reason 'authorization value negative', got '%s'", result.InvalidReason)
+			}
+		})
+	})
+
 	t.Run("authorization value exceeds requirements amount", func(t *testing.T) {
 		body := `{
 			"x402Version": 1,
@@ -652,6 +699,100 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			}
 			if result.InvalidReason != "authorization from" {
 				t.Errorf("expected invalid reason 'authorization from', got '%s'", result.InvalidReason)
+			}
+		})
+	})
+
+	t.Run("authorization to invalid", func(t *testing.T) {
+		body := `{
+			"x402Version": 1,
+			"paymentPayload": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"payload": {
+					"signature": "` + validSignature + `",
+					"authorization": {
+						"from": "` + validAddress1 + `",
+						"to": "invalid-address",
+						"value": 1000,
+						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+						"nonce": "` + validNonce + `"
+					}
+				}
+			},
+			"paymentRequirements": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"maxAmountRequired": 1000,
+				"asset": "` + validAddress3 + `",
+				"payTo": "` + validAddress2 + `",
+				"extra": {
+					"assetName": "Coin",
+					"assetVersion": "1"
+				}
+			}
+		}`
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var result struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &result); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if result.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if result.InvalidReason != "authorization to" {
+				t.Errorf("expected invalid reason 'authorization to', got '%s'", result.InvalidReason)
+			}
+		})
+	})
+
+	t.Run("requirements pay to invalid", func(t *testing.T) {
+		body := `{
+			"x402Version": 1,
+			"paymentPayload": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"payload": {
+					"signature": "` + validSignature + `",
+					"authorization": {
+						"from": "` + validAddress1 + `",
+						"to": "` + validAddress2 + `",
+						"value": 1000,
+						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+						"nonce": "` + validNonce + `"
+					}
+				}
+			},
+			"paymentRequirements": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"maxAmountRequired": 1000,
+				"asset": "` + validAddress3 + `",
+				"payTo": "invalid-address",
+				"extra": {
+					"assetName": "Coin",
+					"assetVersion": "1"
+				}
+			}
+		}`
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var result struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &result); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if result.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if result.InvalidReason != "requirements pay to" {
+				t.Errorf("expected invalid reason 'requirements pay to', got '%s'", result.InvalidReason)
 			}
 		})
 	})

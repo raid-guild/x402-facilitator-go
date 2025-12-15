@@ -204,6 +204,14 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 		}
 	}
 
+	// Verify the authorization value is non-negative
+	if p.Authorization.Value < 0 {
+		return VerifyResult{
+			IsValid:       false,
+			InvalidReason: "authorization value negative",
+		}
+	}
+
 	// Verify the authorization value does not exceed the maximum allowed amount
 	if p.Authorization.Value > r.MaxAmountRequired {
 		return VerifyResult{
@@ -217,6 +225,22 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 		return VerifyResult{
 			IsValid:       false,
 			InvalidReason: "authorization from",
+		}
+	}
+
+	// Verify authorization to is a valid address
+	if !common.IsHexAddress(p.Authorization.To) {
+		return VerifyResult{
+			IsValid:       false,
+			InvalidReason: "authorization to",
+		}
+	}
+
+	// Verify requirements pay to is a valid address
+	if !common.IsHexAddress(r.PayTo) {
+		return VerifyResult{
+			IsValid:       false,
+			InvalidReason: "requirements pay to",
 		}
 	}
 
