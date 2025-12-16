@@ -35,6 +35,28 @@ func setupMockDatabase(t *testing.T, dsnID string) (sqlmock.Sqlmock, string, fun
 	return mock, dsn, cleanup
 }
 
+func settle(t *testing.T, apiKey string, body string, expectedStatus int, checkResponse func(*testing.T, string)) {
+	t.Helper()
+
+	w := httptest.NewRecorder()
+
+	req := httptest.NewRequest("POST", "/settle", nil)
+	if apiKey != "" {
+		req.Header.Set("X-API-Key", apiKey)
+	}
+	req.Body = io.NopCloser(strings.NewReader(body))
+
+	handler.Settle(w, req)
+
+	if w.Code != expectedStatus {
+		t.Fatalf("expected status %d, got %d. Body: %s", expectedStatus, w.Code, w.Body.String())
+	}
+
+	if checkResponse != nil {
+		checkResponse(t, w.Body.String())
+	}
+}
+
 func verify(t *testing.T, apiKey string, body string, expectedStatus int, checkResponse func(*testing.T, string)) {
 	t.Helper()
 

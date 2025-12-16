@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -36,22 +35,19 @@ func TestVerify_Authentication(t *testing.T) {
 	})
 
 	t.Run("static api key required and valid api key provided", func(t *testing.T) {
-		os.Setenv("STATIC_API_KEY", "valid-api-key")
-		defer os.Unsetenv("STATIC_API_KEY")
+		t.Setenv("STATIC_API_KEY", "valid-api-key")
 
 		verify(t, "valid-api-key", body, http.StatusOK, nil)
 	})
 
 	t.Run("static api key required and invalid api key provided", func(t *testing.T) {
-		os.Setenv("STATIC_API_KEY", "valid-api-key")
-		defer os.Unsetenv("STATIC_API_KEY")
+		t.Setenv("STATIC_API_KEY", "valid-api-key")
 
 		verify(t, "invalid-api-key", body, http.StatusUnauthorized, nil)
 	})
 
 	t.Run("static api key required and no api key provided", func(t *testing.T) {
-		os.Setenv("STATIC_API_KEY", "valid-api-key")
-		defer os.Unsetenv("STATIC_API_KEY")
+		t.Setenv("STATIC_API_KEY", "valid-api-key")
 
 		verify(t, "", body, http.StatusUnauthorized, nil)
 	})
@@ -60,8 +56,7 @@ func TestVerify_Authentication(t *testing.T) {
 		mockDB, dsn, cleanup := setupMockDatabase(t, "verify-0")
 		defer cleanup()
 
-		os.Setenv("DATABASE_URL", dsn)
-		defer os.Unsetenv("DATABASE_URL")
+		t.Setenv("DATABASE_URL", dsn)
 
 		rows := sqlmock.NewRows([]string{"api_key"}).AddRow("valid-api-key")
 		mockDB.ExpectQuery("SELECT api_key FROM users WHERE api_key = \\$1").
@@ -79,8 +74,7 @@ func TestVerify_Authentication(t *testing.T) {
 		mockDB, dsn, cleanup := setupMockDatabase(t, "verify-1")
 		defer cleanup()
 
-		os.Setenv("DATABASE_URL", dsn)
-		defer os.Unsetenv("DATABASE_URL")
+		t.Setenv("DATABASE_URL", dsn)
 
 		mockDB.ExpectQuery("SELECT api_key FROM users WHERE api_key = \\$1").
 			WithArgs("invalid-api-key").
@@ -94,8 +88,7 @@ func TestVerify_Authentication(t *testing.T) {
 	})
 
 	t.Run("database api key required and no api key provided", func(t *testing.T) {
-		os.Setenv("DATABASE_URL", "test-database-url")
-		defer os.Unsetenv("DATABASE_URL")
+		t.Setenv("DATABASE_URL", "test-database-url")
 
 		verify(t, "", body, http.StatusUnauthorized, nil)
 	})
