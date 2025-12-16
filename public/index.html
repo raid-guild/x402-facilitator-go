@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>x402-facilitator-go</title>
+    <style>
+        body {
+            margin: 10vh 10vw;
+            line-height: 1.5;
+            font-family: monospace;
+        }
+        h2 {
+            margin-top: 2em;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 0.5em;
+        }
+        code {
+            display: block;
+            white-space: pre-wrap;
+            padding: 2em;
+            margin-bottom: 2em;
+            background-color: #fcfcfc;
+            border-radius: 0.5em;
+            border: 1px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <h1>x402-facilitator-go</h1>
+    <p>This is a deployed instance of the <a href="https://github.com/raid-guild/x402-facilitator-go" target="_blank">x402-facilitator-go</a> service brought to you by <a href="https://www.raidguild.org/" target="_blank">Raid Guild</a>.</p>
+    <p>You can use this service to verify and settle payments for x402 transactions.</p>
+    <h2>API Key</h2>
+    <p>Depending on the configuration, you may need to provide an API key to access the API endpoints.</p>
+    <p>If this instance requires an API key, you will need to include the API key in the <b>X-API-Key</b> header.</p>
+    <h2>API Endpoints</h2>
+    <ul>
+        <li><b>/api/verify</b> (may require API key)</li>
+        <li><b>/api/settle</b> (may require API key)</li>
+        <li><b>/api/supported</b> (no API key required)</li>
+    </ul>
+    <h2>Verify Examples</h2>
+    <p>An example request to the <b>/api/verify</b> endpoint (<b>with api key</b>):</p>
+    <code>
+        curl -X POST <span class="url"></span>api/verify \
+        -H "X-API-Key: your-api-key" \
+        -H "Content-Type: application/json" \
+        -d '{"x402Version": 1, "paymentPayload": {...}, "paymentRequirements": {...}}'
+    </code>
+    <p>An example request to the <b>/api/verify</b> endpoint (<b>without api key</b>):</p>
+    <code>
+        curl -X POST <span class="url"></span>api/verify \
+        -H "Content-Type: application/json" \
+        -d '{"x402Version": 1, "paymentPayload": {...}, "paymentRequirements": {...}}'
+    </code>
+    <p>An example response from the <b>/api/verify</b> endpoint (<b>valid</b>):</p>
+    <code>
+        {
+            "valid": true
+        }
+    </code>
+    <p>An example response from the <b>/api/verify</b> endpoint (<b>invalid</b>):</p>
+    <code>
+        {
+            "valid": false,
+            "reason": "signature sender does not match authorization from address"
+        }
+    </code>
+    <p>An example response from the <b>/api/verify</b> endpoint (<b>error</b>):</p>
+    <code>
+        {
+            "error": "unsupported payment network"
+        }
+    </code>
+    <h2>Settle Examples</h2>
+    <p>An example request to the <b>/api/settle</b> endpoint (<b>with api key</b>):</p>
+    <code>
+        curl -X POST <span class="url"></span>api/settle \
+        -H "X-API-Key: your-api-key" \
+        -H "X-PAYMENT: base64-encoded-payment-payload"
+    </code>
+    <p>An example request to the <b>/api/settle</b> endpoint (<b>without api key</b>):</p>
+    <code>
+        curl -X POST <span class="url"></span>api/settle \
+        -H "X-PAYMENT: base64-encoded-payment-payload"
+    </code>
+    <p>An example response from the <b>/api/settle</b> endpoint (<b>success</b>):</p>
+    <code>
+        {
+            "success": true,
+            "txHash": "0x..."
+        }
+    </code>
+    <p>An example response from the <b>/api/settle</b> endpoint (<b>error</b>):</p>
+    <code>
+        {
+            "error": "missing base64-encoded payment payload"
+        }
+    </code>
+    <h2>Supported Examples</h2>
+    <p>An example request to the <b>api/supported</b> endpoint:</p>
+    <code>
+        curl -X GET <span class="url"></span>api/supported
+    </code>
+    <p>An example response from the <b>api/supported</b> endpoint:</p>
+    <code>
+        {
+            "supported": [
+                {
+                    "version": 1,
+                    "scheme": "exact",
+                    "network": "sepolia"
+                }
+            ]
+        }
+    </code>
+    <h2>More Information</h2>
+    <p>To learn more about this service, please see the <a href="https://github.com/raid-guild/x402-facilitator-go" target="_blank">x402-facilitator-go</a> repository.</p>
+    <script>
+        document.querySelectorAll(".url").forEach(e => e.innerHTML = window.location.origin + '/');
+        document.querySelectorAll("code").forEach(code => {
+            var lines = code.textContent.split('\n');
+            var matches = lines.find(line => line.trim())?.match(/^[\s\t]+/);
+            if (matches) {
+                var indentation = matches[0];
+                code.textContent = lines.map(line => line.replace(indentation, '')).join('\n').trim();
+            }
+        });
+    </script>
+</body>
+</html>
