@@ -141,8 +141,9 @@ var NewEthClient = func(rpcURL string) (EthClientInterface, error) {
 
 func settleV1ExactSepolia(p PaymentPayload, r PaymentRequirements) SettleResult {
 
-	// Create the context for network operations
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second) // TODO: r.MaxTimeoutSeconds
+	// Create the context for network operations with timeout
+	timeout := time.Duration(r.MaxTimeoutSeconds) * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	// Set the chain ID
@@ -318,6 +319,17 @@ func settleV1ExactSepolia(p PaymentPayload, r PaymentRequirements) SettleResult 
 		return SettleResult{
 			Success:     false,
 			ErrorReason: fmt.Sprintf("failed to estimate gas: %v", err),
+		}
+	}
+
+	// Add 20% buffer to the gas estimate for safety
+	gasLimit = gasLimit * 120 / 100
+
+	// Ensure gas limit does not exceed the allowed gas limit
+	if r.Extra.GasLimit > 0 && gasLimit > r.Extra.GasLimit {
+		return SettleResult{
+			Success:     false,
+			ErrorReason: fmt.Sprintf("estimated gas (%d) exceeds maximum allowed (%d)", gasLimit, r.Extra.GasLimit),
 		}
 	}
 

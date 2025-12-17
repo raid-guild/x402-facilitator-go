@@ -130,6 +130,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -149,6 +150,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -227,6 +229,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -260,6 +263,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 				"scheme": "other",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -293,6 +297,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "other",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -326,6 +331,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -374,6 +380,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -423,6 +430,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -472,6 +480,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
