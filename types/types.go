@@ -26,7 +26,7 @@ type Payload struct {
 type Authorization struct {
 	From        string `json:"from"`
 	To          string `json:"to"`
-	Value       int64  `json:"value"`
+	Value       string `json:"value"`
 	ValidAfter  int64  `json:"validAfter"`
 	ValidBefore int64  `json:"validBefore"`
 	Nonce       string `json:"nonce"`
@@ -36,7 +36,7 @@ type Authorization struct {
 type PaymentRequirements struct {
 	Scheme            Scheme  `json:"scheme"`
 	Network           Network `json:"network"`
-	MaxAmountRequired int64   `json:"maxAmountRequired"`
+	MaxAmountRequired string  `json:"maxAmountRequired"`
 	MaxTimeoutSeconds int64   `json:"maxTimeoutSeconds"`
 	Asset             string  `json:"asset"`
 	PayTo             string  `json:"payTo"`

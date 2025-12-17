@@ -82,7 +82,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 			if paymentPayload.Network == types.NetworkSepolia {
 
 				// Settle the payment by sending a transaction on the Sepolia test network
-				response := settleV1ExactSepolia(paymentPayload, paymentRequirements)
+				response := settleV1ExactSepolia(paymentPayload.Payload, paymentRequirements)
 
 				// Marshal the response to JSON
 				responseBytes, err := json.Marshal(response)
@@ -122,7 +122,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Unsupported x402 version", http.StatusNotImplemented)
 }
 
-func settleV1ExactSepolia(p types.PaymentPayload, r types.PaymentRequirements) SettleResponse {
+func settleV1ExactSepolia(p types.Payload, r types.PaymentRequirements) SettleResponse {
 
 	// Create the context for network operations with timeout
 	timeout := time.Duration(r.MaxTimeoutSeconds) * time.Second
@@ -163,8 +163,18 @@ func settleV1ExactSepolia(p types.PaymentPayload, r types.PaymentRequirements) S
 		}
 	}
 
+	// Convert the authorization value from string to big.Int
+	authValue := new(big.Int)
+	_, ok := authValue.SetString(p.Authorization.Value, 10)
+	if !ok {
+		return SettleResponse{
+			Success:     false,
+			ErrorReason: fmt.Sprintf("failed to parse authorization value: %s", p.Authorization.Value),
+		}
+	}
+
 	// Extract the authorization nonce from the payment payload
-	authNonceHex := strings.TrimPrefix(p.Payload.Authorization.Nonce, "0x")
+	authNonceHex := strings.TrimPrefix(p.Authorization.Nonce, "0x")
 
 	// Decode the authorization nonce from hex to bytes
 	authNonceBytes, err := hex.DecodeString(authNonceHex)
@@ -180,7 +190,7 @@ func settleV1ExactSepolia(p types.PaymentPayload, r types.PaymentRequirements) S
 	copy(authNonce[:], authNonceBytes)
 
 	// Parse the authorization signature from the payment payload
-	authSignature, err := common.ParseHexOrString(p.Payload.Signature)
+	authSignature, err := common.ParseHexOrString(p.Signature)
 	if err != nil {
 		return SettleResponse{
 			Success:     false,
@@ -203,11 +213,11 @@ func settleV1ExactSepolia(p types.PaymentPayload, r types.PaymentRequirements) S
 	// Pack the function call data
 	txData, err := contractABI.Pack(
 		"transferWithAuthorization",
-		common.HexToAddress(p.Payload.Authorization.From),
-		common.HexToAddress(p.Payload.Authorization.To),
-		big.NewInt(p.Payload.Authorization.Value),
-		big.NewInt(p.Payload.Authorization.ValidAfter),
-		big.NewInt(p.Payload.Authorization.ValidBefore),
+		common.HexToAddress(p.Authorization.From),
+		common.HexToAddress(p.Authorization.To),
+		authValue,
+		big.NewInt(p.Authorization.ValidAfter),
+		big.NewInt(p.Authorization.ValidBefore),
 		authNonce,
 		authSignatureV,
 		authSignatureR,

@@ -86,7 +86,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 		if paymentPayload.Scheme == types.SchemeExact {
 
 			// Check the payment network
-			if paymentPayload.Network == "sepolia" {
+			if paymentPayload.Network == types.NetworkSepolia {
 
 				// Verify the payment that will be settled on the Sepolia test network
 				response := verifyV1ExactSepolia(paymentPayload.Payload, paymentRequirements)
@@ -159,16 +159,36 @@ func verifyV1ExactSepolia(p types.Payload, r types.PaymentRequirements) VerifyRe
 		}
 	}
 
+	// Convert the authorization value from string to big.Int
+	authValue := new(big.Int)
+	_, ok := authValue.SetString(p.Authorization.Value, 10)
+	if !ok {
+		return VerifyResponse{
+			IsValid:       false,
+			InvalidReason: fmt.Sprintf("failed to parse authorization value: %s", p.Authorization.Value),
+		}
+	}
+
 	// Verify the authorization value is non-negative
-	if p.Authorization.Value < 0 {
+	if authValue.Cmp(big.NewInt(0)) < 0 {
 		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "authorization value negative",
 		}
 	}
 
+	// Convert the max amount required from string to big.Int
+	maxAmount := new(big.Int)
+	_, ok = maxAmount.SetString(r.MaxAmountRequired, 10)
+	if !ok {
+		return VerifyResponse{
+			IsValid:       false,
+			InvalidReason: fmt.Sprintf("failed to parse max amount required: %s", r.MaxAmountRequired),
+		}
+	}
+
 	// Verify the authorization value does not exceed the maximum allowed amount
-	if p.Authorization.Value > r.MaxAmountRequired {
+	if authValue.Cmp(maxAmount) > 0 {
 		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "authorization value greater than max amount required",
@@ -322,7 +342,7 @@ func verifyV1ExactSepolia(p types.Payload, r types.PaymentRequirements) VerifyRe
 		Message: apitypes.TypedDataMessage{
 			"from":        p.Authorization.From,
 			"to":          p.Authorization.To,
-			"value":       big.NewInt(p.Authorization.Value),
+			"value":       authValue,
 			"validAfter":  big.NewInt(p.Authorization.ValidAfter),
 			"validBefore": big.NewInt(p.Authorization.ValidBefore),
 			"nonce":       nonce,
