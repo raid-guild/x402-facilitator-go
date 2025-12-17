@@ -17,8 +17,15 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 
 	"github.com/raid-guild/x402-facilitator-go/auth"
+	"github.com/raid-guild/x402-facilitator-go/types"
 	"github.com/raid-guild/x402-facilitator-go/utils"
 )
+
+// VerifyResponse is the response of the verification.
+type VerifyResponse struct {
+	IsValid       bool   `json:"isValid"`
+	InvalidReason string `json:"invalidReason"`
+}
 
 // Verify is the handler function called by Vercel.
 func Verify(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +44,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Decode the request body
-	var requestBody RequestBody
+	var requestBody types.RequestBody
 	err = json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -45,10 +52,10 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check the x402 version
-	if requestBody.X402Version == 1 {
+	if requestBody.X402Version == types.X402Version1 {
 
 		// Unmarshal the payment payload
-		paymentPayload := PaymentPayload{}
+		var paymentPayload types.PaymentPayload
 		err = json.Unmarshal(requestBody.PaymentPayload, &paymentPayload)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to unmarshal payment payload: %v", err), http.StatusBadRequest)
@@ -56,7 +63,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Unmarshal the payment requirements
-		paymentRequirements := PaymentRequirements{}
+		var paymentRequirements types.PaymentRequirements
 		err = json.Unmarshal(requestBody.PaymentRequirements, &paymentRequirements)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to unmarshal payment requirements: %v", err), http.StatusBadRequest)
@@ -76,7 +83,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Check the payment scheme
-		if paymentPayload.Scheme == "exact" {
+		if paymentPayload.Scheme == types.SchemeExact {
 
 			// Check the payment network
 			if paymentPayload.Network == "sepolia" {
@@ -122,67 +129,13 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Unsupported x402 version", http.StatusNotImplemented)
 }
 
-// RequestBody is the request body.
-type RequestBody struct {
-	X402Version         int             `json:"x402Version"`
-	PaymentPayload      json.RawMessage `json:"paymentPayload"`
-	PaymentRequirements json.RawMessage `json:"paymentRequirements"`
-}
-
-// PaymentPayload is the payment payload.
-type PaymentPayload struct {
-	Scheme  string  `json:"scheme"`
-	Network string  `json:"network"`
-	Payload Payload `json:"payload"`
-}
-
-// Payload is the payload for the payment.
-type Payload struct {
-	Signature     string        `json:"signature"`
-	Authorization Authorization `json:"authorization"`
-}
-
-// Authorization is the authorization for the payment.
-type Authorization struct {
-	From        string `json:"from"`
-	To          string `json:"to"`
-	Value       int64  `json:"value"`
-	ValidAfter  int64  `json:"validAfter"`
-	ValidBefore int64  `json:"validBefore"`
-	Nonce       string `json:"nonce"`
-}
-
-// PaymentRequirements is the payment requirements.
-type PaymentRequirements struct {
-	Scheme            string `json:"scheme"`
-	Network           string `json:"network"`
-	MaxAmountRequired int64  `json:"maxAmountRequired"`
-	MaxTimeoutSeconds int64  `json:"maxTimeoutSeconds"`
-	Asset             string `json:"asset"`
-	PayTo             string `json:"payTo"`
-	Extra             Extra  `json:"extra"`
-}
-
-// Extra is the extra for the payment requirements.
-type Extra struct {
-	Name     string `json:"assetName"`
-	Version  string `json:"assetVersion"`
-	GasLimit uint64 `json:"gasLimit"`
-}
-
-// VerifyResult is the result of the verification.
-type VerifyResult struct {
-	IsValid       bool   `json:"isValid"`
-	InvalidReason string `json:"invalidReason"`
-}
-
-func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
+func verifyV1ExactSepolia(p types.Payload, r types.PaymentRequirements) VerifyResponse {
 
 	now := time.Now()
 
 	// Verify the authorization time window is valid
 	if p.Authorization.ValidAfter >= p.Authorization.ValidBefore {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "authorization time window",
 		}
@@ -191,7 +144,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 	// Verify the authorization valid after time is in the past
 	validAfter := time.Unix(p.Authorization.ValidAfter, 0)
 	if !now.After(validAfter) {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "authorization valid after",
 		}
@@ -200,7 +153,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 	// Verify the authorization valid before time is in the future
 	validBefore := time.Unix(p.Authorization.ValidBefore, 0)
 	if !now.Before(validBefore) {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "authorization valid before",
 		}
@@ -208,7 +161,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 
 	// Verify the authorization value is non-negative
 	if p.Authorization.Value < 0 {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "authorization value negative",
 		}
@@ -216,7 +169,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 
 	// Verify the authorization value does not exceed the maximum allowed amount
 	if p.Authorization.Value > r.MaxAmountRequired {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "authorization value greater than max amount required",
 		}
@@ -224,7 +177,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 
 	// Verify the requirements max timeout seconds is positive
 	if r.MaxTimeoutSeconds <= 0 {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "requirements max timeout seconds",
 		}
@@ -232,7 +185,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 
 	// Verify authorization from is a valid address
 	if !common.IsHexAddress(p.Authorization.From) {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "authorization from",
 		}
@@ -240,7 +193,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 
 	// Verify authorization to is a valid address
 	if !common.IsHexAddress(p.Authorization.To) {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "authorization to",
 		}
@@ -248,7 +201,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 
 	// Verify requirements pay to is a valid address
 	if !common.IsHexAddress(r.PayTo) {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "requirements pay to",
 		}
@@ -256,7 +209,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 
 	// Verify the authorization to address matches the required pay to address
 	if common.HexToAddress(p.Authorization.To) != common.HexToAddress(r.PayTo) {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "authorization to address does not match pay to address",
 		}
@@ -265,7 +218,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 	// Decode the nonce from hex to bytes
 	nonceBytes, err := hex.DecodeString(strings.TrimPrefix(p.Authorization.Nonce, "0x"))
 	if err != nil {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: fmt.Sprintf("authorization nonce: %v", err),
 		}
@@ -273,7 +226,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 
 	// Validate the nonce is exactly 32 bytes
 	if len(nonceBytes) != 32 {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: fmt.Sprintf("authorization nonce length: %v", len(nonceBytes)),
 		}
@@ -281,7 +234,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 
 	// Verify requirements asset is a valid address
 	if !common.IsHexAddress(r.Asset) {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "requirements asset",
 		}
@@ -289,7 +242,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 
 	// Verify requirements extra name is not empty
 	if r.Extra.Name == "" {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "requirements extra name",
 		}
@@ -297,7 +250,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 
 	// Verify requirements extra version is not empty
 	if r.Extra.Version == "" {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "requirements extra version",
 		}
@@ -379,7 +332,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 	// Compute the domain hash
 	domainSeparator, err := typedData.HashStruct("EIP712Domain", typedData.Domain.Map())
 	if err != nil {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: fmt.Sprintf("hashed domain: %v", err),
 		}
@@ -388,7 +341,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 	// Compute the message hash
 	typedDataHash, err := typedData.HashStruct(typedData.PrimaryType, typedData.Message)
 	if err != nil {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: fmt.Sprintf("hashed message: %v", err),
 		}
@@ -401,7 +354,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 	// Parse the payload signature
 	signature, err := common.ParseHexOrString(p.Signature)
 	if err != nil {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: fmt.Sprintf("signature: %v", err),
 		}
@@ -409,7 +362,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 
 	// Verify the signature is exactly 65 bytes (32 bytes r + 32 bytes s + 1 byte v)
 	if len(signature) != 65 {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: fmt.Sprintf("signature length: %v", len(signature)),
 		}
@@ -423,7 +376,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 	// Recover the public key
 	pubkey, err := crypto.Ecrecover(sighash, signature)
 	if err != nil {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: fmt.Sprintf("signature hash: %v", err),
 		}
@@ -438,7 +391,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 		// Already in correct format
 		pubkeyBytes = pubkey
 	} else {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: fmt.Sprintf("signature pubkey length: %v", len(pubkey)),
 		}
@@ -447,7 +400,7 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 	// Unmarshal the public key
 	recoveredPubkey, err := crypto.UnmarshalPubkey(pubkeyBytes)
 	if err != nil {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: fmt.Sprintf("signature pubkey: %v", err),
 		}
@@ -458,12 +411,12 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 
 	// Verify the sender matches the authorization from
 	if sender != common.HexToAddress(p.Authorization.From) {
-		return VerifyResult{
+		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "signature sender does not match authorization from address",
 		}
 	}
 
 	// Return verify result valid
-	return VerifyResult{IsValid: true}
+	return VerifyResponse{IsValid: true}
 }
