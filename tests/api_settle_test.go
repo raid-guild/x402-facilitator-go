@@ -129,7 +129,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 			"paymentRequirements": {
 				"scheme": "exact",
 				"network": "sepolia",
-				"maxAmountRequired": 1000,
+				"maxAmountRequired": "1000",
 				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
@@ -149,7 +149,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 			"paymentRequirements": {
 				"scheme": "exact",
 				"network": "sepolia",
-				"maxAmountRequired": 1000,
+				"maxAmountRequired": "1000",
 				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
@@ -173,7 +173,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 					"authorization": {
 						"from": "` + validAddress1 + `",
 						"to": "` + validAddress2 + `",
-						"value": 1000,
+						"value": "1000",
 						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
 						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
 						"nonce": "` + validNonce + `"
@@ -195,7 +195,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 					"authorization": {
 						"from": "` + validAddress1 + `",
 						"to": "` + validAddress2 + `",
-						"value": 1000,
+						"value": "1000",
 						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
 						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
 						"nonce": "` + validNonce + `"
@@ -218,7 +218,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 					"authorization": {
 						"from": "` + validAddress1 + `",
 						"to": "` + validAddress2 + `",
-						"value": 1000,
+						"value": "1000",
 						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
 						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
 						"nonce": "` + validNonce + `"
@@ -228,7 +228,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 			"paymentRequirements": {
 				"scheme": "exact",
 				"network": "sepolia",
-				"maxAmountRequired": 1000,
+				"maxAmountRequired": "1000",
 				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
@@ -252,7 +252,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 					"authorization": {
 						"from": "` + validAddress1 + `",
 						"to": "` + validAddress2 + `",
-						"value": 1000,
+						"value": "1000",
 						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
 						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
 						"nonce": "` + validNonce + `"
@@ -262,7 +262,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 			"paymentRequirements": {
 				"scheme": "other",
 				"network": "sepolia",
-				"maxAmountRequired": 1000,
+				"maxAmountRequired": "1000",
 				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
@@ -286,7 +286,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 					"authorization": {
 						"from": "` + validAddress1 + `",
 						"to": "` + validAddress2 + `",
-						"value": 1000,
+						"value": "1000",
 						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
 						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
 						"nonce": "` + validNonce + `"
@@ -296,7 +296,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 			"paymentRequirements": {
 				"scheme": "exact",
 				"network": "other",
-				"maxAmountRequired": 1000,
+				"maxAmountRequired": "1000",
 				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
@@ -320,7 +320,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 					"authorization": {
 						"from": "` + validAddress1 + `",
 						"to": "` + validAddress2 + `",
-						"value": 1000,
+						"value": "1000",
 						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
 						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
 						"nonce": "` + validNonce + `"
@@ -330,7 +330,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 			"paymentRequirements": {
 				"scheme": "exact",
 				"network": "sepolia",
-				"maxAmountRequired": 1000,
+				"maxAmountRequired": "1000",
 				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
@@ -341,18 +341,18 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 			}
 		}`
 		settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var result struct {
+			var response struct {
 				Success     bool   `json:"success"`
 				ErrorReason string `json:"errorReason"`
 			}
-			if err := json.Unmarshal([]byte(body), &result); err != nil {
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
-			if result.Success {
+			if response.Success {
 				t.Errorf("expected success=false, got success=true")
 			}
-			if result.ErrorReason != "RPC_URL_SEPOLIA environment variable is not set" {
-				t.Errorf("expected error reason 'RPC_URL_SEPOLIA environment variable is not set', got '%s'", result.ErrorReason)
+			if response.ErrorReason != "RPC_URL_SEPOLIA environment variable is not set" {
+				t.Errorf("expected error reason 'RPC_URL_SEPOLIA environment variable is not set', got '%s'", response.ErrorReason)
 			}
 		})
 	})
@@ -369,7 +369,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 					"authorization": {
 						"from": "` + validAddress1 + `",
 						"to": "` + validAddress2 + `",
-						"value": 1000,
+						"value": "1000",
 						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
 						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
 						"nonce": "` + validNonce + `"
@@ -379,7 +379,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 			"paymentRequirements": {
 				"scheme": "exact",
 				"network": "sepolia",
-				"maxAmountRequired": 1000,
+				"maxAmountRequired": "1000",
 				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
@@ -390,18 +390,18 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 			}
 		}`
 		settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var result struct {
+			var response struct {
 				Success     bool   `json:"success"`
 				ErrorReason string `json:"errorReason"`
 			}
-			if err := json.Unmarshal([]byte(body), &result); err != nil {
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
-			if result.Success {
+			if response.Success {
 				t.Errorf("expected success=false, got success=true")
 			}
-			if result.ErrorReason != "PRIVATE_KEY environment variable is not set" {
-				t.Errorf("expected error reason 'PRIVATE_KEY environment variable is not set', got '%s'", result.ErrorReason)
+			if response.ErrorReason != "PRIVATE_KEY environment variable is not set" {
+				t.Errorf("expected error reason 'PRIVATE_KEY environment variable is not set', got '%s'", response.ErrorReason)
 			}
 		})
 	})
@@ -419,7 +419,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 					"authorization": {
 						"from": "` + validAddress1 + `",
 						"to": "` + validAddress2 + `",
-						"value": 1000,
+						"value": "1000",
 						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
 						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
 						"nonce": "` + validNonce + `"
@@ -429,7 +429,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 			"paymentRequirements": {
 				"scheme": "exact",
 				"network": "sepolia",
-				"maxAmountRequired": 1000,
+				"maxAmountRequired": "1000",
 				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
@@ -440,18 +440,18 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 			}
 		}`
 		settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var result struct {
+			var response struct {
 				Success     bool   `json:"success"`
 				ErrorReason string `json:"errorReason"`
 			}
-			if err := json.Unmarshal([]byte(body), &result); err != nil {
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
-			if result.Success {
+			if response.Success {
 				t.Errorf("expected success=false, got success=true")
 			}
-			if !strings.Contains(result.ErrorReason, "failed to parse facilitator private key") {
-				t.Errorf("expected error reason to contain 'failed to parse facilitator private key', got '%s'", result.ErrorReason)
+			if !strings.Contains(response.ErrorReason, "failed to parse facilitator private key") {
+				t.Errorf("expected error reason to contain 'failed to parse facilitator private key', got '%s'", response.ErrorReason)
 			}
 		})
 	})
@@ -469,7 +469,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 					"authorization": {
 						"from": "` + validAddress1 + `",
 						"to": "` + validAddress2 + `",
-						"value": 1000,
+						"value": "1000",
 						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
 						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
 						"nonce": "` + validNonce + `"
@@ -479,7 +479,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 			"paymentRequirements": {
 				"scheme": "exact",
 				"network": "sepolia",
-				"maxAmountRequired": 1000,
+				"maxAmountRequired": "1000",
 				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
@@ -490,18 +490,18 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 			}
 		}`
 		settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var result struct {
-				Success bool   `json:"success"`
-				TxHash  string `json:"txHash"`
+			var response struct {
+				Success     bool   `json:"success"`
+				Transaction string `json:"transaction"`
 			}
-			if err := json.Unmarshal([]byte(body), &result); err != nil {
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
 				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 			}
-			if !result.Success {
+			if !response.Success {
 				t.Errorf("expected success=true, got success=false")
 			}
-			if result.TxHash == "" {
-				t.Errorf("expected tx hash to be set, got '%s'", result.TxHash)
+			if response.Transaction == "" {
+				t.Errorf("expected tx hash to be set, got '%s'", response.Transaction)
 			}
 		})
 	})

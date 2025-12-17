@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 
 	handler "github.com/raid-guild/x402-facilitator-go/api"
+	"github.com/raid-guild/x402-facilitator-go/clients"
 )
 
 var registerMockDriverOnce sync.Once
@@ -44,9 +45,9 @@ func setupMockDatabase(t *testing.T, dsnID string) (sqlmock.Sqlmock, string, fun
 func setupMockEthClient(t *testing.T) {
 	t.Helper()
 
-	originalNewEthClient := handler.NewEthClient
+	originalNewEthClient := clients.NewEthClient
 	t.Cleanup(func() {
-		handler.NewEthClient = originalNewEthClient
+		clients.NewEthClient = originalNewEthClient
 	})
 
 	client := &mockEthClient{
@@ -69,7 +70,7 @@ func setupMockEthClient(t *testing.T) {
 		},
 	}
 
-	handler.NewEthClient = func(rpcURL string) (handler.EthClientInterface, error) {
+	clients.NewEthClient = func(rpcURL string) (clients.EthClientInterface, error) {
 		return client, nil
 	}
 }
