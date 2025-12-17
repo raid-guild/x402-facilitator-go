@@ -82,10 +82,10 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 			if paymentPayload.Network == types.NetworkSepolia {
 
 				// Settle the payment by sending a transaction on the Sepolia test network
-				result := settleV1ExactSepolia(paymentPayload, paymentRequirements)
+				response := settleV1ExactSepolia(paymentPayload, paymentRequirements)
 
-				// Marshal the result to JSON
-				resultBytes, err := json.Marshal(result)
+				// Marshal the response to JSON
+				responseBytes, err := json.Marshal(response)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
@@ -95,8 +95,8 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
 
-				// Write the result to the response body
-				_, err = w.Write(resultBytes)
+				// Write the response to the response body
+				_, err = w.Write(responseBytes)
 				if err != nil {
 					// Header already written so we log the error
 					log.Printf("failed to write response: %v", err)
@@ -349,7 +349,7 @@ func settleV1ExactSepolia(p types.PaymentPayload, r types.PaymentRequirements) S
 		}
 	}
 
-	// Return the settle result
+	// Return the settle response
 	return SettleResponse{
 		Success:     true,
 		Transaction: signedTx.Hash().Hex(),

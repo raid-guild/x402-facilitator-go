@@ -89,10 +89,10 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 			if paymentPayload.Network == "sepolia" {
 
 				// Verify the payment that will be settled on the Sepolia test network
-				result := verifyV1ExactSepolia(paymentPayload.Payload, paymentRequirements)
+				response := verifyV1ExactSepolia(paymentPayload.Payload, paymentRequirements)
 
-				// Marshal the result to JSON
-				resultBytes, err := json.Marshal(result)
+				// Marshal the response to JSON
+				responseBytes, err := json.Marshal(response)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
@@ -102,8 +102,8 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
 
-				// Write the result to the response body
-				_, err = w.Write(resultBytes)
+				// Write the response to the response body
+				_, err = w.Write(responseBytes)
 				if err != nil {
 					// Header already written so we log the error
 					log.Printf("failed to write response: %v", err)
@@ -417,6 +417,6 @@ func verifyV1ExactSepolia(p types.Payload, r types.PaymentRequirements) VerifyRe
 		}
 	}
 
-	// Return verify result valid
+	// Return verify response valid
 	return VerifyResponse{IsValid: true}
 }
