@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -141,7 +142,8 @@ var NewEthClient = func(rpcURL string) (EthClientInterface, error) {
 func settleV1ExactSepolia(p PaymentPayload, r PaymentRequirements) SettleResult {
 
 	// Create the context for network operations
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second) // TODO: r.MaxTimeoutSeconds
+	defer cancel()
 
 	// Set the chain ID
 	chainID := big.NewInt(11155111) // Sepolia chain ID
@@ -209,9 +211,9 @@ func settleV1ExactSepolia(p PaymentPayload, r PaymentRequirements) SettleResult 
 	copy(authSignatureS[:], authSignature[32:64])
 	authSignatureV := authSignature[64]
 
-	// Convert the V value if necessary (27/28 → 0/1)
-	if authSignatureV == 27 || authSignatureV == 28 {
-		authSignatureV -= 27
+	// Convert the V value of the signature if necessary (0/1 → 27/28)
+	if authSignatureV == 0 || authSignatureV == 1 {
+		authSignatureV += 27
 	}
 
 	// Pack the function call data
@@ -308,6 +310,7 @@ func settleV1ExactSepolia(p PaymentPayload, r PaymentRequirements) SettleResult 
 
 	// Get the estimated gas limit to set the gas amount
 	gasLimit, err := client.EstimateGas(ctx, ethereum.CallMsg{
+		From: facilitatorAddress,
 		To:   &contractAddress,
 		Data: txData,
 	})

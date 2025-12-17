@@ -44,6 +44,11 @@ func setupMockDatabase(t *testing.T, dsnID string) (sqlmock.Sqlmock, string, fun
 func setupMockEthClient(t *testing.T) {
 	t.Helper()
 
+	originalNewEthClient := handler.NewEthClient
+	t.Cleanup(func() {
+		handler.NewEthClient = originalNewEthClient
+	})
+
 	client := &mockEthClient{
 		pendingNonceAt: func(ctx context.Context, account common.Address) (uint64, error) {
 			return 1, nil

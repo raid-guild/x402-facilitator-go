@@ -117,7 +117,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 	validSignature := "0x" + strings.Repeat("00", 65)
 
 	privateKey, _ := crypto.GenerateKey()
-	privateKeyHex := "0x" + hex.EncodeToString(privateKey.D.Bytes())
+	privateKeyHex := "0x" + hex.EncodeToString(crypto.FromECDSA(privateKey))
 
 	t.Run("invalid body JSON", func(t *testing.T) {
 		settle(t, "", `{invalid json}`, http.StatusBadRequest, nil)
