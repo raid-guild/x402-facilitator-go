@@ -1,13 +1,16 @@
 package tests
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strings"
 
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 )
@@ -148,4 +151,49 @@ func generateEIP712SignatureWithLegacyV(
 		desiredRecoveryID,
 		maxAttempts,
 	)
+}
+
+type mockEthClient struct {
+	pendingNonceAt   func(ctx context.Context, account common.Address) (uint64, error)
+	suggestGasTipCap func(ctx context.Context) (*big.Int, error)
+	headerByNumber   func(ctx context.Context, number *big.Int) (*types.Header, error)
+	estimateGas      func(ctx context.Context, msg ethereum.CallMsg) (uint64, error)
+	sendTransaction  func(ctx context.Context, tx *types.Transaction) error
+}
+
+func (m *mockEthClient) PendingNonceAt(ctx context.Context, account common.Address) (uint64, error) {
+	if m.pendingNonceAt != nil {
+		return m.pendingNonceAt(ctx, account)
+	}
+	return 0, nil
+}
+
+func (m *mockEthClient) SuggestGasTipCap(ctx context.Context) (*big.Int, error) {
+	if m.suggestGasTipCap != nil {
+		return m.suggestGasTipCap(ctx)
+	}
+	return big.NewInt(1000000000), nil
+}
+
+func (m *mockEthClient) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
+	if m.headerByNumber != nil {
+		return m.headerByNumber(ctx, number)
+	}
+	return &types.Header{
+		BaseFee: big.NewInt(20000000000),
+	}, nil
+}
+
+func (m *mockEthClient) EstimateGas(ctx context.Context, msg ethereum.CallMsg) (uint64, error) {
+	if m.estimateGas != nil {
+		return m.estimateGas(ctx, msg)
+	}
+	return 21000, nil
+}
+
+func (m *mockEthClient) SendTransaction(ctx context.Context, tx *types.Transaction) error {
+	if m.sendTransaction != nil {
+		return m.sendTransaction(ctx, tx)
+	}
+	return nil
 }
