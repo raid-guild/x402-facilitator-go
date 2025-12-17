@@ -1,14 +1,20 @@
 package tests
 
 import (
+	"context"
 	"database/sql"
 	"io"
+	"math/big"
 	"net/http/httptest"
 	"strings"
 	"sync"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+
 	handler "github.com/raid-guild/x402-facilitator-go/api"
 )
 
@@ -33,6 +39,39 @@ func setupMockDatabase(t *testing.T, dsnID string) (sqlmock.Sqlmock, string, fun
 	}
 
 	return mock, dsn, cleanup
+}
+
+func setupMockEthClient(t *testing.T) {
+	t.Helper()
+
+	originalNewEthClient := handler.NewEthClient
+	t.Cleanup(func() {
+		handler.NewEthClient = originalNewEthClient
+	})
+
+	client := &mockEthClient{
+		pendingNonceAt: func(ctx context.Context, account common.Address) (uint64, error) {
+			return 1, nil
+		},
+		suggestGasTipCap: func(ctx context.Context) (*big.Int, error) {
+			return big.NewInt(2000000000), nil
+		},
+		headerByNumber: func(ctx context.Context, number *big.Int) (*types.Header, error) {
+			return &types.Header{
+				BaseFee: big.NewInt(30000000000),
+			}, nil
+		},
+		estimateGas: func(ctx context.Context, msg ethereum.CallMsg) (uint64, error) {
+			return 50000, nil
+		},
+		sendTransaction: func(ctx context.Context, tx *types.Transaction) error {
+			return nil
+		},
+	}
+
+	handler.NewEthClient = func(rpcURL string) (handler.EthClientInterface, error) {
+		return client, nil
+	}
 }
 
 func settle(t *testing.T, apiKey string, body string, expectedStatus int, checkResponse func(*testing.T, string)) {

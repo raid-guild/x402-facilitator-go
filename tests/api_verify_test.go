@@ -127,6 +127,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -146,6 +147,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -224,6 +226,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -257,6 +260,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "other",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -290,6 +294,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "other",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -323,6 +328,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "other",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -356,6 +362,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "other",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -389,6 +396,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -436,6 +444,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -483,6 +492,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -530,6 +540,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -577,6 +588,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -624,6 +636,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -645,6 +658,101 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			}
 			if !strings.Contains(result.InvalidReason, "greater than") {
 				t.Errorf("expected invalid reason to contain 'greater than', got '%s'", result.InvalidReason)
+			}
+		})
+	})
+
+	t.Run("requirements max timeout seconds missing", func(t *testing.T) {
+		body := `{
+			"x402Version": 1,
+			"paymentPayload": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"payload": {
+					"signature": "` + validSignature + `",
+					"authorization": {
+						"from": "invalid-address",
+						"to": "` + validAddress2 + `",
+						"value": 1000,
+						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+						"nonce": "` + validNonce + `"
+					}
+				}
+			},
+			"paymentRequirements": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"maxAmountRequired": 1000,
+				"asset": "` + validAddress3 + `",
+				"payTo": "` + validAddress2 + `",
+				"extra": {
+					"assetName": "Coin",
+					"assetVersion": "1"
+				}
+			}
+		}`
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var result struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &result); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if result.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if result.InvalidReason != "requirements max timeout seconds" {
+				t.Errorf("expected invalid reason 'requirements max timeout seconds', got '%s'", result.InvalidReason)
+			}
+		})
+	})
+
+	t.Run("requirements max timeout seconds negative", func(t *testing.T) {
+		body := `{
+			"x402Version": 1,
+			"paymentPayload": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"payload": {
+					"signature": "` + validSignature + `",
+					"authorization": {
+						"from": "invalid-address",
+						"to": "` + validAddress2 + `",
+						"value": 1000,
+						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+						"nonce": "` + validNonce + `"
+					}
+				}
+			},
+			"paymentRequirements": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": -30,
+				"asset": "` + validAddress3 + `",
+				"payTo": "` + validAddress2 + `",
+				"extra": {
+					"assetName": "Coin",
+					"assetVersion": "1"
+				}
+			}
+		}`
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var result struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &result); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if result.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if result.InvalidReason != "requirements max timeout seconds" {
+				t.Errorf("expected invalid reason 'requirements max timeout seconds', got '%s'", result.InvalidReason)
 			}
 		})
 	})
@@ -671,6 +779,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -718,6 +827,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -765,6 +875,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "invalid-address",
 				"extra": {
@@ -812,6 +923,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -859,6 +971,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -906,6 +1019,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -953,6 +1067,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "invalid-address",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -1000,6 +1115,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -1047,6 +1163,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -1094,6 +1211,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -1141,6 +1259,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -1202,6 +1321,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -1263,6 +1383,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -1322,6 +1443,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {
@@ -1381,6 +1503,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				"scheme": "exact",
 				"network": "sepolia",
 				"maxAmountRequired": 1000,
+				"maxTimeoutSeconds": 30,
 				"asset": "` + validAddress3 + `",
 				"payTo": "` + validAddress2 + `",
 				"extra": {

@@ -157,6 +157,7 @@ type PaymentRequirements struct {
 	Scheme            string `json:"scheme"`
 	Network           string `json:"network"`
 	MaxAmountRequired int64  `json:"maxAmountRequired"`
+	MaxTimeoutSeconds int64  `json:"maxTimeoutSeconds"`
 	Asset             string `json:"asset"`
 	PayTo             string `json:"payTo"`
 	Extra             Extra  `json:"extra"`
@@ -164,8 +165,9 @@ type PaymentRequirements struct {
 
 // Extra is the extra for the payment requirements.
 type Extra struct {
-	Name    string `json:"assetName"`
-	Version string `json:"assetVersion"`
+	Name     string `json:"assetName"`
+	Version  string `json:"assetVersion"`
+	GasLimit uint64 `json:"gasLimit"`
 }
 
 // VerifyResult is the result of the verification.
@@ -217,6 +219,14 @@ func verifyV1ExactSepolia(p Payload, r PaymentRequirements) VerifyResult {
 		return VerifyResult{
 			IsValid:       false,
 			InvalidReason: "authorization value greater than max amount required",
+		}
+	}
+
+	// Verify the requirements max timeout seconds is positive
+	if r.MaxTimeoutSeconds <= 0 {
+		return VerifyResult{
+			IsValid:       false,
+			InvalidReason: "requirements max timeout seconds",
 		}
 	}
 
