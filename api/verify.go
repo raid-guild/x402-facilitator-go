@@ -135,11 +135,6 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 func verifyV1ExactSepolia(p types.Payload, r types.PaymentRequirements) VerifyResponse {
 
-	// Create the context for network operations with timeout
-	timeout := time.Duration(r.MaxTimeoutSeconds) * time.Second
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
 	now := time.Now()
 
 	// Verify the authorization time window is valid
@@ -237,6 +232,11 @@ func verifyV1ExactSepolia(p types.Payload, r types.PaymentRequirements) VerifyRe
 			InvalidReason: fmt.Sprintf("failed to dial RPC client: %v", err),
 		}
 	}
+
+	// Create the context for network operations with timeout
+	timeout := time.Duration(r.MaxTimeoutSeconds) * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 
 	// Convert the authorization from address to common.Address
 	fromAddress := common.HexToAddress(p.Authorization.From)
