@@ -154,11 +154,19 @@ func generateEIP712SignatureWithLegacyV(
 }
 
 type mockEthClient struct {
+	balanceAt        func(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
 	pendingNonceAt   func(ctx context.Context, account common.Address) (uint64, error)
 	suggestGasTipCap func(ctx context.Context) (*big.Int, error)
 	headerByNumber   func(ctx context.Context, number *big.Int) (*types.Header, error)
 	estimateGas      func(ctx context.Context, msg ethereum.CallMsg) (uint64, error)
 	sendTransaction  func(ctx context.Context, tx *types.Transaction) error
+}
+
+func (m *mockEthClient) BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
+	if m.balanceAt != nil {
+		return m.balanceAt(ctx, account, blockNumber)
+	}
+	return big.NewInt(1000), nil
 }
 
 func (m *mockEthClient) PendingNonceAt(ctx context.Context, account common.Address) (uint64, error) {
