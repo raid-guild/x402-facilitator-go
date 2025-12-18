@@ -14,6 +14,8 @@ import (
 
 func TestVerify_Authentication(t *testing.T) {
 
+	setupMockEthClient(t) // do not make any actual RPC calls
+
 	body := `{
 		"x402Version": 1,
 		"paymentPayload": {
@@ -96,6 +98,8 @@ func TestVerify_Authentication(t *testing.T) {
 }
 
 func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
+
+	setupMockEthClient(t) // do not make any actual RPC calls
 
 	now := time.Now()
 
@@ -375,6 +379,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("authorization time window invalid equals", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -423,6 +428,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("authorization time window invalid inverted", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -471,6 +477,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("authorization valid before expired", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -519,6 +526,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("authorization valid after future", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -567,6 +575,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("authorization value not a number", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -615,6 +624,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("authorization value negative", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -663,6 +673,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("max amount required not a number", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -711,6 +722,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("authorization value exceeds requirements amount", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -759,6 +771,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("requirements max timeout seconds missing", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -806,6 +819,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("requirements max timeout seconds negative", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -854,6 +868,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("authorization from invalid", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -901,7 +916,57 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		})
 	})
 
+	t.Run("authorization from insufficient funds", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
+		body := `{
+			"x402Version": 1,
+			"paymentPayload": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"payload": {
+					"signature": "` + validSignature + `",
+					"authorization": {
+						"from": "` + validAddress1 + `",
+						"to": "` + validAddress2 + `",
+						"value": "2000000",
+						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+						"nonce": "` + validNonce + `"
+					}
+				}
+			},
+			"paymentRequirements": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"maxAmountRequired": "2000000",
+				"maxTimeoutSeconds": 30,
+				"asset": "` + validAddress3 + `",
+				"payTo": "` + validAddress2 + `",
+				"extra": {
+					"assetName": "Coin",
+					"assetVersion": "1"
+				}
+			}
+		}`
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if response.InvalidReason != "authorization from insufficient funds" {
+				t.Errorf("expected invalid reason 'authorization from insufficient funds', got '%s'", response.InvalidReason)
+			}
+		})
+	})
+
 	t.Run("authorization to invalid", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -950,6 +1015,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("requirements pay to invalid", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -998,6 +1064,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("authorization to does not match requirements pay to", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -1046,6 +1113,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("authorization nonce hex invalid", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -1094,6 +1162,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("authorization nonce length invalid", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -1142,6 +1211,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("requirements asset invalid", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -1190,6 +1260,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("requirements extra name empty", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -1238,6 +1309,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("requirements extra version empty", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -1286,6 +1358,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("signature hex invalid", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -1334,6 +1407,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("signature length invalid", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
@@ -1382,6 +1456,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("signature address mismatch", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		sig, _, err := generateEIP712Signature(
 			validAddress2,
 			validAddress3,
@@ -1444,6 +1519,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 	})
 
 	t.Run("signature address confirmed", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		sig, signerAddress, err := generateEIP712Signature(
 			validAddress2,
 			validAddress3,
@@ -1491,6 +1567,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 			var response struct {
 				IsValid       bool   `json:"isValid"`
+				Payer         string `json:"payer"`
 				InvalidReason string `json:"invalidReason"`
 			}
 			if err := json.Unmarshal([]byte(body), &response); err != nil {
@@ -1499,10 +1576,17 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if !response.IsValid {
 				t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", response.InvalidReason)
 			}
+			if response.InvalidReason != "" {
+				t.Errorf("expected invalid reason to be empty, got '%s'", response.InvalidReason)
+			}
+			if response.Payer != signerAddress.Hex() {
+				t.Errorf("expected payer=%s, got payer=%s", signerAddress.Hex(), response.Payer)
+			}
 		})
 	})
 
 	t.Run("signature V value conversion 27", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		sig, signerAddress, err := generateEIP712SignatureWithLegacyV(
 			validAddress2,
 			validAddress3,
@@ -1551,6 +1635,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 			var response struct {
 				IsValid       bool   `json:"isValid"`
+				Payer         string `json:"payer"`
 				InvalidReason string `json:"invalidReason"`
 			}
 			if err := json.Unmarshal([]byte(body), &response); err != nil {
@@ -1559,10 +1644,14 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if !response.IsValid {
 				t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", response.InvalidReason)
 			}
+			if response.Payer != signerAddress.Hex() {
+				t.Errorf("expected payer=%s, got payer=%s", signerAddress.Hex(), response.Payer)
+			}
 		})
 	})
 
 	t.Run("signature V value conversion 28", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
 		sig, signerAddress, err := generateEIP712SignatureWithLegacyV(
 			validAddress2,
 			validAddress3,
@@ -1611,6 +1700,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 			var response struct {
 				IsValid       bool   `json:"isValid"`
+				Payer         string `json:"payer"`
 				InvalidReason string `json:"invalidReason"`
 			}
 			if err := json.Unmarshal([]byte(body), &response); err != nil {
@@ -1618,6 +1708,9 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			}
 			if !response.IsValid {
 				t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", response.InvalidReason)
+			}
+			if response.Payer != signerAddress.Hex() {
+				t.Errorf("expected payer=%s, got payer=%s", signerAddress.Hex(), response.Payer)
 			}
 		})
 	})

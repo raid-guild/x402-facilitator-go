@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -8,6 +9,7 @@ import (
 	"log"
 	"math/big"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -17,13 +19,15 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 
 	"github.com/raid-guild/x402-facilitator-go/auth"
+	"github.com/raid-guild/x402-facilitator-go/clients"
 	"github.com/raid-guild/x402-facilitator-go/types"
 	"github.com/raid-guild/x402-facilitator-go/utils"
 )
 
-// VerifyResponse is the response of the verification.
+// VerifyResponse is the response of the verify operation.
 type VerifyResponse struct {
 	IsValid       bool   `json:"isValid"`
+	Payer         string `json:"payer"`
 	InvalidReason string `json:"invalidReason"`
 }
 
@@ -131,6 +135,11 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 func verifyV1ExactSepolia(p types.Payload, r types.PaymentRequirements) VerifyResponse {
 
+	// Create the context for network operations with timeout
+	timeout := time.Duration(r.MaxTimeoutSeconds) * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
 	now := time.Now()
 
 	// Verify the authorization time window is valid
@@ -208,6 +217,44 @@ func verifyV1ExactSepolia(p types.Payload, r types.PaymentRequirements) VerifyRe
 		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "authorization from",
+		}
+	}
+
+	// Get the RPC URL for the Sepolia test network
+	rpcURL := os.Getenv("RPC_URL_SEPOLIA")
+	if rpcURL == "" {
+		return VerifyResponse{
+			IsValid:       false,
+			InvalidReason: "RPC_URL_SEPOLIA environment variable is not set",
+		}
+	}
+
+	// Dial the Ethereum RPC client
+	client, err := clients.NewEthClient(rpcURL)
+	if err != nil {
+		return VerifyResponse{
+			IsValid:       false,
+			InvalidReason: fmt.Sprintf("failed to dial RPC client: %v", err),
+		}
+	}
+
+	// Convert the authorization from address to common.Address
+	fromAddress := common.HexToAddress(p.Authorization.From)
+
+	// Get the latest balance of the authorization from account
+	balance, err := client.BalanceAt(ctx, fromAddress, nil)
+	if err != nil {
+		return VerifyResponse{
+			IsValid:       false,
+			InvalidReason: fmt.Sprintf("failed to get balance: %v", err),
+		}
+	}
+
+	// Verify the authorization from account has enough funds
+	if balance.Cmp(authValue) < 0 {
+		return VerifyResponse{
+			IsValid:       false,
+			InvalidReason: "authorization from insufficient funds",
 		}
 	}
 
@@ -430,13 +477,16 @@ func verifyV1ExactSepolia(p types.Payload, r types.PaymentRequirements) VerifyRe
 	sender := crypto.PubkeyToAddress(*recoveredPubkey)
 
 	// Verify the sender matches the authorization from
-	if sender != common.HexToAddress(p.Authorization.From) {
+	if sender != fromAddress {
 		return VerifyResponse{
 			IsValid:       false,
 			InvalidReason: "signature sender does not match authorization from address",
 		}
 	}
 
-	// Return verify response valid
-	return VerifyResponse{IsValid: true}
+	// Return verify response valid with the payer address
+	return VerifyResponse{
+		IsValid: true,
+		Payer:   sender.Hex(),
+	}
 }

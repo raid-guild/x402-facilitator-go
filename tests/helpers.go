@@ -51,19 +51,22 @@ func setupMockEthClient(t *testing.T) {
 	})
 
 	client := &mockEthClient{
+		balanceAt: func(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
+			return big.NewInt(1000000), nil
+		},
 		pendingNonceAt: func(ctx context.Context, account common.Address) (uint64, error) {
 			return 1, nil
 		},
 		suggestGasTipCap: func(ctx context.Context) (*big.Int, error) {
-			return big.NewInt(2000000000), nil
+			return big.NewInt(1000), nil
 		},
 		headerByNumber: func(ctx context.Context, number *big.Int) (*types.Header, error) {
 			return &types.Header{
-				BaseFee: big.NewInt(30000000000),
+				BaseFee: big.NewInt(1000),
 			}, nil
 		},
 		estimateGas: func(ctx context.Context, msg ethereum.CallMsg) (uint64, error) {
-			return 50000, nil
+			return 1000, nil
 		},
 		sendTransaction: func(ctx context.Context, tx *types.Transaction) error {
 			return nil
