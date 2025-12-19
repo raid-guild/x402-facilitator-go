@@ -261,11 +261,17 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 		return types.SettleResponse{}, fmt.Errorf("failed to sign transaction: %v", err)
 	}
 
-	// Send the signed transaction
-	err = client.SendTransaction(ctx, signedTx)
+	// Send the signed transaction (timeout already applied to context)
+	receipt, err := client.SendTransactionSync(ctx, signedTx, nil)
 	if err != nil {
 		// Return an error that will be handled as an internal server error
 		return types.SettleResponse{}, fmt.Errorf("failed to send transaction: %v", err)
+	}
+
+	// Verify the transaction receipt
+	if receipt.Status != ethtypes.ReceiptStatusSuccessful {
+		// Return an error that will be handled as an internal server error
+		return types.SettleResponse{}, fmt.Errorf("transaction failed with status %d", receipt.Status)
 	}
 
 	// Return the settle response

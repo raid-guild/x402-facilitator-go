@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -17,7 +18,7 @@ type EthClientInterface interface {
 	SuggestGasTipCap(ctx context.Context) (*big.Int, error)
 	HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error)
 	EstimateGas(ctx context.Context, msg ethereum.CallMsg) (uint64, error)
-	SendTransaction(ctx context.Context, tx *types.Transaction) error
+	SendTransactionSync(ctx context.Context, tx *types.Transaction, timeout *time.Duration) (*types.Receipt, error)
 }
 
 // NewEthClient creates a new Ethereum client. This function can be overridden in tests.
