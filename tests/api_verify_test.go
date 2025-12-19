@@ -162,445 +162,260 @@ func TestVerify_Compatibility(t *testing.T) {
 		})
 	})
 
-	t.Run("missing payment payload v1", func(t *testing.T) {
-		body := `{
-			"x402Version": 1,
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia"
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_payment_payload" {
-				t.Errorf("expected invalid reason 'invalid_payment_payload', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+	versions := []struct {
+		name        string
+		x402Version string
+		network     string
+	}{
+		{
+			name:        "v1 sepolia",
+			x402Version: "1",
+			network:     "sepolia",
+		},
+		{
+			name:        "v1 base sepolia",
+			x402Version: "1",
+			network:     "base-sepolia",
+		},
+		{
+			name:        "v2 sepolia",
+			x402Version: "2",
+			network:     "eip155:11155111",
+		},
+		{
+			name:        "v2 base sepolia",
+			x402Version: "2",
+			network:     "eip155:84532",
+		},
+	}
 
-	t.Run("missing payment payload v2", func(t *testing.T) {
-		body := `{
-			"x402Version": 2,
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111"
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_payment_payload" {
-				t.Errorf("expected invalid reason 'invalid_payment_payload', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+	for _, v := range versions {
+		t.Run(v.name, func(t *testing.T) {
 
-	t.Run("invalid payment payload JSON v1", func(t *testing.T) {
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": "invalid json",
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia"
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_payment_payload" {
-				t.Errorf("expected invalid reason 'invalid_payment_payload', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+			t.Run("missing payment payload", func(t *testing.T) {
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `"
+					}
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_payment_payload" {
+						t.Errorf("expected invalid reason 'invalid_payment_payload', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("invalid payment payload JSON v2", func(t *testing.T) {
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": "invalid json",
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111"
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_payment_payload" {
-				t.Errorf("expected invalid reason 'invalid_payment_payload', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+			t.Run("invalid payment payload JSON", func(t *testing.T) {
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": "invalid json",
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `"
+					}
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_payment_payload" {
+						t.Errorf("expected invalid reason 'invalid_payment_payload', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("missing payment requirements v1", func(t *testing.T) {
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia"
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_payment_requirements" {
-				t.Errorf("expected invalid reason 'invalid_payment_requirements', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+			t.Run("missing payment requirements", func(t *testing.T) {
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `"
+					}
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_payment_requirements" {
+						t.Errorf("expected invalid reason 'invalid_payment_requirements', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("missing payment requirements v2", func(t *testing.T) {
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111"
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_payment_requirements" {
-				t.Errorf("expected invalid reason 'invalid_payment_requirements', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+			t.Run("invalid payment requirements JSON", func(t *testing.T) {
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `"
+					},
+					"paymentRequirements": "invalid json"
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_payment_requirements" {
+						t.Errorf("expected invalid reason 'invalid_payment_requirements', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("invalid payment requirements JSON v1", func(t *testing.T) {
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia"
-			},
-			"paymentRequirements": "invalid json"
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_payment_requirements" {
-				t.Errorf("expected invalid reason 'invalid_payment_requirements', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+			t.Run("unsupported scheme", func(t *testing.T) {
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "other",
+						"network": "` + v.network + `"
+					},
+					"paymentRequirements": {
+						"scheme": "other",
+						"network": "` + v.network + `"
+					}
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_scheme" {
+						t.Errorf("expected invalid reason 'invalid_scheme', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("invalid payment requirements JSON v2", func(t *testing.T) {
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111"
-			},
-			"paymentRequirements": "invalid json"
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_payment_requirements" {
-				t.Errorf("expected invalid reason 'invalid_payment_requirements', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+			t.Run("unsupported network", func(t *testing.T) {
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "other"
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "other"
+					}
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_network" {
+						t.Errorf("expected invalid reason 'invalid_network', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("unsupported scheme v1", func(t *testing.T) {
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "other",
-				"network": "sepolia"
-			},
-			"paymentRequirements": {
-				"scheme": "other",
-				"network": "sepolia"
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_scheme" {
-				t.Errorf("expected invalid reason 'invalid_scheme', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+			t.Run("scheme mismatch", func(t *testing.T) {
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `"
+					},
+					"paymentRequirements": {
+						"scheme": "other",
+						"network": "` + v.network + `"
+					}
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_scheme_mismatch" {
+						t.Errorf("expected invalid reason 'invalid_scheme_mismatch', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("unsupported scheme v2", func(t *testing.T) {
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "other",
-				"network": "eip155:11155111"
-			},
-			"paymentRequirements": {
-				"scheme": "other",
-				"network": "eip155:11155111"
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_scheme" {
-				t.Errorf("expected invalid reason 'invalid_scheme', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+			t.Run("network mismatch", func(t *testing.T) {
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `"
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "other"
+					}
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_network_mismatch" {
+						t.Errorf("expected invalid reason 'invalid_network_mismatch', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("unsupported network v1", func(t *testing.T) {
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "other"
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "other"
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_network" {
-				t.Errorf("expected invalid reason 'invalid_network', got '%s'", response.InvalidReason)
-			}
 		})
-	})
-
-	t.Run("unsupported network v2", func(t *testing.T) {
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "other"
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "other"
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_network" {
-				t.Errorf("expected invalid reason 'invalid_network', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("scheme mismatch v1", func(t *testing.T) {
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia"
-			},
-			"paymentRequirements": {
-				"scheme": "other",
-				"network": "sepolia"
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_scheme_mismatch" {
-				t.Errorf("expected invalid reason 'invalid_scheme_mismatch', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("scheme mismatch v2", func(t *testing.T) {
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111"
-			},
-			"paymentRequirements": {
-				"scheme": "other",
-				"network": "eip155:11155111"
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_scheme_mismatch" {
-				t.Errorf("expected invalid reason 'invalid_scheme_mismatch', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("network mismatch v1", func(t *testing.T) {
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia"
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "other"
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_network_mismatch" {
-				t.Errorf("expected invalid reason 'invalid_network_mismatch', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("network mismatch v2", func(t *testing.T) {
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111"
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "other"
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_network_mismatch" {
-				t.Errorf("expected invalid reason 'invalid_network_mismatch', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+	}
 
 }
 
-func TestVerify_VerifyExactV1(t *testing.T) {
+func TestVerify_VerifyExact(t *testing.T) {
 
 	setupMockEthClient(t) // do not make any actual RPC calls
 
@@ -623,2703 +438,1384 @@ func TestVerify_VerifyExactV1(t *testing.T) {
 	invalidSignature := "0x" + strings.Repeat("00", 64)
 	invalidHexSignature := "0xZZ" + strings.Repeat("00", 63)
 
-	t.Run("authorization time window invalid equals", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validAfter, 10) + `,
-						"nonce": "` + validNonce + `"
+	versions := []struct {
+		name        string
+		x402Version string
+		network     string
+		rpcEnvVar   string
+		chainID     int64
+	}{
+		{
+			name:        "v1 sepolia",
+			x402Version: "1",
+			network:     "sepolia",
+			rpcEnvVar:   "RPC_URL_SEPOLIA",
+			chainID:     11155111,
+		},
+		{
+			name:        "v1 base sepolia",
+			x402Version: "1",
+			network:     "base-sepolia",
+			rpcEnvVar:   "RPC_URL_BASE_SEPOLIA",
+			chainID:     84532,
+		},
+		{
+			name:        "v2 sepolia",
+			x402Version: "2",
+			network:     "eip155:11155111",
+			rpcEnvVar:   "RPC_URL_SEPOLIA",
+			chainID:     11155111,
+		},
+		{
+			name:        "v2 base sepolia",
+			x402Version: "2",
+			network:     "eip155:84532",
+			rpcEnvVar:   "RPC_URL_BASE_SEPOLIA",
+			chainID:     84532,
+		},
+	}
+
+	for _, v := range versions {
+		t.Run(v.name, func(t *testing.T) {
+
+			t.Run("authorization time window invalid equals", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validAfter, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_time_window" {
-				t.Errorf("expected invalid reason 'invalid_authorization_time_window', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("authorization time window invalid inverted", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validBefore, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validAfter, 10) + `,
-						"nonce": "` + validNonce + `"
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_time_window" {
-				t.Errorf("expected invalid reason 'invalid_authorization_time_window', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("authorization valid before expired", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(expiredBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_valid_before" {
-				t.Errorf("expected invalid reason 'invalid_authorization_valid_before', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("authorization valid after future", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(futureAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_valid_after" {
-				t.Errorf("expected invalid reason 'invalid_authorization_valid_after', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("authorization value not a number", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "not-a-number",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if response.InvalidReason != "invalid_authorization_time_window" {
+						t.Errorf("expected invalid reason 'invalid_authorization_time_window', got '%s'", response.InvalidReason)
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_value" {
-				t.Errorf("expected invalid reason 'invalid_authorization_value', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				})
+			})
 
-	t.Run("authorization value negative", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "-1",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("authorization time window invalid inverted", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validAfter, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_value_negative" {
-				t.Errorf("expected invalid reason 'invalid_authorization_value_negative', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("max amount required not a number", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "not-a-number",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_requirements_max_amount" {
-				t.Errorf("expected invalid reason 'invalid_requirements_max_amount', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("authorization value exceeds requirements amount", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "2000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_value_exceeded" {
-				t.Errorf("expected invalid reason 'invalid_authorization_value_exceeded', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("requirements max timeout seconds missing", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_requirements_max_timeout" {
-				t.Errorf("expected invalid reason 'invalid_requirements_max_timeout', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("requirements max timeout seconds negative", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if response.InvalidReason != "invalid_authorization_time_window" {
+						t.Errorf("expected invalid reason 'invalid_authorization_time_window', got '%s'", response.InvalidReason)
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": -30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_requirements_max_timeout" {
-				t.Errorf("expected invalid reason 'invalid_requirements_max_timeout', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				})
+			})
 
-	t.Run("authorization from invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "invalid-address",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("authorization valid before expired", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(expiredBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_from_address" {
-				t.Errorf("expected invalid reason 'invalid_authorization_from_address', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("authorization from insufficient funds", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "2000000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "2000000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "insufficient_funds" {
-				t.Errorf("expected invalid reason 'insufficient_funds', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("authorization to invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "invalid-address",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_to_address" {
-				t.Errorf("expected invalid reason 'invalid_authorization_to_address', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("requirements pay to invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "invalid-address",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_requirements_pay_to_address" {
-				t.Errorf("expected invalid reason 'invalid_requirements_pay_to_address', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("authorization to does not match requirements pay to", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress1 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if response.InvalidReason != "invalid_authorization_valid_before" {
+						t.Errorf("expected invalid reason 'invalid_authorization_valid_before', got '%s'", response.InvalidReason)
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_to_address_mismatch" {
-				t.Errorf("expected invalid reason 'invalid_authorization_to_address_mismatch', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				})
+			})
 
-	t.Run("authorization nonce hex invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + invalidHexNonce + `"
+			t.Run("authorization valid after future", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(futureAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_nonce" {
-				t.Errorf("expected invalid reason 'invalid_authorization_nonce', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("authorization nonce length invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + invalidNonce + `"
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_nonce_length" {
-				t.Errorf("expected invalid reason 'invalid_authorization_nonce_length', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("requirements asset invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "invalid-address",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_requirements_asset" {
-				t.Errorf("expected invalid reason 'invalid_requirements_asset', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("requirements extra name empty", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_requirements_extra_name" {
-				t.Errorf("expected invalid reason 'invalid_requirements_extra_name', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("requirements extra version empty", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if response.InvalidReason != "invalid_authorization_valid_after" {
+						t.Errorf("expected invalid reason 'invalid_authorization_valid_after', got '%s'", response.InvalidReason)
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": ""
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_requirements_extra_version" {
-				t.Errorf("expected invalid reason 'invalid_requirements_extra_version', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				})
+			})
 
-	t.Run("signature hex invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + invalidHexSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("authorization value not a number", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "not-a-number",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_signature" {
-				t.Errorf("expected invalid reason 'invalid_authorization_signature', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("signature length invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + invalidSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_signature_length" {
-				t.Errorf("expected invalid reason 'invalid_authorization_signature_length', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("signature address mismatch", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		sig, _, err := generateEIP712Signature(
-			validAddress2,
-			validAddress3,
-			1000,
-			validAfter,
-			validBefore,
-			validNonce,
-			"Coin",
-			"1",
-			11155111,
-		)
-		if err != nil {
-			t.Fatalf("failed to generate signature: %v", err)
-		}
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + sig + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_sender_mismatch" {
-				t.Errorf("expected invalid reason 'invalid_authorization_sender_mismatch', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("signature address confirmed", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		sig, signerAddress, err := generateEIP712Signature(
-			validAddress2,
-			validAddress3,
-			1000,
-			validAfter,
-			validBefore,
-			validNonce,
-			"Coin",
-			"1",
-			11155111,
-		)
-		if err != nil {
-			t.Fatalf("failed to generate signature: %v", err)
-		}
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + sig + `",
-					"authorization": {
-						"from": "` + signerAddress.Hex() + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				Payer         string `json:"payer"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if !response.IsValid {
-				t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", response.InvalidReason)
-			}
-			if response.InvalidReason != "" {
-				t.Errorf("expected invalid reason to be empty, got '%s'", response.InvalidReason)
-			}
-			if response.Payer != signerAddress.Hex() {
-				t.Errorf("expected payer=%s, got payer=%s", signerAddress.Hex(), response.Payer)
-			}
-		})
-	})
-
-	t.Run("signature V value conversion 27", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		sig, signerAddress, err := generateEIP712SignatureWithLegacyV(
-			validAddress2,
-			validAddress3,
-			1000,
-			validAfter,
-			validBefore,
-			validNonce,
-			"Coin",
-			"1",
-			11155111,
-			27,
-		)
-		if err != nil {
-			t.Fatalf("failed to generate signature: %v", err)
-		}
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + sig + `",
-					"authorization": {
-						"from": "` + signerAddress.Hex() + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if response.InvalidReason != "invalid_authorization_value" {
+						t.Errorf("expected invalid reason 'invalid_authorization_value', got '%s'", response.InvalidReason)
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				Payer         string `json:"payer"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if !response.IsValid {
-				t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", response.InvalidReason)
-			}
-			if response.Payer != signerAddress.Hex() {
-				t.Errorf("expected payer=%s, got payer=%s", signerAddress.Hex(), response.Payer)
-			}
-		})
-	})
+				})
+			})
 
-	t.Run("signature V value conversion 28", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		sig, signerAddress, err := generateEIP712SignatureWithLegacyV(
-			validAddress2,
-			validAddress3,
-			1000,
-			validAfter,
-			validBefore,
-			validNonce,
-			"Coin",
-			"1",
-			11155111,
-			28,
-		)
-		if err != nil {
-			t.Fatalf("failed to generate signature: %v", err)
-		}
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + sig + `",
-					"authorization": {
-						"from": "` + signerAddress.Hex() + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("authorization value negative", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "-1",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				Payer         string `json:"payer"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if !response.IsValid {
-				t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", response.InvalidReason)
-			}
-			if response.Payer != signerAddress.Hex() {
-				t.Errorf("expected payer=%s, got payer=%s", signerAddress.Hex(), response.Payer)
-			}
-		})
-	})
-
-}
-
-func TestVerify_VerifyExactV2(t *testing.T) {
-
-	setupMockEthClient(t) // do not make any actual RPC calls
-
-	now := time.Now()
-
-	validAfter := now.Add(-2 * time.Minute).Unix()
-	validBefore := now.Add(2 * time.Minute).Unix()
-	expiredBefore := now.Add(-1 * time.Minute).Unix()
-	futureAfter := now.Add(1 * time.Minute).Unix()
-
-	validNonce := "0x" + strings.Repeat("00", 32)
-	invalidNonce := "0x" + strings.Repeat("00", 33)
-	invalidHexNonce := "0xZZ" + strings.Repeat("00", 30)
-
-	validAddress1 := "0x0000000000000000000000000000000000000001"
-	validAddress2 := "0x0000000000000000000000000000000000000002"
-	validAddress3 := "0x0000000000000000000000000000000000000003"
-
-	validSignature := "0x" + strings.Repeat("00", 65)
-	invalidSignature := "0x" + strings.Repeat("00", 64)
-	invalidHexSignature := "0xZZ" + strings.Repeat("00", 63)
-
-	t.Run("authorization time window invalid equals", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validAfter, 10) + `,
-						"nonce": "` + validNonce + `"
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_time_window" {
-				t.Errorf("expected invalid reason 'invalid_authorization_time_window', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("authorization time window invalid inverted", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validBefore, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validAfter, 10) + `,
-						"nonce": "` + validNonce + `"
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_time_window" {
-				t.Errorf("expected invalid reason 'invalid_authorization_time_window', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("authorization valid before expired", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(expiredBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_valid_before" {
-				t.Errorf("expected invalid reason 'invalid_authorization_valid_before', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
-	t.Run("authorization valid after future", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(futureAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+					if response.InvalidReason != "invalid_authorization_value_negative" {
+						t.Errorf("expected invalid reason 'invalid_authorization_value_negative', got '%s'", response.InvalidReason)
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_valid_after" {
-				t.Errorf("expected invalid reason 'invalid_authorization_valid_after', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				})
+			})
 
-	t.Run("authorization value not a number", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "not-a-number",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("requirements max amount not a number", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "not-a-number",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_value" {
-				t.Errorf("expected invalid reason 'invalid_authorization_value', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_requirements_max_amount" {
+						t.Errorf("expected invalid reason 'invalid_requirements_max_amount', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("authorization value negative", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "-1",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("authorization value exceeds", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "2000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_value_negative" {
-				t.Errorf("expected invalid reason 'invalid_authorization_value_negative', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_authorization_value_exceeded" {
+						t.Errorf("expected invalid reason 'invalid_authorization_value_exceeded', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("max amount required not a number", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("requirements max timeout missing", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "not-a-number",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_requirements_max_amount" {
-				t.Errorf("expected invalid reason 'invalid_requirements_max_amount', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_requirements_max_timeout" {
+						t.Errorf("expected invalid reason 'invalid_requirements_max_timeout', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("authorization value exceeds requirements amount", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "2000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("requirements max timeout negative", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": -30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_value_exceeded" {
-				t.Errorf("expected invalid reason 'invalid_authorization_value_exceeded', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_requirements_max_timeout" {
+						t.Errorf("expected invalid reason 'invalid_requirements_max_timeout', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("requirements max timeout seconds missing", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("authorization from invalid", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "invalid-address",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_requirements_max_timeout" {
-				t.Errorf("expected invalid reason 'invalid_requirements_max_timeout', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_authorization_from_address" {
+						t.Errorf("expected invalid reason 'invalid_authorization_from_address', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("requirements max timeout seconds negative", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("authorization from insufficient funds", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "2000000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "2000000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": -30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_requirements_max_timeout" {
-				t.Errorf("expected invalid reason 'invalid_requirements_max_timeout', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "insufficient_funds" {
+						t.Errorf("expected invalid reason 'insufficient_funds', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("authorization from invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "invalid-address",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("authorization to invalid", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "invalid-address",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_from_address" {
-				t.Errorf("expected invalid reason 'invalid_authorization_from_address', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_authorization_to_address" {
+						t.Errorf("expected invalid reason 'invalid_authorization_to_address', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("authorization from insufficient funds", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "2000000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("requirements pay to invalid", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "invalid-address",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "2000000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "insufficient_funds" {
-				t.Errorf("expected invalid reason 'insufficient_funds', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_requirements_pay_to_address" {
+						t.Errorf("expected invalid reason 'invalid_requirements_pay_to_address', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("authorization to invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "invalid-address",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("authorization to address mismatch", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress1 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_to_address" {
-				t.Errorf("expected invalid reason 'invalid_authorization_to_address', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_authorization_to_address_mismatch" {
+						t.Errorf("expected invalid reason 'invalid_authorization_to_address_mismatch', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("requirements pay to invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("authorization nonce hex invalid", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + invalidHexNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "invalid-address",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_requirements_pay_to_address" {
-				t.Errorf("expected invalid reason 'invalid_requirements_pay_to_address', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_authorization_nonce" {
+						t.Errorf("expected invalid reason 'invalid_authorization_nonce', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("authorization to does not match requirements pay to", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress1 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("authorization nonce length invalid", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + invalidNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_to_address_mismatch" {
-				t.Errorf("expected invalid reason 'invalid_authorization_to_address_mismatch', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_authorization_nonce_length" {
+						t.Errorf("expected invalid reason 'invalid_authorization_nonce_length', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("authorization nonce hex invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + invalidHexNonce + `"
+			t.Run("requirements asset invalid", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "invalid-address",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_nonce" {
-				t.Errorf("expected invalid reason 'invalid_authorization_nonce', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_requirements_asset" {
+						t.Errorf("expected invalid reason 'invalid_requirements_asset', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("authorization nonce length invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + invalidNonce + `"
+			t.Run("requirements extra name empty", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_nonce_length" {
-				t.Errorf("expected invalid reason 'invalid_authorization_nonce_length', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_requirements_extra_name" {
+						t.Errorf("expected invalid reason 'invalid_requirements_extra_name', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("requirements asset invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("requirements extra version empty", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + validSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": ""
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "invalid-address",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_requirements_asset" {
-				t.Errorf("expected invalid reason 'invalid_requirements_asset', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_requirements_extra_version" {
+						t.Errorf("expected invalid reason 'invalid_requirements_extra_version', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("requirements extra name empty", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("signature hex invalid", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + invalidHexSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_requirements_extra_name" {
-				t.Errorf("expected invalid reason 'invalid_requirements_extra_name', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_authorization_signature" {
+						t.Errorf("expected invalid reason 'invalid_authorization_signature', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("requirements extra version empty", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("signature length invalid", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + invalidSignature + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": ""
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_requirements_extra_version" {
-				t.Errorf("expected invalid reason 'invalid_requirements_extra_version', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_authorization_signature_length" {
+						t.Errorf("expected invalid reason 'invalid_authorization_signature_length', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("signature hex invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + invalidHexSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("signature address mismatch", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				sig, _, err := generateEIP712Signature(
+					validAddress2,
+					validAddress3,
+					1000,
+					validAfter,
+					validBefore,
+					validNonce,
+					"Coin",
+					"1",
+					v.chainID,
+				)
+				if err != nil {
+					t.Fatalf("failed to generate signature: %v", err)
+				}
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + sig + `",
+							"authorization": {
+								"from": "` + validAddress1 + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_signature" {
-				t.Errorf("expected invalid reason 'invalid_authorization_signature', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_authorization_sender_mismatch" {
+						t.Errorf("expected invalid reason 'invalid_authorization_sender_mismatch', got '%s'", response.InvalidReason)
+					}
+				})
+			})
 
-	t.Run("signature length invalid", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + invalidSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("signature address confirmed", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				sig, signerAddress, err := generateEIP712Signature(
+					validAddress2,
+					validAddress3,
+					1000,
+					validAfter,
+					validBefore,
+					validNonce,
+					"Coin",
+					"1",
+					v.chainID,
+				)
+				if err != nil {
+					t.Fatalf("failed to generate signature: %v", err)
+				}
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + sig + `",
+							"authorization": {
+								"from": "` + signerAddress.Hex() + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_signature_length" {
-				t.Errorf("expected invalid reason 'invalid_authorization_signature_length', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						Payer         string `json:"payer"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if !response.IsValid {
+						t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", response.InvalidReason)
+					}
+					if response.InvalidReason != "" {
+						t.Errorf("expected invalid reason to be empty, got '%s'", response.InvalidReason)
+					}
+					if response.Payer != signerAddress.Hex() {
+						t.Errorf("expected payer=%s, got payer=%s", signerAddress.Hex(), response.Payer)
+					}
+				})
+			})
 
-	t.Run("signature address mismatch", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		sig, _, err := generateEIP712Signature(
-			validAddress2,
-			validAddress3,
-			1000,
-			validAfter,
-			validBefore,
-			validNonce,
-			"Coin",
-			"1",
-			11155111,
-		)
-		if err != nil {
-			t.Fatalf("failed to generate signature: %v", err)
-		}
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + sig + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("signature V value conversion 27", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				sig, signerAddress, err := generateEIP712SignatureWithLegacyV(
+					validAddress2,
+					validAddress3,
+					1000,
+					validAfter,
+					validBefore,
+					validNonce,
+					"Coin",
+					"1",
+					v.chainID,
+					27,
+				)
+				if err != nil {
+					t.Fatalf("failed to generate signature: %v", err)
+				}
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + sig + `",
+							"authorization": {
+								"from": "` + signerAddress.Hex() + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_authorization_sender_mismatch" {
-				t.Errorf("expected invalid reason 'invalid_authorization_sender_mismatch', got '%s'", response.InvalidReason)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						Payer         string `json:"payer"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if !response.IsValid {
+						t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", response.InvalidReason)
+					}
+					if response.Payer != signerAddress.Hex() {
+						t.Errorf("expected payer=%s, got payer=%s", signerAddress.Hex(), response.Payer)
+					}
+				})
+			})
 
-	t.Run("signature address confirmed", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		sig, signerAddress, err := generateEIP712Signature(
-			validAddress2,
-			validAddress3,
-			1000,
-			validAfter,
-			validBefore,
-			validNonce,
-			"Coin",
-			"1",
-			11155111,
-		)
-		if err != nil {
-			t.Fatalf("failed to generate signature: %v", err)
-		}
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + sig + `",
-					"authorization": {
-						"from": "` + signerAddress.Hex() + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
+			t.Run("signature V value conversion 28", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				sig, signerAddress, err := generateEIP712SignatureWithLegacyV(
+					validAddress2,
+					validAddress3,
+					1000,
+					validAfter,
+					validBefore,
+					validNonce,
+					"Coin",
+					"1",
+					v.chainID,
+					28,
+				)
+				if err != nil {
+					t.Fatalf("failed to generate signature: %v", err)
+				}
+				body := `{
+					"x402Version": ` + v.x402Version + `,
+					"paymentPayload": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"payload": {
+							"signature": "` + sig + `",
+							"authorization": {
+								"from": "` + signerAddress.Hex() + `",
+								"to": "` + validAddress2 + `",
+								"value": "1000",
+								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"nonce": "` + validNonce + `"
+							}
+						}
+					},
+					"paymentRequirements": {
+						"scheme": "exact",
+						"network": "` + v.network + `",
+						"maxAmountRequired": "1000",
+						"maxTimeoutSeconds": 30,
+						"asset": "` + validAddress3 + `",
+						"payTo": "` + validAddress2 + `",
+						"extra": {
+							"assetName": "Coin",
+							"assetVersion": "1"
+						}
 					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				Payer         string `json:"payer"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if !response.IsValid {
-				t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", response.InvalidReason)
-			}
-			if response.InvalidReason != "" {
-				t.Errorf("expected invalid reason to be empty, got '%s'", response.InvalidReason)
-			}
-			if response.Payer != signerAddress.Hex() {
-				t.Errorf("expected payer=%s, got payer=%s", signerAddress.Hex(), response.Payer)
-			}
-		})
-	})
+				}`
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						Payer         string `json:"payer"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if !response.IsValid {
+						t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", response.InvalidReason)
+					}
+					if response.Payer != signerAddress.Hex() {
+						t.Errorf("expected payer=%s, got payer=%s", signerAddress.Hex(), response.Payer)
+					}
+				})
+			})
 
-	t.Run("signature V value conversion 27", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		sig, signerAddress, err := generateEIP712SignatureWithLegacyV(
-			validAddress2,
-			validAddress3,
-			1000,
-			validAfter,
-			validBefore,
-			validNonce,
-			"Coin",
-			"1",
-			11155111,
-			27,
-		)
-		if err != nil {
-			t.Fatalf("failed to generate signature: %v", err)
-		}
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + sig + `",
-					"authorization": {
-						"from": "` + signerAddress.Hex() + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
-					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				Payer         string `json:"payer"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if !response.IsValid {
-				t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", response.InvalidReason)
-			}
-			if response.Payer != signerAddress.Hex() {
-				t.Errorf("expected payer=%s, got payer=%s", signerAddress.Hex(), response.Payer)
-			}
 		})
-	})
-
-	t.Run("signature V value conversion 28", func(t *testing.T) {
-		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
-		sig, signerAddress, err := generateEIP712SignatureWithLegacyV(
-			validAddress2,
-			validAddress3,
-			1000,
-			validAfter,
-			validBefore,
-			validNonce,
-			"Coin",
-			"1",
-			11155111,
-			28,
-		)
-		if err != nil {
-			t.Fatalf("failed to generate signature: %v", err)
-		}
-		body := `{
-			"x402Version": 2,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"payload": {
-					"signature": "` + sig + `",
-					"authorization": {
-						"from": "` + signerAddress.Hex() + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
-					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "eip155:11155111",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				Payer         string `json:"payer"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if !response.IsValid {
-				t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", response.InvalidReason)
-			}
-			if response.Payer != signerAddress.Hex() {
-				t.Errorf("expected payer=%s, got payer=%s", signerAddress.Hex(), response.Payer)
-			}
-		})
-	})
+	}
 
 }

@@ -179,7 +179,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 		return types.VerifyResponse{}, fmt.Errorf("failed to get token balance: balance result returned nil")
 	}
 
-	// Verift the balance result is 32 bytes
+	// Verify the balance result is 32 bytes
 	if len(balanceResult) != 32 {
 		return types.VerifyResponse{}, fmt.Errorf("failed to get token balance: balance result is not 32 bytes")
 	}
