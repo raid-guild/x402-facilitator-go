@@ -140,13 +140,27 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		verify(t, "", body, http.StatusBadRequest, nil)
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if response.InvalidReason != "invalid_payment_payload" {
+				t.Errorf("expected invalid reason 'invalid_payment_payload', got '%s'", response.InvalidReason)
+			}
+		})
 	})
 
 	t.Run("invalid payment payload JSON", func(t *testing.T) {
 		body := `{
 			"x402Version": 1,
-			"paymentPayload": {invalid json},
+			"paymentPayload": "invalid json",
 			"paymentRequirements": {
 				"scheme": "exact",
 				"network": "sepolia",
@@ -160,7 +174,21 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		verify(t, "", body, http.StatusBadRequest, nil)
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if response.InvalidReason != "invalid_payment_payload" {
+				t.Errorf("expected invalid reason 'invalid_payment_payload', got '%s'", response.InvalidReason)
+			}
+		})
 	})
 
 	t.Run("missing payment requirements", func(t *testing.T) {
@@ -182,7 +210,21 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		verify(t, "", body, http.StatusBadRequest, nil)
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if response.InvalidReason != "invalid_payment_requirements" {
+				t.Errorf("expected invalid reason 'invalid_payment_requirements', got '%s'", response.InvalidReason)
+			}
+		})
 	})
 
 	t.Run("invalid payment requirements JSON", func(t *testing.T) {
@@ -203,9 +245,23 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 					}
 				}
 			},
-			"paymentRequirements": {invalid json}
+			"paymentRequirements": "invalid json"
 		}`
-		verify(t, "", body, http.StatusBadRequest, nil)
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if response.InvalidReason != "invalid_payment_requirements" {
+				t.Errorf("expected invalid reason 'invalid_payment_requirements', got '%s'", response.InvalidReason)
+			}
+		})
 	})
 
 	t.Run("unsupported x402 version", func(t *testing.T) {
@@ -239,7 +295,21 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		verify(t, "", body, http.StatusNotImplemented, nil)
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if response.InvalidReason != "invalid_x402_version" {
+				t.Errorf("expected invalid reason 'invalid_x402_version', got '%s'", response.InvalidReason)
+			}
+		})
 	})
 
 	t.Run("unsupported scheme", func(t *testing.T) {
@@ -273,7 +343,21 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		verify(t, "", body, http.StatusNotImplemented, nil)
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if response.InvalidReason != "invalid_scheme" {
+				t.Errorf("expected invalid reason 'invalid_scheme', got '%s'", response.InvalidReason)
+			}
+		})
 	})
 
 	t.Run("unsupported network", func(t *testing.T) {
@@ -307,7 +391,21 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		verify(t, "", body, http.StatusNotImplemented, nil)
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if response.InvalidReason != "invalid_network" {
+				t.Errorf("expected invalid reason 'invalid_network', got '%s'", response.InvalidReason)
+			}
+		})
 	})
 
 	t.Run("scheme mismatch", func(t *testing.T) {
@@ -341,7 +439,21 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		verify(t, "", body, http.StatusBadRequest, nil)
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if response.InvalidReason != "invalid_scheme_mismatch" {
+				t.Errorf("expected invalid reason 'invalid_scheme_mismatch', got '%s'", response.InvalidReason)
+			}
+		})
 	})
 
 	t.Run("network mismatch", func(t *testing.T) {
@@ -375,7 +487,21 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		verify(t, "", body, http.StatusBadRequest, nil)
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if response.InvalidReason != "invalid_network_mismatch" {
+				t.Errorf("expected invalid reason 'invalid_network_mismatch', got '%s'", response.InvalidReason)
+			}
+		})
 	})
 
 	t.Run("authorization time window invalid equals", func(t *testing.T) {
@@ -421,8 +547,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if response.InvalidReason != "authorization time window" {
-				t.Errorf("expected invalid reason 'authorization time window', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_authorization_time_window" {
+				t.Errorf("expected invalid reason 'invalid_authorization_time_window', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -470,8 +596,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if response.InvalidReason != "authorization time window" {
-				t.Errorf("expected invalid reason 'authorization time window', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_authorization_time_window" {
+				t.Errorf("expected invalid reason 'invalid_authorization_time_window', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -519,8 +645,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if response.InvalidReason != "authorization valid before" {
-				t.Errorf("expected invalid reason 'authorization valid before', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_authorization_valid_before" {
+				t.Errorf("expected invalid reason 'invalid_authorization_valid_before', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -568,8 +694,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if response.InvalidReason != "authorization valid after" {
-				t.Errorf("expected invalid reason 'authorization valid after', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_authorization_valid_after" {
+				t.Errorf("expected invalid reason 'invalid_authorization_valid_after', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -617,8 +743,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if !strings.Contains(response.InvalidReason, "failed to parse authorization value") {
-				t.Errorf("expected invalid reason to contain 'failed to parse authorization value', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_authorization_value" {
+				t.Errorf("expected invalid reason 'invalid_authorization_value', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -666,8 +792,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if response.InvalidReason != "authorization value negative" {
-				t.Errorf("expected invalid reason 'authorization value negative', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_authorization_value_negative" {
+				t.Errorf("expected invalid reason 'invalid_authorization_value_negative', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -715,8 +841,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if !strings.Contains(response.InvalidReason, "failed to parse max amount required") {
-				t.Errorf("expected invalid reason to contain 'failed to parse max amount required', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_requirements_max_amount" {
+				t.Errorf("expected invalid reason 'invalid_requirements_max_amount', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -764,8 +890,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if !strings.Contains(response.InvalidReason, "greater than") {
-				t.Errorf("expected invalid reason to contain 'greater than', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_authorization_value_exceeded" {
+				t.Errorf("expected invalid reason 'invalid_authorization_value_exceeded', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -812,8 +938,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if response.InvalidReason != "requirements max timeout seconds" {
-				t.Errorf("expected invalid reason 'requirements max timeout seconds', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_requirements_max_timeout" {
+				t.Errorf("expected invalid reason 'invalid_requirements_max_timeout', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -861,8 +987,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if response.InvalidReason != "requirements max timeout seconds" {
-				t.Errorf("expected invalid reason 'requirements max timeout seconds', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_requirements_max_timeout" {
+				t.Errorf("expected invalid reason 'invalid_requirements_max_timeout', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -910,8 +1036,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if response.InvalidReason != "authorization from" {
-				t.Errorf("expected invalid reason 'authorization from', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_authorization_from_address" {
+				t.Errorf("expected invalid reason 'invalid_authorization_from_address', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -959,8 +1085,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if response.InvalidReason != "authorization from insufficient funds" {
-				t.Errorf("expected invalid reason 'authorization from insufficient funds', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "insufficient_funds" {
+				t.Errorf("expected invalid reason 'insufficient_funds', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -1008,8 +1134,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if response.InvalidReason != "authorization to" {
-				t.Errorf("expected invalid reason 'authorization to', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_authorization_to_address" {
+				t.Errorf("expected invalid reason 'invalid_authorization_to_address', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -1057,8 +1183,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if response.InvalidReason != "requirements pay to" {
-				t.Errorf("expected invalid reason 'requirements pay to', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_requirements_pay_to_address" {
+				t.Errorf("expected invalid reason 'invalid_requirements_pay_to_address', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -1106,8 +1232,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if !strings.Contains(response.InvalidReason, "does not match") {
-				t.Errorf("expected invalid reason to contain 'does not match', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_authorization_to_address_mismatch" {
+				t.Errorf("expected invalid reason 'invalid_authorization_to_address_mismatch', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -1155,8 +1281,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if !strings.Contains(response.InvalidReason, "authorization nonce") {
-				t.Errorf("expected invalid reason to contain 'authorization nonce', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_authorization_nonce" {
+				t.Errorf("expected invalid reason 'invalid_authorization_nonce', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -1204,8 +1330,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if !strings.Contains(response.InvalidReason, "authorization nonce length") {
-				t.Errorf("expected invalid reason to contain 'authorization nonce length', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_authorization_nonce_length" {
+				t.Errorf("expected invalid reason 'invalid_authorization_nonce_length', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -1253,8 +1379,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if response.InvalidReason != "requirements asset" {
-				t.Errorf("expected invalid reason 'requirements asset', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_requirements_asset" {
+				t.Errorf("expected invalid reason 'invalid_requirements_asset', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -1302,8 +1428,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if response.InvalidReason != "requirements extra name" {
-				t.Errorf("expected invalid reason 'requirements extra name', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_requirements_extra_name" {
+				t.Errorf("expected invalid reason 'invalid_requirements_extra_name', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -1351,8 +1477,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if response.InvalidReason != "requirements extra version" {
-				t.Errorf("expected invalid reason 'requirements extra version', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_requirements_extra_version" {
+				t.Errorf("expected invalid reason 'invalid_requirements_extra_version', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -1400,8 +1526,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if !strings.Contains(response.InvalidReason, "signature") {
-				t.Errorf("expected invalid reason to contain 'signature', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_authorization_signature" {
+				t.Errorf("expected invalid reason 'invalid_authorization_signature', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -1449,8 +1575,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if !strings.Contains(response.InvalidReason, "signature length") {
-				t.Errorf("expected invalid reason to contain 'signature length', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_authorization_signature_length" {
+				t.Errorf("expected invalid reason 'invalid_authorization_signature_length', got '%s'", response.InvalidReason)
 			}
 		})
 	})
@@ -1512,8 +1638,8 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			if response.IsValid {
 				t.Errorf("expected valid=false, got valid=true")
 			}
-			if !strings.Contains(response.InvalidReason, "does not match") {
-				t.Errorf("expected invalid reason to contain 'does not match', got '%s'", response.InvalidReason)
+			if response.InvalidReason != "invalid_authorization_sender_mismatch" {
+				t.Errorf("expected invalid reason 'invalid_authorization_sender_mismatch', got '%s'", response.InvalidReason)
 			}
 		})
 	})

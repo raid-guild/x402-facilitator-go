@@ -139,13 +139,27 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		settle(t, "", body, http.StatusBadRequest, nil)
+		settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				Success     bool   `json:"success"`
+				ErrorReason string `json:"errorReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.Success {
+				t.Errorf("expected success=false, got success=true")
+			}
+			if response.ErrorReason != "invalid_payment_payload" {
+				t.Errorf("expected error reason 'invalid_payment_payload', got '%s'", response.ErrorReason)
+			}
+		})
 	})
 
 	t.Run("invalid payment payload JSON", func(t *testing.T) {
 		body := `{
 			"x402Version": 1,
-			"paymentPayload": {invalid json},
+			"paymentPayload": "invalid json",
 			"paymentRequirements": {
 				"scheme": "exact",
 				"network": "sepolia",
@@ -159,7 +173,21 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		settle(t, "", body, http.StatusBadRequest, nil)
+		settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				Success     bool   `json:"success"`
+				ErrorReason string `json:"errorReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.Success {
+				t.Errorf("expected success=false, got success=true")
+			}
+			if response.ErrorReason != "invalid_payment_payload" {
+				t.Errorf("expected error reason 'invalid_payment_payload', got '%s'", response.ErrorReason)
+			}
+		})
 	})
 
 	t.Run("missing payment requirements", func(t *testing.T) {
@@ -181,7 +209,21 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		settle(t, "", body, http.StatusBadRequest, nil)
+		settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				Success     bool   `json:"success"`
+				ErrorReason string `json:"errorReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.Success {
+				t.Errorf("expected success=false, got success=true")
+			}
+			if response.ErrorReason != "invalid_payment_requirements" {
+				t.Errorf("expected error reason 'invalid_payment_requirements', got '%s'", response.ErrorReason)
+			}
+		})
 	})
 
 	t.Run("invalid payment requirements JSON", func(t *testing.T) {
@@ -202,116 +244,28 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 					}
 				}
 			},
-			"paymentRequirements": {invalid json}
+			"paymentRequirements": "invalid json"
 		}`
-		settle(t, "", body, http.StatusBadRequest, nil)
+		settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				Success     bool   `json:"success"`
+				ErrorReason string `json:"errorReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.Success {
+				t.Errorf("expected success=false, got success=true")
+			}
+			if response.ErrorReason != "invalid_payment_requirements" {
+				t.Errorf("expected error reason 'invalid_payment_requirements', got '%s'", response.ErrorReason)
+			}
+		})
 	})
 
 	t.Run("unsupported x402 version", func(t *testing.T) {
 		body := `{
 			"x402Version": 0,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
-					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		settle(t, "", body, http.StatusNotImplemented, nil)
-	})
-
-	t.Run("unsupported scheme", func(t *testing.T) {
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "other",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
-					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "other",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		settle(t, "", body, http.StatusNotImplemented, nil)
-	})
-
-	t.Run("unsupported network", func(t *testing.T) {
-		body := `{
-			"x402Version": 1,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "other",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
-					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "other",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		settle(t, "", body, http.StatusNotImplemented, nil)
-	})
-
-	t.Run("RPC_URL_SEPOLIA not set", func(t *testing.T) {
-		body := `{
-			"x402Version": 1,
 			"paymentPayload": {
 				"scheme": "exact",
 				"network": "sepolia",
@@ -351,10 +305,140 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 			if response.Success {
 				t.Errorf("expected success=false, got success=true")
 			}
-			if response.ErrorReason != "RPC_URL_SEPOLIA environment variable is not set" {
-				t.Errorf("expected error reason 'RPC_URL_SEPOLIA environment variable is not set', got '%s'", response.ErrorReason)
+			if response.ErrorReason != "invalid_x402_version" {
+				t.Errorf("expected error reason 'invalid_x402_version', got '%s'", response.ErrorReason)
 			}
 		})
+	})
+
+	t.Run("unsupported scheme", func(t *testing.T) {
+		body := `{
+			"x402Version": 1,
+			"paymentPayload": {
+				"scheme": "other",
+				"network": "sepolia",
+				"payload": {
+					"signature": "` + validSignature + `",
+					"authorization": {
+						"from": "` + validAddress1 + `",
+						"to": "` + validAddress2 + `",
+						"value": "1000",
+						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+						"nonce": "` + validNonce + `"
+					}
+				}
+			},
+			"paymentRequirements": {
+				"scheme": "other",
+				"network": "sepolia",
+				"maxAmountRequired": "1000",
+				"maxTimeoutSeconds": 30,
+				"asset": "` + validAddress3 + `",
+				"payTo": "` + validAddress2 + `",
+				"extra": {
+					"assetName": "Coin",
+					"assetVersion": "1"
+				}
+			}
+		}`
+		settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				Success     bool   `json:"success"`
+				ErrorReason string `json:"errorReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.Success {
+				t.Errorf("expected success=false, got success=true")
+			}
+			if response.ErrorReason != "invalid_scheme" {
+				t.Errorf("expected error reason 'invalid_scheme', got '%s'", response.ErrorReason)
+			}
+		})
+	})
+
+	t.Run("unsupported network", func(t *testing.T) {
+		body := `{
+			"x402Version": 1,
+			"paymentPayload": {
+				"scheme": "exact",
+				"network": "other",
+				"payload": {
+					"signature": "` + validSignature + `",
+					"authorization": {
+						"from": "` + validAddress1 + `",
+						"to": "` + validAddress2 + `",
+						"value": "1000",
+						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+						"nonce": "` + validNonce + `"
+					}
+				}
+			},
+			"paymentRequirements": {
+				"scheme": "exact",
+				"network": "other",
+				"maxAmountRequired": "1000",
+				"maxTimeoutSeconds": 30,
+				"asset": "` + validAddress3 + `",
+				"payTo": "` + validAddress2 + `",
+				"extra": {
+					"assetName": "Coin",
+					"assetVersion": "1"
+				}
+			}
+		}`
+		settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				Success     bool   `json:"success"`
+				ErrorReason string `json:"errorReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.Success {
+				t.Errorf("expected success=false, got success=true")
+			}
+			if response.ErrorReason != "invalid_network" {
+				t.Errorf("expected error reason 'invalid_network', got '%s'", response.ErrorReason)
+			}
+		})
+	})
+
+	t.Run("RPC_URL_SEPOLIA not set", func(t *testing.T) {
+		body := `{
+			"x402Version": 1,
+			"paymentPayload": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"payload": {
+					"signature": "` + validSignature + `",
+					"authorization": {
+						"from": "` + validAddress1 + `",
+						"to": "` + validAddress2 + `",
+						"value": "1000",
+						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
+						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+						"nonce": "` + validNonce + `"
+					}
+				}
+			},
+			"paymentRequirements": {
+				"scheme": "exact",
+				"network": "sepolia",
+				"maxAmountRequired": "1000",
+				"maxTimeoutSeconds": 30,
+				"asset": "` + validAddress3 + `",
+				"payTo": "` + validAddress2 + `",
+				"extra": {
+					"assetName": "Coin",
+					"assetVersion": "1"
+				}
+			}
+		}`
+		settle(t, "", body, http.StatusInternalServerError, nil)
 	})
 
 	t.Run("PRIVATE_KEY not set", func(t *testing.T) {
@@ -389,21 +473,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				Success     bool   `json:"success"`
-				ErrorReason string `json:"errorReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.Success {
-				t.Errorf("expected success=false, got success=true")
-			}
-			if response.ErrorReason != "PRIVATE_KEY environment variable is not set" {
-				t.Errorf("expected error reason 'PRIVATE_KEY environment variable is not set', got '%s'", response.ErrorReason)
-			}
-		})
+		settle(t, "", body, http.StatusInternalServerError, nil)
 	})
 
 	t.Run("PRIVATE_KEY invalid", func(t *testing.T) {
@@ -439,21 +509,7 @@ func TestSettle_SettleV1ExactSepolia(t *testing.T) {
 				}
 			}
 		}`
-		settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				Success     bool   `json:"success"`
-				ErrorReason string `json:"errorReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.Success {
-				t.Errorf("expected success=false, got success=true")
-			}
-			if !strings.Contains(response.ErrorReason, "failed to parse facilitator private key") {
-				t.Errorf("expected error reason to contain 'failed to parse facilitator private key', got '%s'", response.ErrorReason)
-			}
-		})
+		settle(t, "", body, http.StatusInternalServerError, nil)
 	})
 
 	t.Run("success", func(t *testing.T) {

@@ -27,9 +27,9 @@ import (
 
 // SettleResponse is the response of the settle operation.
 type SettleResponse struct {
-	Success     bool   `json:"success"`
-	Transaction string `json:"transaction"`
-	ErrorReason string `json:"errorReason"`
+	Success     bool              `json:"success"`
+	Transaction string            `json:"transaction,omitempty"`
+	ErrorReason types.ErrorReason `json:"errorReason,omitempty"`
 }
 
 // Settle is the handler function called by Vercel.
@@ -40,9 +40,11 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		var se utils.StatusError
 		if errors.As(err, &se) {
+			// Write http error response and then exit handler
 			http.Error(w, err.Error(), se.Status())
 			return
 		} else {
+			// Write http error response and then exit handler
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -52,6 +54,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 	var requestBody types.RequestBody
 	err = json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
+		// Write http error response and then exit handler
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -63,7 +66,8 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 		var paymentPayload types.PaymentPayload
 		err = json.Unmarshal(requestBody.PaymentPayload, &paymentPayload)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to unmarshal payment payload: %v", err), http.StatusBadRequest)
+			// Write http ok response with error reason and then exit handler
+			writeSettleResponseWithErrorReason(w, types.ErrorReasonInvalidPaymentPayload)
 			return
 		}
 
@@ -71,7 +75,8 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 		var paymentRequirements types.PaymentRequirements
 		err = json.Unmarshal(requestBody.PaymentRequirements, &paymentRequirements)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to unmarshal payment requirements: %v", err), http.StatusBadRequest)
+			// Write http ok response with error reason and then exit handler
+			writeSettleResponseWithErrorReason(w, types.ErrorReasonInvalidPaymentRequirements)
 			return
 		}
 
@@ -82,47 +87,72 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 			if paymentPayload.Network == types.NetworkSepolia {
 
 				// Settle the payment by sending a transaction on the Sepolia test network
-				response := settleV1ExactSepolia(paymentPayload.Payload, paymentRequirements)
-
-				// Marshal the response to JSON
-				responseBytes, err := json.Marshal(response)
+				response, err := settleV1ExactSepolia(paymentPayload.Payload, paymentRequirements)
 				if err != nil {
+					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
 
-				// Set the content type and write the status code
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusOK)
-
-				// Write the response to the response body
-				_, err = w.Write(responseBytes)
-				if err != nil {
-					// Header already written so we log the error
-					log.Printf("failed to write response: %v", err)
-				}
-
+				// Write http ok response and then exit handler
+				writeSettleResponse(w, response)
 				return
 			}
 
 			// TODO: Add support for other networks
 
-			http.Error(w, "Unsupported payment network", http.StatusNotImplemented)
+			// Write http ok response with error reason and then exit handler
+			writeSettleResponseWithErrorReason(w, types.ErrorReasonInvalidNetwork)
 			return
 		}
 
 		// TODO: Add support for other schemes
 
-		http.Error(w, "Unsupported payment scheme", http.StatusNotImplemented)
+		// Write http ok response with error reason and then exit handler
+		writeSettleResponseWithErrorReason(w, types.ErrorReasonInvalidScheme)
 		return
 	}
 
 	// TODO: Add support for other versions
 
-	http.Error(w, "Unsupported x402 version", http.StatusNotImplemented)
+	// Write http ok response with error reason and then exit handler
+	writeSettleResponseWithErrorReason(w, types.ErrorReasonInvalidX402Version)
 }
 
-func settleV1ExactSepolia(p types.Payload, r types.PaymentRequirements) SettleResponse {
+// writeSettleResponse writes the settle response to the response body.
+func writeSettleResponse(w http.ResponseWriter, response SettleResponse) {
+
+	// Marshal the response into JSON bytes
+	responseBytes, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Set the content type and write the status code
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	// Write the response bytes to the response body
+	_, err = w.Write(responseBytes)
+	if err != nil {
+		// Header already written so we log the error
+		log.Printf("failed to write response: %v", err)
+	}
+}
+
+// writeSettleResponseWithErrorReason writes the settle response to the response body.
+func writeSettleResponseWithErrorReason(w http.ResponseWriter, errorReason types.ErrorReason) {
+
+	// Write the settle response with the error reason
+	writeSettleResponse(w, SettleResponse{
+		Success:     false,
+		ErrorReason: errorReason,
+	})
+}
+
+// settleV1ExactSepolia settles the payment on the Sepolia test network.
+func settleV1ExactSepolia(p types.Payload, r types.PaymentRequirements) (SettleResponse, error) {
 
 	// Create the context for network operations with timeout
 	timeout := time.Duration(r.MaxTimeoutSeconds) * time.Second
@@ -157,10 +187,8 @@ func settleV1ExactSepolia(p types.Payload, r types.PaymentRequirements) SettleRe
 	// Parse the contract ABI for transferWithAuthorization
 	contractABI, err := abi.JSON(strings.NewReader(contractJSON))
 	if err != nil {
-		return SettleResponse{
-			Success:     false,
-			ErrorReason: fmt.Sprintf("failed to parse ABI: %v", err),
-		}
+		// Return an error that will be handled as an internal server error
+		return SettleResponse{}, fmt.Errorf("failed to parse contract ABI: %v", err)
 	}
 
 	// Convert the authorization value from string to big.Int
@@ -169,8 +197,8 @@ func settleV1ExactSepolia(p types.Payload, r types.PaymentRequirements) SettleRe
 	if !ok {
 		return SettleResponse{
 			Success:     false,
-			ErrorReason: fmt.Sprintf("failed to parse authorization value: %s", p.Authorization.Value),
-		}
+			ErrorReason: types.ErrorReasonInvalidAuthorizationValue,
+		}, nil
 	}
 
 	// Extract the authorization nonce from the payment payload
@@ -181,8 +209,8 @@ func settleV1ExactSepolia(p types.Payload, r types.PaymentRequirements) SettleRe
 	if err != nil {
 		return SettleResponse{
 			Success:     false,
-			ErrorReason: fmt.Sprintf("failed to decode nonce: %v", err),
-		}
+			ErrorReason: types.ErrorReasonInvalidAuthorizationNonce,
+		}, nil
 	}
 
 	// Convert the authorization nonce to a 32 byte slice
@@ -194,8 +222,8 @@ func settleV1ExactSepolia(p types.Payload, r types.PaymentRequirements) SettleRe
 	if err != nil {
 		return SettleResponse{
 			Success:     false,
-			ErrorReason: fmt.Sprintf("failed to parse signature: %v", err),
-		}
+			ErrorReason: types.ErrorReasonInvalidAuthorizationSignature,
+		}, nil
 	}
 
 	// Extract R, S, and V from the authorization signature
@@ -226,44 +254,36 @@ func settleV1ExactSepolia(p types.Payload, r types.PaymentRequirements) SettleRe
 	if err != nil {
 		return SettleResponse{
 			Success:     false,
-			ErrorReason: fmt.Sprintf("failed to pack function call: %v", err),
-		}
+			ErrorReason: types.ErrorReasonInvalidAuthorizationMessage,
+		}, nil
 	}
 
 	// Get the RPC URL for the Sepolia test network
 	rpcURL := os.Getenv("RPC_URL_SEPOLIA")
 	if rpcURL == "" {
-		return SettleResponse{
-			Success:     false,
-			ErrorReason: "RPC_URL_SEPOLIA environment variable is not set",
-		}
+		// Return an error that will be handled as an internal server error
+		return SettleResponse{}, fmt.Errorf("RPC_URL_SEPOLIA environment variable is not set")
 	}
 
 	// Dial the Ethereum RPC client
 	client, err := clients.NewEthClient(rpcURL)
 	if err != nil {
-		return SettleResponse{
-			Success:     false,
-			ErrorReason: fmt.Sprintf("failed to dial RPC client: %v", err),
-		}
+		// Return an error that will be handled as an internal server error
+		return SettleResponse{}, fmt.Errorf("failed to dial Ethereum RPC client: %v", err)
 	}
 
 	// Get the facilitator private key from the environment
 	facilitatorPrivateKeyStr := os.Getenv("PRIVATE_KEY")
 	if facilitatorPrivateKeyStr == "" {
-		return SettleResponse{
-			Success:     false,
-			ErrorReason: "PRIVATE_KEY environment variable is not set",
-		}
+		// Return an error that will be handled as an internal server error
+		return SettleResponse{}, fmt.Errorf("PRIVATE_KEY environment variable is not set")
 	}
 
 	// Parse the facilitator private key
 	facilitatorPrivateKey, err := crypto.HexToECDSA(strings.TrimPrefix(facilitatorPrivateKeyStr, "0x"))
 	if err != nil {
-		return SettleResponse{
-			Success:     false,
-			ErrorReason: fmt.Sprintf("failed to parse facilitator private key: %v", err),
-		}
+		// Return an error that will be handled as an internal server error
+		return SettleResponse{}, fmt.Errorf("failed to parse facilitator private key: %v", err)
 	}
 
 	// Get the facilitator address
@@ -272,28 +292,22 @@ func settleV1ExactSepolia(p types.Payload, r types.PaymentRequirements) SettleRe
 	// Get the pending nonce for the facilitator account
 	txNonce, err := client.PendingNonceAt(ctx, facilitatorAddress)
 	if err != nil {
-		return SettleResponse{
-			Success:     false,
-			ErrorReason: fmt.Sprintf("failed to get pending nonce: %v", err),
-		}
+		// Return an error that will be handled as an internal server error
+		return SettleResponse{}, fmt.Errorf("failed to get pending nonce: %v", err)
 	}
 
 	// Get the suggested gas tip cap
 	gasTipCap, err := client.SuggestGasTipCap(ctx)
 	if err != nil {
-		return SettleResponse{
-			Success:     false,
-			ErrorReason: fmt.Sprintf("failed to suggest gas tip cap: %v", err),
-		}
+		// Return an error that will be handled as an internal server error
+		return SettleResponse{}, fmt.Errorf("failed to suggest gas tip cap: %v", err)
 	}
 
 	// Get the latest block header to get the base fee
 	blockHeader, err := client.HeaderByNumber(ctx, nil)
 	if err != nil {
-		return SettleResponse{
-			Success:     false,
-			ErrorReason: fmt.Sprintf("failed to get block header: %v", err),
-		}
+		// Return an error that will be handled as an internal server error
+		return SettleResponse{}, fmt.Errorf("failed to get block header: %v", err)
 	}
 
 	// Determine the gas fee cap (2x base fee + gas tip cap)
@@ -309,10 +323,8 @@ func settleV1ExactSepolia(p types.Payload, r types.PaymentRequirements) SettleRe
 		Data: txData,
 	})
 	if err != nil {
-		return SettleResponse{
-			Success:     false,
-			ErrorReason: fmt.Sprintf("failed to estimate gas: %v", err),
-		}
+		// Return an error that will be handled as an internal server error
+		return SettleResponse{}, fmt.Errorf("failed to estimate gas: %v", err)
 	}
 
 	// Add 20% buffer to the gas estimate for safety
@@ -322,8 +334,8 @@ func settleV1ExactSepolia(p types.Payload, r types.PaymentRequirements) SettleRe
 	if r.Extra.GasLimit > 0 && gasLimit > r.Extra.GasLimit {
 		return SettleResponse{
 			Success:     false,
-			ErrorReason: fmt.Sprintf("estimated gas (%d) exceeds maximum allowed (%d)", gasLimit, r.Extra.GasLimit),
-		}
+			ErrorReason: types.ErrorReasonInsufficientRequirementsGasLimit,
+		}, nil
 	}
 
 	// Create the transaction using EIP-1559
@@ -344,24 +356,20 @@ func settleV1ExactSepolia(p types.Payload, r types.PaymentRequirements) SettleRe
 	// Sign the transaction with the facilitator's private key
 	signedTx, err := ethtypes.SignTx(transaction, signer, facilitatorPrivateKey)
 	if err != nil {
-		return SettleResponse{
-			Success:     false,
-			ErrorReason: fmt.Sprintf("failed to sign transaction: %v", err),
-		}
+		// Return an error that will be handled as an internal server error
+		return SettleResponse{}, fmt.Errorf("failed to sign transaction: %v", err)
 	}
 
 	// Send the signed transaction
 	err = client.SendTransaction(ctx, signedTx)
 	if err != nil {
-		return SettleResponse{
-			Success:     false,
-			ErrorReason: fmt.Sprintf("failed to send transaction: %v", err),
-		}
+		// Return an error that will be handled as an internal server error
+		return SettleResponse{}, fmt.Errorf("failed to send transaction: %v", err)
 	}
 
 	// Return the settle response
 	return SettleResponse{
 		Success:     true,
 		Transaction: signedTx.Hash().Hex(),
-	}
+	}, nil
 }
