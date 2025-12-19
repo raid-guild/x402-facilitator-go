@@ -82,5 +82,6 @@ const (
 	ErrorReasonInvalidAuthorizationSignature       ErrorReason = "invalid_authorization_signature"
 	ErrorReasonInvalidAuthorizationSignatureLength ErrorReason = "invalid_authorization_signature_length"
 	ErrorReasonInvalidAuthorizationMessage         ErrorReason = "invalid_authorization_message"
+	ErrorReasonInvalidRequirementsMaxTimeout       ErrorReason = "invalid_requirements_max_timeout"
 	ErrorReasonInsufficientRequirementsGasLimit    ErrorReason = "insufficient_requirements_gas_limit"
 )

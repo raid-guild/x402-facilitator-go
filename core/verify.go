@@ -106,26 +106,16 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 		}, nil
 	}
 
-	// Get the RPC URL for the configured network
-	if c.RPCURL == "" {
-		// Return an error that will be handled as an internal server error
-		return types.VerifyResponse{}, fmt.Errorf("RPC_URL environment variable is not set")
-	}
-
-	// Dial the Ethereum RPC client
-	client, err := NewEthClient(c.RPCURL)
-	if err != nil {
-		// Return an error that will be handled as an internal server error
-		return types.VerifyResponse{}, fmt.Errorf("failed to dial RPC client: %v", err)
-	}
-
-	// Create the context for network operations with timeout
-	timeout := time.Duration(r.MaxTimeoutSeconds) * time.Second
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
 	// Convert the authorization from address to common.Address
 	fromAddress := common.HexToAddress(p.Authorization.From)
+
+	// Verify requirements asset is a valid address
+	if !common.IsHexAddress(r.Asset) {
+		return types.VerifyResponse{
+			IsValid:       false,
+			InvalidReason: types.InvalidReasonInvalidRequirementsAsset,
+		}, nil
+	}
 
 	// Convert the requirements asset address to common.Address
 	assetAddress := common.HexToAddress(r.Asset)
@@ -157,6 +147,24 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 		return types.VerifyResponse{}, fmt.Errorf("failed to pack balanceOf call data: %v", err)
 	}
 
+	// Get the RPC URL for the configured network
+	if c.RPCURL == "" {
+		// Return an error that will be handled as an internal server error
+		return types.VerifyResponse{}, fmt.Errorf("RPC_URL environment variable is not set")
+	}
+
+	// Dial the Ethereum RPC client
+	client, err := NewEthClient(c.RPCURL)
+	if err != nil {
+		// Return an error that will be handled as an internal server error
+		return types.VerifyResponse{}, fmt.Errorf("failed to dial RPC client: %v", err)
+	}
+
+	// Create the context for network operations with timeout
+	timeout := time.Duration(r.MaxTimeoutSeconds) * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
 	// Get the ERC20 token balance of the authorization from account
 	balanceResult, err := client.CallContract(ctx, ethereum.CallMsg{
 		To:   &assetAddress,
@@ -164,6 +172,16 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}, nil)
 	if err != nil {
 		return types.VerifyResponse{}, fmt.Errorf("failed to get token balance: %v", err)
+	}
+
+	// Verify the balance result is not nil
+	if balanceResult == nil {
+		return types.VerifyResponse{}, fmt.Errorf("failed to get token balance: balance result returned nil")
+	}
+
+	// Verift the balance result is 32 bytes
+	if len(balanceResult) != 32 {
+		return types.VerifyResponse{}, fmt.Errorf("failed to get token balance: balance result is not 32 bytes")
 	}
 
 	// Convert the balance result to a big.Int
@@ -215,14 +233,6 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 		return types.VerifyResponse{
 			IsValid:       false,
 			InvalidReason: types.InvalidReasonInvalidAuthorizationNonceLength,
-		}, nil
-	}
-
-	// Verify requirements asset is a valid address
-	if !common.IsHexAddress(r.Asset) {
-		return types.VerifyResponse{
-			IsValid:       false,
-			InvalidReason: types.InvalidReasonInvalidRequirementsAsset,
 		}, nil
 	}
 

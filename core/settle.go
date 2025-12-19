@@ -27,6 +27,14 @@ type SettleExactConfig struct {
 // SettleExact settles the payment on the configured network.
 func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequirements) (types.SettleResponse, error) {
 
+	// Verify the requirements max timeout seconds is positive
+	if r.MaxTimeoutSeconds <= 0 {
+		return types.SettleResponse{
+			Success:     false,
+			ErrorReason: types.ErrorReasonInvalidRequirementsMaxTimeout,
+		}, nil
+	}
+
 	// Create the context for network operations with timeout
 	timeout := time.Duration(r.MaxTimeoutSeconds) * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -195,6 +203,12 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 	if err != nil {
 		// Return an error that will be handled as an internal server error
 		return types.SettleResponse{}, fmt.Errorf("failed to get block header: %v", err)
+	}
+
+	// Verify the block header base fee is not nil
+	if blockHeader.BaseFee == nil {
+		// Return an error that will be handled as an internal server error
+		return types.SettleResponse{}, fmt.Errorf("block header missing base fee: network may not support EIP-1559")
 	}
 
 	// Determine the gas fee cap (2x base fee + gas tip cap)

@@ -1073,7 +1073,7 @@ func TestVerify_VerifyExactV1(t *testing.T) {
 				"payload": {
 					"signature": "` + validSignature + `",
 					"authorization": {
-						"from": "invalid-address",
+						"from": "` + validAddress1 + `",
 						"to": "` + validAddress2 + `",
 						"value": "1000",
 						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
@@ -2435,7 +2435,7 @@ func TestVerify_VerifyExactV2(t *testing.T) {
 				"payload": {
 					"signature": "` + validSignature + `",
 					"authorization": {
-						"from": "invalid-address",
+						"from": "` + validAddress1 + `",
 						"to": "` + validAddress2 + `",
 						"value": "1000",
 						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
