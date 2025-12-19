@@ -112,7 +112,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 					RPCURL:  os.Getenv("RPC_URL_BASE_SEPOLIA"),
 				}
 
-				// Verify the payment that will be settled on the Sepolia test network
+				// Verify the payment that will be settled on the Base Sepolia test network
 				response, err := core.VerifyExact(cfg, paymentPayload.Payload, paymentRequirements)
 				if err != nil {
 					// Write http error response and then exit handler
@@ -211,7 +211,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 					RPCURL:  os.Getenv("RPC_URL_BASE_SEPOLIA"),
 				}
 
-				// Verify the payment that will be settled on the Sepolia test network
+				// Verify the payment that will be settled on the Base Sepolia test network
 				response, err := core.VerifyExact(cfg, paymentPayload.Payload, paymentRequirements)
 				if err != nil {
 					// Write http error response and then exit handler

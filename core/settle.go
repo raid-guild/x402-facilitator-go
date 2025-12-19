@@ -24,7 +24,7 @@ type SettleExactConfig struct {
 	PrivateKey string
 }
 
-// SettleExact settles the payment on the configurednetwork.
+// SettleExact settles the payment on the configured network.
 func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequirements) (types.SettleResponse, error) {
 
 	// Create the context for network operations with timeout

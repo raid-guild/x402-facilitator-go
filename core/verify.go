@@ -368,15 +368,8 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 		}, nil
 	}
 
-	// Check the public key format
-	var pubkeyBytes []byte
-	if len(pubkey) == 64 {
-		// Prepend 0x04 for uncompressed public key format
-		pubkeyBytes = append([]byte{0x04}, pubkey...)
-	} else if len(pubkey) == 65 {
-		// Already in correct format
-		pubkeyBytes = pubkey
-	} else {
+	// Verify public key length
+	if len(pubkey) != 65 {
 		return types.VerifyResponse{
 			IsValid:       false,
 			InvalidReason: types.InvalidReasonInvalidAuthorizationPubkeyLength,
@@ -384,7 +377,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Unmarshal the public key
-	recoveredPubkey, err := crypto.UnmarshalPubkey(pubkeyBytes)
+	recoveredPubkey, err := crypto.UnmarshalPubkey(pubkey)
 	if err != nil {
 		return types.VerifyResponse{
 			IsValid:       false,

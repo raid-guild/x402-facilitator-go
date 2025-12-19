@@ -100,7 +100,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 					PrivateKey: os.Getenv("PRIVATE_KEY"),
 				}
 
-				// Settle the payment by sending a transaction on the Sepolia test network
+				// Settle the payment by sending a transaction on the Base Sepolia test network
 				response, err := core.SettleExact(cfg, paymentPayload.Payload, paymentRequirements)
 				if err != nil {
 					// Write http error response and then exit handler
@@ -187,7 +187,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 					PrivateKey: os.Getenv("PRIVATE_KEY"),
 				}
 
-				// Settle the payment by sending a transaction on the Sepolia test network
+				// Settle the payment by sending a transaction on the Base Sepolia test network
 				response, err := core.SettleExact(cfg, paymentPayload.Payload, paymentRequirements)
 				if err != nil {
 					// Write http error response and then exit handler
