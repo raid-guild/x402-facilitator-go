@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
-	"os"
 	"strings"
 	"time"
 
@@ -18,8 +17,15 @@ import (
 	"github.com/raid-guild/x402-facilitator-go/types"
 )
 
-// SettleExact settles the payment on the Sepolia test network.
-func SettleExact(p types.Payload, r types.PaymentRequirements) (types.SettleResponse, error) {
+// SettleExactConfig are the configuration parameters for the settle exact operation.
+type SettleExactConfig struct {
+	ChainID    int64
+	RPCURL     string
+	PrivateKey string
+}
+
+// SettleExact settles the payment on the configurednetwork.
+func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequirements) (types.SettleResponse, error) {
 
 	// Create the context for network operations with timeout
 	timeout := time.Duration(r.MaxTimeoutSeconds) * time.Second
@@ -27,7 +33,7 @@ func SettleExact(p types.Payload, r types.PaymentRequirements) (types.SettleResp
 	defer cancel()
 
 	// Set the chain ID
-	chainID := big.NewInt(11155111) // Sepolia chain ID
+	chainID := big.NewInt(c.ChainID)
 
 	// Set the contract address
 	contractAddress := common.HexToAddress(r.Asset)
@@ -125,29 +131,27 @@ func SettleExact(p types.Payload, r types.PaymentRequirements) (types.SettleResp
 		}, nil
 	}
 
-	// Get the RPC URL for the Sepolia test network
-	rpcURL := os.Getenv("RPC_URL_SEPOLIA")
-	if rpcURL == "" {
+	// Get the RPC URL for the configured network
+	if c.RPCURL == "" {
 		// Return an error that will be handled as an internal server error
-		return types.SettleResponse{}, fmt.Errorf("RPC_URL_SEPOLIA environment variable is not set")
+		return types.SettleResponse{}, fmt.Errorf("RPC_URL environment variable is not set")
 	}
 
 	// Dial the Ethereum RPC client
-	client, err := NewEthClient(rpcURL)
+	client, err := NewEthClient(c.RPCURL)
 	if err != nil {
 		// Return an error that will be handled as an internal server error
 		return types.SettleResponse{}, fmt.Errorf("failed to dial Ethereum RPC client: %v", err)
 	}
 
 	// Get the facilitator private key from the environment
-	facilitatorPrivateKeyStr := os.Getenv("PRIVATE_KEY")
-	if facilitatorPrivateKeyStr == "" {
+	if c.PrivateKey == "" {
 		// Return an error that will be handled as an internal server error
 		return types.SettleResponse{}, fmt.Errorf("PRIVATE_KEY environment variable is not set")
 	}
 
 	// Parse the facilitator private key
-	facilitatorPrivateKey, err := crypto.HexToECDSA(strings.TrimPrefix(facilitatorPrivateKeyStr, "0x"))
+	facilitatorPrivateKey, err := crypto.HexToECDSA(strings.TrimPrefix(c.PrivateKey, "0x"))
 	if err != nil {
 		// Return an error that will be handled as an internal server error
 		return types.SettleResponse{}, fmt.Errorf("failed to parse facilitator private key: %v", err)

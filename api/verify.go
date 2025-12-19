@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/raid-guild/x402-facilitator-go/auth"
 	"github.com/raid-guild/x402-facilitator-go/core"
@@ -80,8 +81,14 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 			// Check the payment network
 			if paymentPayload.Network == types.NetworkSepolia {
 
+				// Set the verify exact configuration
+				cfg := core.VerifyExactConfig{
+					ChainID: 11155111,
+					RPCURL:  os.Getenv("RPC_URL_SEPOLIA"),
+				}
+
 				// Verify the payment that will be settled on the Sepolia test network
-				response, err := core.VerifyExact(paymentPayload.Payload, paymentRequirements)
+				response, err := core.VerifyExact(cfg, paymentPayload.Payload, paymentRequirements)
 				if err != nil {
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)

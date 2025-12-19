@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
-	"os"
 	"strings"
 	"time"
 
@@ -16,8 +15,14 @@ import (
 	"github.com/raid-guild/x402-facilitator-go/types"
 )
 
-// VerifyExact verifies the payment on the Sepolia test network.
-func VerifyExact(p types.Payload, r types.PaymentRequirements) (types.VerifyResponse, error) {
+// VerifyExactConfig are the configuration parameters for the verify exact operation.
+type VerifyExactConfig struct {
+	ChainID int64
+	RPCURL  string
+}
+
+// VerifyExact verifies the payment on the configured network.
+func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequirements) (types.VerifyResponse, error) {
 
 	now := time.Now()
 
@@ -99,15 +104,14 @@ func VerifyExact(p types.Payload, r types.PaymentRequirements) (types.VerifyResp
 		}, nil
 	}
 
-	// Get the RPC URL for the Sepolia test network
-	rpcURL := os.Getenv("RPC_URL_SEPOLIA")
-	if rpcURL == "" {
+	// Get the RPC URL for the configured network
+	if c.RPCURL == "" {
 		// Return an error that will be handled as an internal server error
-		return types.VerifyResponse{}, fmt.Errorf("RPC_URL_SEPOLIA environment variable is not set")
+		return types.VerifyResponse{}, fmt.Errorf("RPC_URL environment variable is not set")
 	}
 
 	// Dial the Ethereum RPC client
-	client, err := NewEthClient(rpcURL)
+	client, err := NewEthClient(c.RPCURL)
 	if err != nil {
 		// Return an error that will be handled as an internal server error
 		return types.VerifyResponse{}, fmt.Errorf("failed to dial RPC client: %v", err)
@@ -202,7 +206,7 @@ func VerifyExact(p types.Payload, r types.PaymentRequirements) (types.VerifyResp
 	}
 
 	// Convert the chain ID to hex or decimal
-	bigChainID := big.NewInt(11155111) // Sepolia
+	bigChainID := big.NewInt(c.ChainID)
 	hexChainID := math.HexOrDecimal256(*bigChainID)
 
 	// Convert the nonce bytes to 32 byte slice
