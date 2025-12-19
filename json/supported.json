@@ -4,6 +4,21 @@
             "x402Version": 1,
             "scheme": "exact",
             "network": "sepolia"
+        },
+        {
+            "x402Version": 1,
+            "scheme": "exact",
+            "network": "base-sepolia"
+        },
+        {
+            "x402Version": 2,
+            "scheme": "exact",
+            "network": "eip155:11155111"
+        },
+        {
+            "x402Version": 2,
+            "scheme": "exact",
+            "network": "eip155:84532"
         }
     ]
 }

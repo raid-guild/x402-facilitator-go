@@ -49,3 +49,17 @@ type Extra struct {
 	Version  string `json:"assetVersion"`
 	GasLimit uint64 `json:"gasLimit"`
 }
+
+// SettleResponse is the response of the settle operation.
+type SettleResponse struct {
+	Success     bool        `json:"success"`
+	Transaction string      `json:"transaction,omitempty"`
+	ErrorReason ErrorReason `json:"errorReason,omitempty"`
+}
+
+// VerifyResponse is the response of the verify operation.
+type VerifyResponse struct {
+	IsValid       bool          `json:"isValid"`
+	Payer         string        `json:"payer,omitempty"`
+	InvalidReason InvalidReason `json:"invalidReason,omitempty"`
+}

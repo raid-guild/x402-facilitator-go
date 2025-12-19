@@ -5,6 +5,7 @@ type X402Version int
 
 const (
 	X402Version1 X402Version = 1
+	X402Version2 X402Version = 2
 )
 
 // Scheme is the scheme enum.
@@ -18,7 +19,13 @@ const (
 type Network string
 
 const (
-	NetworkSepolia Network = "sepolia"
+	NetworkSepolia     Network = "sepolia"
+	NetworkBaseSepolia Network = "base-sepolia"
+
+	// NOTE: Until we need different types to support different x402 versions, we use the
+	// same network enum for both versions and add the V2 suffix to the V2 network name.
+	NetworkSepoliaV2     Network = "eip155:11155111"
+	NetworkBaseSepoliaV2 Network = "eip155:84532"
 )
 
 // InvalidReason is the invalid reason enum.
@@ -64,14 +71,17 @@ const (
 type ErrorReason string
 
 const (
-	ErrorReasonInvalidX402Version               ErrorReason = "invalid_x402_version"
-	ErrorReasonInvalidScheme                    ErrorReason = "invalid_scheme"
-	ErrorReasonInvalidNetwork                   ErrorReason = "invalid_network"
-	ErrorReasonInvalidPaymentPayload            ErrorReason = "invalid_payment_payload"
-	ErrorReasonInvalidPaymentRequirements       ErrorReason = "invalid_payment_requirements"
-	ErrorReasonInvalidAuthorizationValue        ErrorReason = "invalid_authorization_value"
-	ErrorReasonInvalidAuthorizationNonce        ErrorReason = "invalid_authorization_nonce"
-	ErrorReasonInvalidAuthorizationSignature    ErrorReason = "invalid_authorization_signature"
-	ErrorReasonInvalidAuthorizationMessage      ErrorReason = "invalid_authorization_message"
-	ErrorReasonInsufficientRequirementsGasLimit ErrorReason = "insufficient_requirements_gas_limit"
+	ErrorReasonInvalidX402Version                  ErrorReason = "invalid_x402_version"
+	ErrorReasonInvalidScheme                       ErrorReason = "invalid_scheme"
+	ErrorReasonInvalidNetwork                      ErrorReason = "invalid_network"
+	ErrorReasonInvalidPaymentPayload               ErrorReason = "invalid_payment_payload"
+	ErrorReasonInvalidPaymentRequirements          ErrorReason = "invalid_payment_requirements"
+	ErrorReasonInvalidAuthorizationValue           ErrorReason = "invalid_authorization_value"
+	ErrorReasonInvalidAuthorizationNonce           ErrorReason = "invalid_authorization_nonce"
+	ErrorReasonInvalidAuthorizationNonceLength     ErrorReason = "invalid_authorization_nonce_length"
+	ErrorReasonInvalidAuthorizationSignature       ErrorReason = "invalid_authorization_signature"
+	ErrorReasonInvalidAuthorizationSignatureLength ErrorReason = "invalid_authorization_signature_length"
+	ErrorReasonInvalidAuthorizationMessage         ErrorReason = "invalid_authorization_message"
+	ErrorReasonInvalidRequirementsMaxTimeout       ErrorReason = "invalid_requirements_max_timeout"
+	ErrorReasonInsufficientRequirementsGasLimit    ErrorReason = "insufficient_requirements_gas_limit"
 )

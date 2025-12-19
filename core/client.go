@@ -1,4 +1,4 @@
-package clients
+package core
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 
 // EthClientInterface defines the interface for Ethereum client.
 type EthClientInterface interface {
-	BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
+	CallContract(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error)
 	PendingNonceAt(ctx context.Context, account common.Address) (uint64, error)
 	SuggestGasTipCap(ctx context.Context) (*big.Int, error)
 	HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error)

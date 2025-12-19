@@ -16,7 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 
 	handler "github.com/raid-guild/x402-facilitator-go/api"
-	"github.com/raid-guild/x402-facilitator-go/clients"
+	"github.com/raid-guild/x402-facilitator-go/core"
 )
 
 var registerMockDriverOnce sync.Once
@@ -45,14 +45,17 @@ func setupMockDatabase(t *testing.T, dsnID string) (sqlmock.Sqlmock, string, fun
 func setupMockEthClient(t *testing.T) {
 	t.Helper()
 
-	originalNewEthClient := clients.NewEthClient
+	originalNewEthClient := core.NewEthClient
 	t.Cleanup(func() {
-		clients.NewEthClient = originalNewEthClient
+		core.NewEthClient = originalNewEthClient
 	})
 
 	client := &mockEthClient{
-		balanceAt: func(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
-			return big.NewInt(1000000), nil
+		callContract: func(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error) {
+			balance := big.NewInt(1000)
+			balanceBytes := make([]byte, 32)
+			balance.FillBytes(balanceBytes)
+			return balanceBytes, nil
 		},
 		pendingNonceAt: func(ctx context.Context, account common.Address) (uint64, error) {
 			return 1, nil
@@ -73,7 +76,7 @@ func setupMockEthClient(t *testing.T) {
 		},
 	}
 
-	clients.NewEthClient = func(rpcURL string) (clients.EthClientInterface, error) {
+	core.NewEthClient = func(rpcURL string) (core.EthClientInterface, error) {
 		return client, nil
 	}
 }
