@@ -97,31 +97,69 @@ func TestVerify_Authentication(t *testing.T) {
 
 }
 
-func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
+func TestVerify_Compatibility(t *testing.T) {
 
 	setupMockEthClient(t) // do not make any actual RPC calls
 
-	now := time.Now()
-
-	validAfter := now.Add(-2 * time.Minute).Unix()
-	validBefore := now.Add(2 * time.Minute).Unix()
-	expiredBefore := now.Add(-1 * time.Minute).Unix()
-	futureAfter := now.Add(1 * time.Minute).Unix()
-
-	validNonce := "0x" + strings.Repeat("00", 32)
-	invalidNonce := "0x" + strings.Repeat("00", 33)
-	invalidHexNonce := "0xZZ" + strings.Repeat("00", 30)
-
-	validAddress1 := "0x0000000000000000000000000000000000000001"
-	validAddress2 := "0x0000000000000000000000000000000000000002"
-	validAddress3 := "0x0000000000000000000000000000000000000003"
-
-	validSignature := "0x" + strings.Repeat("00", 65)
-	invalidSignature := "0x" + strings.Repeat("00", 64)
-	invalidHexSignature := "0xZZ" + strings.Repeat("00", 63)
-
 	t.Run("invalid body JSON", func(t *testing.T) {
 		verify(t, "", `{invalid json}`, http.StatusBadRequest, nil)
+	})
+
+	t.Run("missing x402 version", func(t *testing.T) {
+		body := `{
+			"paymentPayload": {
+				"scheme": "exact",
+				"network": "sepolia"
+			},
+			"paymentRequirements": {
+				"scheme": "exact",
+				"network": "sepolia"
+			}
+		}`
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if response.InvalidReason != "invalid_x402_version" {
+				t.Errorf("expected invalid reason 'invalid_x402_version', got '%s'", response.InvalidReason)
+			}
+		})
+	})
+
+	t.Run("unsupported x402 version", func(t *testing.T) {
+		body := `{
+			"x402Version": 100,
+			"paymentPayload": {
+				"scheme": "exact",
+				"network": "sepolia"
+			},
+			"paymentRequirements": {
+				"scheme": "exact",
+				"network": "sepolia"
+			}
+		}`
+		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+			var response struct {
+				IsValid       bool   `json:"isValid"`
+				InvalidReason string `json:"invalidReason"`
+			}
+			if err := json.Unmarshal([]byte(body), &response); err != nil {
+				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+			}
+			if response.IsValid {
+				t.Errorf("expected valid=false, got valid=true")
+			}
+			if response.InvalidReason != "invalid_x402_version" {
+				t.Errorf("expected invalid reason 'invalid_x402_version', got '%s'", response.InvalidReason)
+			}
+		})
 	})
 
 	t.Run("missing payment payload", func(t *testing.T) {
@@ -129,15 +167,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			"x402Version": 1,
 			"paymentRequirements": {
 				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
+				"network": "sepolia"
 			}
 		}`
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
@@ -163,15 +193,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			"paymentPayload": "invalid json",
 			"paymentRequirements": {
 				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
+				"network": "sepolia"
 			}
 		}`
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
@@ -196,18 +218,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			"x402Version": 1,
 			"paymentPayload": {
 				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
-					}
-				}
+				"network": "sepolia"
 			}
 		}`
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
@@ -232,18 +243,7 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			"x402Version": 1,
 			"paymentPayload": {
 				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
-					}
-				}
+				"network": "sepolia"
 			},
 			"paymentRequirements": "invalid json"
 		}`
@@ -264,83 +264,16 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 		})
 	})
 
-	t.Run("unsupported x402 version", func(t *testing.T) {
-		body := `{
-			"x402Version": 0,
-			"paymentPayload": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
-					}
-				}
-			},
-			"paymentRequirements": {
-				"scheme": "exact",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
-			}
-		}`
-		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				IsValid       bool   `json:"isValid"`
-				InvalidReason string `json:"invalidReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.IsValid {
-				t.Errorf("expected valid=false, got valid=true")
-			}
-			if response.InvalidReason != "invalid_x402_version" {
-				t.Errorf("expected invalid reason 'invalid_x402_version', got '%s'", response.InvalidReason)
-			}
-		})
-	})
-
 	t.Run("unsupported scheme", func(t *testing.T) {
 		body := `{
 			"x402Version": 1,
 			"paymentPayload": {
 				"scheme": "other",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
-					}
-				}
+				"network": "sepolia"
 			},
 			"paymentRequirements": {
 				"scheme": "other",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
+				"network": "sepolia"
 			}
 		}`
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
@@ -365,30 +298,11 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			"x402Version": 1,
 			"paymentPayload": {
 				"scheme": "exact",
-				"network": "other",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
-					}
-				}
+				"network": "other"
 			},
 			"paymentRequirements": {
 				"scheme": "exact",
-				"network": "other",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
+				"network": "other"
 			}
 		}`
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
@@ -413,30 +327,11 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			"x402Version": 1,
 			"paymentPayload": {
 				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
-					}
-				}
+				"network": "sepolia"
 			},
 			"paymentRequirements": {
 				"scheme": "other",
-				"network": "sepolia",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
+				"network": "sepolia"
 			}
 		}`
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
@@ -461,30 +356,11 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			"x402Version": 1,
 			"paymentPayload": {
 				"scheme": "exact",
-				"network": "sepolia",
-				"payload": {
-					"signature": "` + validSignature + `",
-					"authorization": {
-						"from": "` + validAddress1 + `",
-						"to": "` + validAddress2 + `",
-						"value": "1000",
-						"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-						"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
-						"nonce": "` + validNonce + `"
-					}
-				}
+				"network": "sepolia"
 			},
 			"paymentRequirements": {
 				"scheme": "exact",
-				"network": "other",
-				"maxAmountRequired": "1000",
-				"maxTimeoutSeconds": 30,
-				"asset": "` + validAddress3 + `",
-				"payTo": "` + validAddress2 + `",
-				"extra": {
-					"assetName": "Coin",
-					"assetVersion": "1"
-				}
+				"network": "other"
 			}
 		}`
 		verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
@@ -503,6 +379,31 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			}
 		})
 	})
+
+}
+
+func TestVerify_VerifyExact(t *testing.T) {
+
+	setupMockEthClient(t) // do not make any actual RPC calls
+
+	now := time.Now()
+
+	validAfter := now.Add(-2 * time.Minute).Unix()
+	validBefore := now.Add(2 * time.Minute).Unix()
+	expiredBefore := now.Add(-1 * time.Minute).Unix()
+	futureAfter := now.Add(1 * time.Minute).Unix()
+
+	validNonce := "0x" + strings.Repeat("00", 32)
+	invalidNonce := "0x" + strings.Repeat("00", 33)
+	invalidHexNonce := "0xZZ" + strings.Repeat("00", 30)
+
+	validAddress1 := "0x0000000000000000000000000000000000000001"
+	validAddress2 := "0x0000000000000000000000000000000000000002"
+	validAddress3 := "0x0000000000000000000000000000000000000003"
+
+	validSignature := "0x" + strings.Repeat("00", 65)
+	invalidSignature := "0x" + strings.Repeat("00", 64)
+	invalidHexSignature := "0xZZ" + strings.Repeat("00", 63)
 
 	t.Run("authorization time window invalid equals", func(t *testing.T) {
 		t.Setenv("RPC_URL_SEPOLIA", "https://test.node")
@@ -1840,4 +1741,5 @@ func TestVerify_VerifyV1ExactSepolia(t *testing.T) {
 			}
 		})
 	})
+
 }
