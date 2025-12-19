@@ -132,12 +132,13 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 	writeVerifyResponseWithInvalidReason(w, types.InvalidReasonInvalidX402Version)
 }
 
+// writeVerifyResponse writes the verify response to the response body.
 func writeVerifyResponse(w http.ResponseWriter, response VerifyResponse) {
 
 	// Marshal the response into JSON bytes
 	responseBytes, err := json.Marshal(response)
 	if err != nil {
-		log.Printf("failed to marshal response: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -148,17 +149,22 @@ func writeVerifyResponse(w http.ResponseWriter, response VerifyResponse) {
 	// Write the response bytes to the response body
 	_, err = w.Write(responseBytes)
 	if err != nil {
+		// Header already written so we log the error
 		log.Printf("failed to write response: %v", err)
 	}
 }
 
+// writeVerifyResponseWithInvalidReason writes the verify response to the response body.
 func writeVerifyResponseWithInvalidReason(w http.ResponseWriter, invalidReason types.InvalidReason) {
+
+	// Write the verify response with the invalid reason
 	writeVerifyResponse(w, VerifyResponse{
 		IsValid:       false,
 		InvalidReason: invalidReason,
 	})
 }
 
+// verifyV1ExactSepolia verifies the payment on the Sepolia test network.
 func verifyV1ExactSepolia(p types.Payload, r types.PaymentRequirements) (VerifyResponse, error) {
 
 	now := time.Now()

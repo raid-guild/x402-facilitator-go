@@ -119,12 +119,13 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 	writeSettleResponseWithErrorReason(w, types.ErrorReasonInvalidX402Version)
 }
 
+// writeSettleResponse writes the settle response to the response body.
 func writeSettleResponse(w http.ResponseWriter, response SettleResponse) {
 
 	// Marshal the response into JSON bytes
 	responseBytes, err := json.Marshal(response)
 	if err != nil {
-		log.Printf("failed to marshal response: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -135,17 +136,22 @@ func writeSettleResponse(w http.ResponseWriter, response SettleResponse) {
 	// Write the response bytes to the response body
 	_, err = w.Write(responseBytes)
 	if err != nil {
+		// Header already written so we log the error
 		log.Printf("failed to write response: %v", err)
 	}
 }
 
+// writeSettleResponseWithErrorReason writes the settle response to the response body.
 func writeSettleResponseWithErrorReason(w http.ResponseWriter, errorReason types.ErrorReason) {
+
+	// Write the settle response with the error reason
 	writeSettleResponse(w, SettleResponse{
 		Success:     false,
 		ErrorReason: errorReason,
 	})
 }
 
+// settleV1ExactSepolia settles the payment on the Sepolia test network.
 func settleV1ExactSepolia(p types.Payload, r types.PaymentRequirements) (SettleResponse, error) {
 
 	// Create the context for network operations with timeout
