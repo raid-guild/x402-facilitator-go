@@ -51,8 +51,11 @@ func setupMockEthClient(t *testing.T) {
 	})
 
 	client := &mockEthClient{
-		balanceAt: func(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
-			return big.NewInt(1000000), nil
+		callContract: func(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error) {
+			balance := big.NewInt(1000)
+			balanceBytes := make([]byte, 32)
+			balance.FillBytes(balanceBytes)
+			return balanceBytes, nil
 		},
 		pendingNonceAt: func(ctx context.Context, account common.Address) (uint64, error) {
 			return 1, nil

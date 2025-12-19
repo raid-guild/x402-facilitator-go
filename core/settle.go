@@ -86,6 +86,14 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 		}, nil
 	}
 
+	// Validate the nonce is exactly 32 bytes
+	if len(authNonceBytes) != 32 {
+		return types.SettleResponse{
+			Success:     false,
+			ErrorReason: types.ErrorReasonInvalidAuthorizationNonceLength,
+		}, nil
+	}
+
 	// Convert the authorization nonce to a 32 byte slice
 	var authNonce [32]byte
 	copy(authNonce[:], authNonceBytes)
@@ -96,6 +104,14 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 		return types.SettleResponse{
 			Success:     false,
 			ErrorReason: types.ErrorReasonInvalidAuthorizationSignature,
+		}, nil
+	}
+
+	// Verify the signature is exactly 65 bytes (32 bytes r + 32 bytes s + 1 byte v)
+	if len(authSignature) != 65 {
+		return types.SettleResponse{
+			Success:     false,
+			ErrorReason: types.ErrorReasonInvalidAuthorizationSignatureLength,
 		}, nil
 	}
 

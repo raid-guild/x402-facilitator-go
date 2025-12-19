@@ -71,14 +71,16 @@ const (
 type ErrorReason string
 
 const (
-	ErrorReasonInvalidX402Version               ErrorReason = "invalid_x402_version"
-	ErrorReasonInvalidScheme                    ErrorReason = "invalid_scheme"
-	ErrorReasonInvalidNetwork                   ErrorReason = "invalid_network"
-	ErrorReasonInvalidPaymentPayload            ErrorReason = "invalid_payment_payload"
-	ErrorReasonInvalidPaymentRequirements       ErrorReason = "invalid_payment_requirements"
-	ErrorReasonInvalidAuthorizationValue        ErrorReason = "invalid_authorization_value"
-	ErrorReasonInvalidAuthorizationNonce        ErrorReason = "invalid_authorization_nonce"
-	ErrorReasonInvalidAuthorizationSignature    ErrorReason = "invalid_authorization_signature"
-	ErrorReasonInvalidAuthorizationMessage      ErrorReason = "invalid_authorization_message"
-	ErrorReasonInsufficientRequirementsGasLimit ErrorReason = "insufficient_requirements_gas_limit"
+	ErrorReasonInvalidX402Version                  ErrorReason = "invalid_x402_version"
+	ErrorReasonInvalidScheme                       ErrorReason = "invalid_scheme"
+	ErrorReasonInvalidNetwork                      ErrorReason = "invalid_network"
+	ErrorReasonInvalidPaymentPayload               ErrorReason = "invalid_payment_payload"
+	ErrorReasonInvalidPaymentRequirements          ErrorReason = "invalid_payment_requirements"
+	ErrorReasonInvalidAuthorizationValue           ErrorReason = "invalid_authorization_value"
+	ErrorReasonInvalidAuthorizationNonce           ErrorReason = "invalid_authorization_nonce"
+	ErrorReasonInvalidAuthorizationNonceLength     ErrorReason = "invalid_authorization_nonce_length"
+	ErrorReasonInvalidAuthorizationSignature       ErrorReason = "invalid_authorization_signature"
+	ErrorReasonInvalidAuthorizationSignatureLength ErrorReason = "invalid_authorization_signature_length"
+	ErrorReasonInvalidAuthorizationMessage         ErrorReason = "invalid_authorization_message"
+	ErrorReasonInsufficientRequirementsGasLimit    ErrorReason = "insufficient_requirements_gas_limit"
 )

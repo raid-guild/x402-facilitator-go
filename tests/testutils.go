@@ -154,7 +154,7 @@ func generateEIP712SignatureWithLegacyV(
 }
 
 type mockEthClient struct {
-	balanceAt        func(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
+	callContract     func(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error)
 	pendingNonceAt   func(ctx context.Context, account common.Address) (uint64, error)
 	suggestGasTipCap func(ctx context.Context) (*big.Int, error)
 	headerByNumber   func(ctx context.Context, number *big.Int) (*types.Header, error)
@@ -162,11 +162,14 @@ type mockEthClient struct {
 	sendTransaction  func(ctx context.Context, tx *types.Transaction) error
 }
 
-func (m *mockEthClient) BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
-	if m.balanceAt != nil {
-		return m.balanceAt(ctx, account, blockNumber)
+func (m *mockEthClient) CallContract(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error) {
+	if m.callContract != nil {
+		return m.callContract(ctx, msg, blockNumber)
 	}
-	return big.NewInt(1000), nil
+	balance := big.NewInt(1000)
+	balanceBytes := make([]byte, 32)
+	balance.FillBytes(balanceBytes)
+	return balanceBytes, nil
 }
 
 func (m *mockEthClient) PendingNonceAt(ctx context.Context, account common.Address) (uint64, error) {
@@ -180,7 +183,7 @@ func (m *mockEthClient) SuggestGasTipCap(ctx context.Context) (*big.Int, error) 
 	if m.suggestGasTipCap != nil {
 		return m.suggestGasTipCap(ctx)
 	}
-	return big.NewInt(1000000000), nil
+	return big.NewInt(1000), nil
 }
 
 func (m *mockEthClient) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
@@ -188,7 +191,7 @@ func (m *mockEthClient) HeaderByNumber(ctx context.Context, number *big.Int) (*t
 		return m.headerByNumber(ctx, number)
 	}
 	return &types.Header{
-		BaseFee: big.NewInt(20000000000),
+		BaseFee: big.NewInt(1000),
 	}, nil
 }
 
@@ -196,7 +199,7 @@ func (m *mockEthClient) EstimateGas(ctx context.Context, msg ethereum.CallMsg) (
 	if m.estimateGas != nil {
 		return m.estimateGas(ctx, msg)
 	}
-	return 21000, nil
+	return 1000, nil
 }
 
 func (m *mockEthClient) SendTransaction(ctx context.Context, tx *types.Transaction) error {

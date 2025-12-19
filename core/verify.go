@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -125,12 +127,47 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	// Convert the authorization from address to common.Address
 	fromAddress := common.HexToAddress(p.Authorization.From)
 
-	// Get the latest balance of the authorization from account
-	balance, err := client.BalanceAt(ctx, fromAddress, nil)
+	// Convert the requirements asset address to common.Address
+	assetAddress := common.HexToAddress(r.Asset)
+
+	// Set the raw JSON for balanceOf
+	balanceOfJSON := `[{
+		"type": "function",
+		"name": "balanceOf",
+		"inputs": [
+			{"name": "account", "type": "address"}
+		],
+		"outputs": [
+			{"name": "", "type": "uint256"}
+		],
+		"constant": true
+	}]`
+
+	// Parse the contract ABI for balanceOf
+	balanceOfABI, err := abi.JSON(strings.NewReader(balanceOfJSON))
 	if err != nil {
 		// Return an error that will be handled as an internal server error
-		return types.VerifyResponse{}, fmt.Errorf("failed to get balance: %v", err)
+		return types.VerifyResponse{}, fmt.Errorf("failed to parse balanceOf ABI: %v", err)
 	}
+
+	// Pack the balanceOf function call data
+	balanceOfData, err := balanceOfABI.Pack("balanceOf", fromAddress)
+	if err != nil {
+		// Return an error that will be handled as an internal server error
+		return types.VerifyResponse{}, fmt.Errorf("failed to pack balanceOf call data: %v", err)
+	}
+
+	// Get the ERC20 token balance of the authorization from account
+	balanceResult, err := client.CallContract(ctx, ethereum.CallMsg{
+		To:   &assetAddress,
+		Data: balanceOfData,
+	}, nil)
+	if err != nil {
+		return types.VerifyResponse{}, fmt.Errorf("failed to get token balance: %v", err)
+	}
+
+	// Convert the balance result to a big.Int
+	balance := new(big.Int).SetBytes(balanceResult)
 
 	// Verify the authorization from account has enough funds
 	if balance.Cmp(authValue) < 0 {
