@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -154,12 +155,12 @@ func generateEIP712SignatureWithLegacyV(
 }
 
 type mockEthClient struct {
-	callContract     func(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error)
-	pendingNonceAt   func(ctx context.Context, account common.Address) (uint64, error)
-	suggestGasTipCap func(ctx context.Context) (*big.Int, error)
-	headerByNumber   func(ctx context.Context, number *big.Int) (*types.Header, error)
-	estimateGas      func(ctx context.Context, msg ethereum.CallMsg) (uint64, error)
-	sendTransaction  func(ctx context.Context, tx *types.Transaction) error
+	callContract        func(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error)
+	pendingNonceAt      func(ctx context.Context, account common.Address) (uint64, error)
+	suggestGasTipCap    func(ctx context.Context) (*big.Int, error)
+	headerByNumber      func(ctx context.Context, number *big.Int) (*types.Header, error)
+	estimateGas         func(ctx context.Context, msg ethereum.CallMsg) (uint64, error)
+	sendTransactionSync func(ctx context.Context, tx *types.Transaction, timeout *time.Duration) (*types.Receipt, error)
 }
 
 func (m *mockEthClient) CallContract(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error) {
@@ -202,9 +203,11 @@ func (m *mockEthClient) EstimateGas(ctx context.Context, msg ethereum.CallMsg) (
 	return 1000, nil
 }
 
-func (m *mockEthClient) SendTransaction(ctx context.Context, tx *types.Transaction) error {
-	if m.sendTransaction != nil {
-		return m.sendTransaction(ctx, tx)
+func (m *mockEthClient) SendTransactionSync(ctx context.Context, tx *types.Transaction, timeout *time.Duration) (*types.Receipt, error) {
+	if m.sendTransactionSync != nil {
+		return m.sendTransactionSync(ctx, tx, timeout)
 	}
-	return nil
+	return &types.Receipt{
+		Status: types.ReceiptStatusSuccessful,
+	}, nil
 }

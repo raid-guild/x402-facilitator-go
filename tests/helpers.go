@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/ethereum/go-ethereum"
@@ -71,8 +72,10 @@ func setupMockEthClient(t *testing.T) {
 		estimateGas: func(ctx context.Context, msg ethereum.CallMsg) (uint64, error) {
 			return 1000, nil
 		},
-		sendTransaction: func(ctx context.Context, tx *types.Transaction) error {
-			return nil
+		sendTransactionSync: func(ctx context.Context, tx *types.Transaction, timeout *time.Duration) (*types.Receipt, error) {
+			return &types.Receipt{
+				Status: types.ReceiptStatusSuccessful,
+			}, nil
 		},
 	}
 
