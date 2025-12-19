@@ -40,8 +40,11 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check the x402 version
+	// Handle requests for x402 Version 1
 	if requestBody.X402Version == types.X402Version1 {
+
+		// NOTE: The types for payment payload and payment requirements are the same for v1 and v2.
+		// This will change in the future but for now we perform the same checks for both versions.
 
 		// Unmarshal the payment payload
 		var paymentPayload types.PaymentPayload
@@ -61,10 +64,10 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Check the payment scheme
+		// Handle requests for exact scheme
 		if paymentPayload.Scheme == types.SchemeExact {
 
-			// Check the payment network
+			// Handle requests for sepolia network
 			if paymentPayload.Network == types.NetworkSepolia {
 
 				// Set the settle exact configuration
@@ -87,21 +90,131 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			// TODO: Add support for other networks
+			// Handle requests for base sepolia network
+			if paymentPayload.Network == types.NetworkBaseSepolia {
+
+				// Set the settle exact configuration
+				cfg := core.SettleExactConfig{
+					ChainID:    84532,
+					RPCURL:     os.Getenv("RPC_URL_BASE_SEPOLIA"),
+					PrivateKey: os.Getenv("PRIVATE_KEY"),
+				}
+
+				// Settle the payment by sending a transaction on the Sepolia test network
+				response, err := core.SettleExact(cfg, paymentPayload.Payload, paymentRequirements)
+				if err != nil {
+					// Write http error response and then exit handler
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				// Write http ok response and then exit handler
+				writeSettleResponse(w, response)
+				return
+			}
+
+			// TODO: Add support for other v1 networks
 
 			// Write http ok response with error reason and then exit handler
 			writeSettleResponseWithErrorReason(w, types.ErrorReasonInvalidNetwork)
 			return
 		}
 
-		// TODO: Add support for other schemes
+		// TODO: Add support for other v1 schemes
 
 		// Write http ok response with error reason and then exit handler
 		writeSettleResponseWithErrorReason(w, types.ErrorReasonInvalidScheme)
 		return
 	}
 
-	// TODO: Add support for other versions
+	// Handle requests for x402 Version 2
+	if requestBody.X402Version == types.X402Version2 {
+
+		// NOTE: The types for payment payload and payment requirements are the same for v1 and v2.
+		// This will change in the future but for now we perform the same checks for both versions.
+
+		// Unmarshal the payment payload
+		var paymentPayload types.PaymentPayload
+		err = json.Unmarshal(requestBody.PaymentPayload, &paymentPayload)
+		if err != nil {
+			// Write http ok response with error reason and then exit handler
+			writeSettleResponseWithErrorReason(w, types.ErrorReasonInvalidPaymentPayload)
+			return
+		}
+
+		// Unmarshal the payment requirements
+		var paymentRequirements types.PaymentRequirements
+		err = json.Unmarshal(requestBody.PaymentRequirements, &paymentRequirements)
+		if err != nil {
+			// Write http ok response with error reason and then exit handler
+			writeSettleResponseWithErrorReason(w, types.ErrorReasonInvalidPaymentRequirements)
+			return
+		}
+
+		// Handle requests for exact scheme
+		if paymentPayload.Scheme == types.SchemeExact {
+
+			// Handle requests for sepolia network
+			if paymentPayload.Network == types.NetworkSepoliaV2 {
+
+				// Set the settle exact configuration
+				cfg := core.SettleExactConfig{
+					ChainID:    11155111,
+					RPCURL:     os.Getenv("RPC_URL_SEPOLIA"),
+					PrivateKey: os.Getenv("PRIVATE_KEY"),
+				}
+
+				// Settle the payment by sending a transaction on the Sepolia test network
+				response, err := core.SettleExact(cfg, paymentPayload.Payload, paymentRequirements)
+				if err != nil {
+					// Write http error response and then exit handler
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				// Write http ok response and then exit handler
+				writeSettleResponse(w, response)
+				return
+			}
+
+			// Handle requests for base sepolia network
+			if paymentPayload.Network == types.NetworkBaseSepoliaV2 {
+
+				// Set the settle exact configuration
+				cfg := core.SettleExactConfig{
+					ChainID:    84532,
+					RPCURL:     os.Getenv("RPC_URL_BASE_SEPOLIA"),
+					PrivateKey: os.Getenv("PRIVATE_KEY"),
+				}
+
+				// Settle the payment by sending a transaction on the Sepolia test network
+				response, err := core.SettleExact(cfg, paymentPayload.Payload, paymentRequirements)
+				if err != nil {
+					// Write http error response and then exit handler
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				// Write http ok response and then exit handler
+				writeSettleResponse(w, response)
+				return
+			}
+
+			// TODO: Add support for other v2 networks
+
+			// Write http ok response with error reason and then exit handler
+			writeSettleResponseWithErrorReason(w, types.ErrorReasonInvalidNetwork)
+			return
+		}
+
+		// TODO: Add support for other v2 schemes
+
+		// Write http ok response with error reason and then exit handler
+		writeSettleResponseWithErrorReason(w, types.ErrorReasonInvalidScheme)
+		return
+	}
+
+	// TODO: Add support for other x402 versions
 
 	// Write http ok response with error reason and then exit handler
 	writeSettleResponseWithErrorReason(w, types.ErrorReasonInvalidX402Version)

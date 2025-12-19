@@ -5,6 +5,7 @@ type X402Version int
 
 const (
 	X402Version1 X402Version = 1
+	X402Version2 X402Version = 2
 )
 
 // Scheme is the scheme enum.
@@ -18,7 +19,13 @@ const (
 type Network string
 
 const (
-	NetworkSepolia Network = "sepolia"
+	NetworkSepolia     Network = "sepolia"
+	NetworkBaseSepolia Network = "base-sepolia"
+
+	// NOTE: Until we need different types to support different x402 versions, we use the
+	// same network enum for both versions and add the V2 suffix to the V2 network name.
+	NetworkSepoliaV2     Network = "eip155:11155111"
+	NetworkBaseSepoliaV2 Network = "eip155:84532"
 )
 
 // InvalidReason is the invalid reason enum.
