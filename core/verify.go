@@ -29,14 +29,6 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 
 	now := time.Now()
 
-	// Verify the authorization time window is valid
-	if p.Authorization.ValidAfter >= p.Authorization.ValidBefore {
-		return types.VerifyResponse{
-			IsValid:       false,
-			InvalidReason: types.InvalidReasonInvalidAuthorizationTimeWindow,
-		}, nil
-	}
-
 	// Convert the authorization valid after to int64
 	validAfterInt, err := strconv.ParseInt(p.Authorization.ValidAfter, 10, 64)
 	if err != nil {
@@ -52,6 +44,14 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 		return types.VerifyResponse{
 			IsValid:       false,
 			InvalidReason: types.InvalidReasonInvalidAuthorizationValidBefore,
+		}, nil
+	}
+
+	// Verify the authorization time window is valid
+	if validAfterInt >= validBeforeInt {
+		return types.VerifyResponse{
+			IsValid:       false,
+			InvalidReason: types.InvalidReasonInvalidAuthorizationTimeWindow,
 		}, nil
 	}
 

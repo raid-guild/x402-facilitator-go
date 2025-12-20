@@ -88,7 +88,8 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 	_, ok = authValidAfter.SetString(p.Authorization.ValidAfter, 10)
 	if !ok {
 		return types.SettleResponse{
-			Success: false,
+			Success:     false,
+			ErrorReason: types.ErrorReasonInvalidAuthorizationValidAfter,
 		}, nil
 	}
 
@@ -97,7 +98,8 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 	_, ok = authValidBefore.SetString(p.Authorization.ValidBefore, 10)
 	if !ok {
 		return types.SettleResponse{
-			Success: false,
+			Success:     false,
+			ErrorReason: types.ErrorReasonInvalidAuthorizationValidBefore,
 		}, nil
 	}
 
