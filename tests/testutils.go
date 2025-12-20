@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strconv"
 	"strings"
-	"time"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -20,8 +20,8 @@ func generateEIP712Signature(
 	to string,
 	asset string,
 	value int64,
-	validAfter int64,
-	validBefore int64,
+	validAfter string,
+	validBefore string,
 	nonce string,
 	assetName string,
 	assetVersion string,
@@ -34,6 +34,15 @@ func generateEIP712Signature(
 
 	signerAddress := crypto.PubkeyToAddress(privateKey.PublicKey)
 	signerAddressHex := signerAddress.Hex()
+
+	validAfterInt, err := strconv.ParseInt(validAfter, 10, 64)
+	if err != nil {
+		return "", common.Address{}, err
+	}
+	validBeforeInt, err := strconv.ParseInt(validBefore, 10, 64)
+	if err != nil {
+		return "", common.Address{}, err
+	}
 
 	nonceBytes, err := hex.DecodeString(strings.TrimPrefix(nonce, "0x"))
 	if err != nil {
@@ -73,8 +82,8 @@ func generateEIP712Signature(
 			"from":        signerAddressHex,
 			"to":          to,
 			"value":       big.NewInt(value),
-			"validAfter":  big.NewInt(validAfter),
-			"validBefore": big.NewInt(validBefore),
+			"validAfter":  big.NewInt(validAfterInt),
+			"validBefore": big.NewInt(validBeforeInt),
 			"nonce":       nonceArray,
 		},
 	}
@@ -104,8 +113,8 @@ func generateEIP712SignatureWithLegacyV(
 	to string,
 	asset string,
 	value int64,
-	validAfter int64,
-	validBefore int64,
+	validAfter string,
+	validBefore string,
 	nonce string,
 	assetName string,
 	assetVersion string,
@@ -155,12 +164,21 @@ func generateEIP712SignatureWithLegacyV(
 }
 
 type mockEthClient struct {
-	callContract        func(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error)
-	pendingNonceAt      func(ctx context.Context, account common.Address) (uint64, error)
-	suggestGasTipCap    func(ctx context.Context) (*big.Int, error)
-	headerByNumber      func(ctx context.Context, number *big.Int) (*types.Header, error)
-	estimateGas         func(ctx context.Context, msg ethereum.CallMsg) (uint64, error)
-	sendTransactionSync func(ctx context.Context, tx *types.Transaction, timeout *time.Duration) (*types.Receipt, error)
+	codeAt             func(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error)
+	callContract       func(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error)
+	pendingNonceAt     func(ctx context.Context, account common.Address) (uint64, error)
+	suggestGasTipCap   func(ctx context.Context) (*big.Int, error)
+	headerByNumber     func(ctx context.Context, number *big.Int) (*types.Header, error)
+	estimateGas        func(ctx context.Context, msg ethereum.CallMsg) (uint64, error)
+	sendTransaction    func(ctx context.Context, tx *types.Transaction) error
+	transactionReceipt func(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
+}
+
+func (m *mockEthClient) CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error) {
+	if m.codeAt != nil {
+		return m.codeAt(ctx, account, blockNumber)
+	}
+	return []byte{}, nil
 }
 
 func (m *mockEthClient) CallContract(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error) {
@@ -203,9 +221,16 @@ func (m *mockEthClient) EstimateGas(ctx context.Context, msg ethereum.CallMsg) (
 	return 1000, nil
 }
 
-func (m *mockEthClient) SendTransactionSync(ctx context.Context, tx *types.Transaction, timeout *time.Duration) (*types.Receipt, error) {
-	if m.sendTransactionSync != nil {
-		return m.sendTransactionSync(ctx, tx, timeout)
+func (m *mockEthClient) SendTransaction(ctx context.Context, tx *types.Transaction) error {
+	if m.sendTransaction != nil {
+		return m.sendTransaction(ctx, tx)
+	}
+	return nil
+}
+
+func (m *mockEthClient) TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
+	if m.transactionReceipt != nil {
+		return m.transactionReceipt(ctx, txHash)
 	}
 	return &types.Receipt{
 		Status: types.ReceiptStatusSuccessful,

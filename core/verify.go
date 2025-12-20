@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strconv"
 	"strings"
 	"time"
 
@@ -28,8 +29,26 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 
 	now := time.Now()
 
+	// Convert the authorization valid after to int64
+	validAfterInt, err := strconv.ParseInt(p.Authorization.ValidAfter, 10, 64)
+	if err != nil {
+		return types.VerifyResponse{
+			IsValid:       false,
+			InvalidReason: types.InvalidReasonInvalidAuthorizationValidAfter,
+		}, nil
+	}
+
+	// Convert the authorization valid before to int64
+	validBeforeInt, err := strconv.ParseInt(p.Authorization.ValidBefore, 10, 64)
+	if err != nil {
+		return types.VerifyResponse{
+			IsValid:       false,
+			InvalidReason: types.InvalidReasonInvalidAuthorizationValidBefore,
+		}, nil
+	}
+
 	// Verify the authorization time window is valid
-	if p.Authorization.ValidAfter >= p.Authorization.ValidBefore {
+	if validAfterInt >= validBeforeInt {
 		return types.VerifyResponse{
 			IsValid:       false,
 			InvalidReason: types.InvalidReasonInvalidAuthorizationTimeWindow,
@@ -37,7 +56,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Verify the authorization valid after time is in the past
-	validAfter := time.Unix(p.Authorization.ValidAfter, 0)
+	validAfter := time.Unix(validAfterInt, 0)
 	if !now.After(validAfter) {
 		return types.VerifyResponse{
 			IsValid:       false,
@@ -46,7 +65,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Verify the authorization valid before time is in the future
-	validBefore := time.Unix(p.Authorization.ValidBefore, 0)
+	validBefore := time.Unix(validBeforeInt, 0)
 	if !now.Before(validBefore) {
 		return types.VerifyResponse{
 			IsValid:       false,
@@ -319,8 +338,8 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 			"from":        p.Authorization.From,
 			"to":          p.Authorization.To,
 			"value":       authValue,
-			"validAfter":  big.NewInt(p.Authorization.ValidAfter),
-			"validBefore": big.NewInt(p.Authorization.ValidBefore),
+			"validAfter":  big.NewInt(validAfterInt),
+			"validBefore": big.NewInt(validBeforeInt),
 			"nonce":       nonce,
 		},
 	}

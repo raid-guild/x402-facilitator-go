@@ -9,7 +9,6 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/ethereum/go-ethereum"
@@ -52,6 +51,9 @@ func setupMockEthClient(t *testing.T) {
 	})
 
 	client := &mockEthClient{
+		codeAt: func(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error) {
+			return []byte{}, nil
+		},
 		callContract: func(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error) {
 			balance := big.NewInt(1000)
 			balanceBytes := make([]byte, 32)
@@ -72,7 +74,10 @@ func setupMockEthClient(t *testing.T) {
 		estimateGas: func(ctx context.Context, msg ethereum.CallMsg) (uint64, error) {
 			return 1000, nil
 		},
-		sendTransactionSync: func(ctx context.Context, tx *types.Transaction, timeout *time.Duration) (*types.Receipt, error) {
+		sendTransaction: func(ctx context.Context, tx *types.Transaction) error {
+			return nil
+		},
+		transactionReceipt: func(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
 			return &types.Receipt{
 				Status: types.ReceiptStatusSuccessful,
 			}, nil

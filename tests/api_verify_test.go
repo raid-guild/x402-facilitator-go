@@ -421,10 +421,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 	now := time.Now()
 
-	validAfter := now.Add(-2 * time.Minute).Unix()
-	validBefore := now.Add(2 * time.Minute).Unix()
-	expiredBefore := now.Add(-1 * time.Minute).Unix()
-	futureAfter := now.Add(1 * time.Minute).Unix()
+	validAfter := strconv.FormatInt(now.Add(-2*time.Minute).Unix(), 10)
+	validBefore := strconv.FormatInt(now.Add(2*time.Minute).Unix(), 10)
+	expiredBefore := strconv.FormatInt(now.Add(-1*time.Minute).Unix(), 10)
+	futureAfter := strconv.FormatInt(now.Add(1*time.Minute).Unix(), 10)
 
 	validNonce := "0x" + strings.Repeat("00", 32)
 	invalidNonce := "0x" + strings.Repeat("00", 33)
@@ -491,8 +491,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validAfter + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -505,8 +505,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -540,8 +540,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validBefore, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validAfter, 10) + `,
+								"validAfter": "` + validBefore + `",
+								"validBefore": "` + validAfter + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -554,8 +554,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -589,8 +589,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(expiredBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + expiredBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -603,8 +603,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -638,8 +638,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(futureAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + futureAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -652,8 +652,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -687,8 +687,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "not-a-number",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -701,8 +701,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -736,8 +736,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "-1",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -750,8 +750,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -785,8 +785,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -799,8 +799,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -834,8 +834,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "2000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -848,8 +848,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -883,8 +883,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -896,8 +896,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -931,8 +931,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -945,8 +945,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -980,8 +980,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "invalid-address",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -994,8 +994,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -1029,8 +1029,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "2000000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -1043,8 +1043,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -1078,8 +1078,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "invalid-address",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -1092,8 +1092,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -1127,8 +1127,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -1141,8 +1141,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "invalid-address",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -1176,8 +1176,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress1 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -1190,8 +1190,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -1225,8 +1225,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + invalidHexNonce + `"
 							}
 						}
@@ -1239,8 +1239,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -1274,8 +1274,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + invalidNonce + `"
 							}
 						}
@@ -1288,8 +1288,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -1323,8 +1323,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -1337,8 +1337,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "invalid-address",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -1372,8 +1372,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -1386,8 +1386,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "",
-							"assetVersion": "1"
+							"name": "",
+							"version": "1"
 						}
 					}
 				}`
@@ -1421,8 +1421,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -1435,8 +1435,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": ""
+							"name": "Coin",
+							"version": ""
 						}
 					}
 				}`
@@ -1470,8 +1470,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -1484,8 +1484,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -1519,8 +1519,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -1533,8 +1533,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -1582,8 +1582,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -1596,8 +1596,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -1645,8 +1645,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + signerAddress.Hex() + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -1659,8 +1659,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -1713,8 +1713,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + signerAddress.Hex() + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -1727,8 +1727,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -1778,8 +1778,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"from": "` + signerAddress.Hex() + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -1792,8 +1792,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`

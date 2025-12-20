@@ -77,6 +77,8 @@ const (
 	ErrorReasonInvalidPaymentPayload               ErrorReason = "invalid_payment_payload"
 	ErrorReasonInvalidPaymentRequirements          ErrorReason = "invalid_payment_requirements"
 	ErrorReasonInvalidAuthorizationValue           ErrorReason = "invalid_authorization_value"
+	ErrorReasonInvalidAuthorizationValidAfter      ErrorReason = "invalid_authorization_valid_after"
+	ErrorReasonInvalidAuthorizationValidBefore     ErrorReason = "invalid_authorization_valid_before"
 	ErrorReasonInvalidAuthorizationNonce           ErrorReason = "invalid_authorization_nonce"
 	ErrorReasonInvalidAuthorizationNonceLength     ErrorReason = "invalid_authorization_nonce_length"
 	ErrorReasonInvalidAuthorizationSignature       ErrorReason = "invalid_authorization_signature"
