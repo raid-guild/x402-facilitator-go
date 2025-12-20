@@ -353,8 +353,8 @@ func TestSettle_SettleExact(t *testing.T) {
 
 	now := time.Now()
 
-	validAfter := now.Add(-2 * time.Minute).Unix()
-	validBefore := now.Add(2 * time.Minute).Unix()
+	validAfter := strconv.FormatInt(now.Add(-2*time.Minute).Unix(), 10)
+	validBefore := strconv.FormatInt(now.Add(2*time.Minute).Unix(), 10)
 
 	validNonce := "0x" + strings.Repeat("00", 32)
 
@@ -418,8 +418,8 @@ func TestSettle_SettleExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -432,8 +432,8 @@ func TestSettle_SettleExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -453,8 +453,8 @@ func TestSettle_SettleExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -467,8 +467,8 @@ func TestSettle_SettleExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -489,8 +489,8 @@ func TestSettle_SettleExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -503,8 +503,8 @@ func TestSettle_SettleExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`
@@ -525,8 +525,8 @@ func TestSettle_SettleExact(t *testing.T) {
 								"from": "` + validAddress1 + `",
 								"to": "` + validAddress2 + `",
 								"value": "1000",
-								"validAfter": ` + strconv.FormatInt(validAfter, 10) + `,
-								"validBefore": ` + strconv.FormatInt(validBefore, 10) + `,
+								"validAfter": "` + validAfter + `",
+								"validBefore": "` + validBefore + `",
 								"nonce": "` + validNonce + `"
 							}
 						}
@@ -539,8 +539,8 @@ func TestSettle_SettleExact(t *testing.T) {
 						"asset": "` + validAddress3 + `",
 						"payTo": "` + validAddress2 + `",
 						"extra": {
-							"assetName": "Coin",
-							"assetVersion": "1"
+							"name": "Coin",
+							"version": "1"
 						}
 					}
 				}`

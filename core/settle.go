@@ -10,6 +10,7 @@ import (
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -82,6 +83,24 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 		}, nil
 	}
 
+	// Convert the authorization valid after to big.Int
+	authValidAfter := new(big.Int)
+	_, ok = authValidAfter.SetString(p.Authorization.ValidAfter, 10)
+	if !ok {
+		return types.SettleResponse{
+			Success: false,
+		}, nil
+	}
+
+	// Convert the authorization valid before to big.Int
+	authValidBefore := new(big.Int)
+	_, ok = authValidBefore.SetString(p.Authorization.ValidBefore, 10)
+	if !ok {
+		return types.SettleResponse{
+			Success: false,
+		}, nil
+	}
+
 	// Extract the authorization nonce from the payment payload
 	authNonceHex := strings.TrimPrefix(p.Authorization.Nonce, "0x")
 
@@ -141,8 +160,8 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 		common.HexToAddress(p.Authorization.From),
 		common.HexToAddress(p.Authorization.To),
 		authValue,
-		big.NewInt(p.Authorization.ValidAfter),
-		big.NewInt(p.Authorization.ValidBefore),
+		authValidAfter,
+		authValidBefore,
 		authNonce,
 		authSignatureV,
 		authSignatureR,
@@ -261,14 +280,21 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 		return types.SettleResponse{}, fmt.Errorf("failed to sign transaction: %v", err)
 	}
 
-	// Send the signed transaction (timeout already applied to context)
-	receipt, err := client.SendTransactionSync(ctx, signedTx, nil)
+	// Send the signed transaction
+	err = client.SendTransaction(ctx, signedTx)
 	if err != nil {
 		// Return an error that will be handled as an internal server error
 		return types.SettleResponse{}, fmt.Errorf("failed to send transaction: %v", err)
 	}
 
-	// Verify the transaction receipt
+	// Wait for the transaction to be settled
+	receipt, err := bind.WaitMined(ctx, client, signedTx.Hash())
+	if err != nil {
+		// Return an error that will be handled as an internal server error
+		return types.SettleResponse{}, fmt.Errorf("failed to wait for transaction: %v", err)
+	}
+
+	// Verify the transaction receipt status
 	if receipt.Status != ethtypes.ReceiptStatusSuccessful {
 		// Return an error that will be handled as an internal server error
 		return types.SettleResponse{}, fmt.Errorf("transaction failed with status %d", receipt.Status)

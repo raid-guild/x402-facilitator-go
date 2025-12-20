@@ -27,8 +27,8 @@ type Authorization struct {
 	From        string `json:"from"`
 	To          string `json:"to"`
 	Value       string `json:"value"`
-	ValidAfter  int64  `json:"validAfter"`
-	ValidBefore int64  `json:"validBefore"`
+	ValidAfter  string `json:"validAfter"`
+	ValidBefore string `json:"validBefore"`
 	Nonce       string `json:"nonce"`
 }
 
@@ -45,8 +45,8 @@ type PaymentRequirements struct {
 
 // Extra is the extra for the payment requirements.
 type Extra struct {
-	Name     string `json:"assetName"`
-	Version  string `json:"assetVersion"`
+	Name     string `json:"name"`
+	Version  string `json:"version"`
 	GasLimit uint64 `json:"gasLimit"`
 }
 
