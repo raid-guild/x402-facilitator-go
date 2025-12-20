@@ -10,6 +10,8 @@ import (
 	"github.com/raid-guild/x402-facilitator-go/auth"
 	"github.com/raid-guild/x402-facilitator-go/core"
 	"github.com/raid-guild/x402-facilitator-go/types"
+	v1 "github.com/raid-guild/x402-facilitator-go/types/v1"
+	v2 "github.com/raid-guild/x402-facilitator-go/types/v2"
 	"github.com/raid-guild/x402-facilitator-go/utils"
 )
 
@@ -43,11 +45,8 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 	// Handle requests for x402 Version 1
 	if requestBody.X402Version == types.X402Version1 {
 
-		// NOTE: The types for payment payload and payment requirements are the same for v1 and v2.
-		// This will change in the future but for now we perform the same checks for both versions.
-
 		// Unmarshal the payment payload
-		var paymentPayload types.PaymentPayload
+		var paymentPayload v1.PaymentPayload
 		err = json.Unmarshal(requestBody.PaymentPayload, &paymentPayload)
 		if err != nil {
 			// Write http ok response with error reason and then exit handler
@@ -56,7 +55,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Unmarshal the payment requirements
-		var paymentRequirements types.PaymentRequirements
+		var paymentRequirements v1.PaymentRequirements
 		err = json.Unmarshal(requestBody.PaymentRequirements, &paymentRequirements)
 		if err != nil {
 			// Write http ok response with error reason and then exit handler
@@ -65,10 +64,24 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Handle requests for exact scheme
-		if paymentPayload.Scheme == types.SchemeExact {
+		if paymentRequirements.Scheme == v1.SchemeExact {
+
+			// Set the settle exact parameters
+			exactParams := core.SettleExactParams{
+				Signature:                paymentPayload.Payload.Signature,
+				AuthorizationFrom:        paymentPayload.Payload.Authorization.From,
+				AuthorizationTo:          paymentPayload.Payload.Authorization.To,
+				AuthorizationValue:       paymentPayload.Payload.Authorization.Value,
+				AuthorizationValidAfter:  paymentPayload.Payload.Authorization.ValidAfter,
+				AuthorizationValidBefore: paymentPayload.Payload.Authorization.ValidBefore,
+				AuthorizationNonce:       paymentPayload.Payload.Authorization.Nonce,
+				Asset:                    paymentRequirements.Asset,
+				MaxTimeoutSeconds:        paymentRequirements.MaxTimeoutSeconds,
+				ExtraGasLimit:            paymentRequirements.Extra.GasLimit,
+			}
 
 			// Handle requests for sepolia network
-			if paymentPayload.Network == types.NetworkSepolia {
+			if paymentRequirements.Network == v1.NetworkSepolia {
 
 				// Set the settle exact configuration
 				cfg := core.SettleExactConfig{
@@ -78,7 +91,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Settle the payment by sending a transaction on the Sepolia test network
-				response, err := core.SettleExact(cfg, paymentPayload.Payload, paymentRequirements)
+				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -91,7 +104,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Handle requests for base sepolia network
-			if paymentPayload.Network == types.NetworkBaseSepolia {
+			if paymentRequirements.Network == v1.NetworkBaseSepolia {
 
 				// Set the settle exact configuration
 				cfg := core.SettleExactConfig{
@@ -101,7 +114,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Settle the payment by sending a transaction on the Base Sepolia test network
-				response, err := core.SettleExact(cfg, paymentPayload.Payload, paymentRequirements)
+				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -130,11 +143,8 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 	// Handle requests for x402 Version 2
 	if requestBody.X402Version == types.X402Version2 {
 
-		// NOTE: The types for payment payload and payment requirements are the same for v1 and v2.
-		// This will change in the future but for now we perform the same checks for both versions.
-
 		// Unmarshal the payment payload
-		var paymentPayload types.PaymentPayload
+		var paymentPayload v2.PaymentPayload
 		err = json.Unmarshal(requestBody.PaymentPayload, &paymentPayload)
 		if err != nil {
 			// Write http ok response with error reason and then exit handler
@@ -143,7 +153,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Unmarshal the payment requirements
-		var paymentRequirements types.PaymentRequirements
+		var paymentRequirements v2.PaymentRequirements
 		err = json.Unmarshal(requestBody.PaymentRequirements, &paymentRequirements)
 		if err != nil {
 			// Write http ok response with error reason and then exit handler
@@ -152,10 +162,24 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Handle requests for exact scheme
-		if paymentPayload.Scheme == types.SchemeExact {
+		if paymentRequirements.Scheme == v2.SchemeExact {
+
+			// Set the settle exact parameters
+			exactParams := core.SettleExactParams{
+				Signature:                paymentPayload.Payload.Signature,
+				AuthorizationFrom:        paymentPayload.Payload.Authorization.From,
+				AuthorizationTo:          paymentPayload.Payload.Authorization.To,
+				AuthorizationValue:       paymentPayload.Payload.Authorization.Value,
+				AuthorizationValidAfter:  paymentPayload.Payload.Authorization.ValidAfter,
+				AuthorizationValidBefore: paymentPayload.Payload.Authorization.ValidBefore,
+				AuthorizationNonce:       paymentPayload.Payload.Authorization.Nonce,
+				Asset:                    paymentRequirements.Asset,
+				MaxTimeoutSeconds:        paymentRequirements.MaxTimeoutSeconds,
+				ExtraGasLimit:            paymentRequirements.Extra.GasLimit,
+			}
 
 			// Handle requests for sepolia network
-			if paymentPayload.Network == types.NetworkSepoliaV2 {
+			if paymentRequirements.Network == v2.NetworkSepolia {
 
 				// Set the settle exact configuration
 				cfg := core.SettleExactConfig{
@@ -165,7 +189,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Settle the payment by sending a transaction on the Sepolia test network
-				response, err := core.SettleExact(cfg, paymentPayload.Payload, paymentRequirements)
+				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -178,7 +202,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Handle requests for base sepolia network
-			if paymentPayload.Network == types.NetworkBaseSepoliaV2 {
+			if paymentRequirements.Network == v2.NetworkBaseSepolia {
 
 				// Set the settle exact configuration
 				cfg := core.SettleExactConfig{
@@ -188,7 +212,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Settle the payment by sending a transaction on the Base Sepolia test network
-				response, err := core.SettleExact(cfg, paymentPayload.Payload, paymentRequirements)
+				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)

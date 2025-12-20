@@ -18,19 +18,37 @@ import (
 	"github.com/raid-guild/x402-facilitator-go/types"
 )
 
-// VerifyExactConfig are the configuration parameters for the verify exact operation.
+// VerifyExactConfig is the configuration for the verify exact operation.
 type VerifyExactConfig struct {
 	ChainID int64
 	RPCURL  string
 }
 
+// VerifyExactParams are the parameters for the verify exact operation.
+type VerifyExactParams struct {
+	Signature                string
+	AuthorizationValidAfter  string
+	AuthorizationValidBefore string
+	AuthorizationValue       string
+	AuthorizationFrom        string
+	AuthorizationTo          string
+	AuthorizationNonce       string
+	Asset                    string
+	PayTo                    string
+	MaxAmountRequired        string
+	MaxTimeoutSeconds        int64
+	ExtraName                string
+	ExtraVersion             string
+	ExtraGasLimit            uint64
+}
+
 // VerifyExact verifies the payment on the configured network.
-func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequirements) (types.VerifyResponse, error) {
+func VerifyExact(c VerifyExactConfig, p VerifyExactParams) (types.VerifyResponse, error) {
 
 	now := time.Now()
 
 	// Convert the authorization valid after to int64
-	validAfterInt, err := strconv.ParseInt(p.Authorization.ValidAfter, 10, 64)
+	validAfterInt, err := strconv.ParseInt(p.AuthorizationValidAfter, 10, 64)
 	if err != nil {
 		return types.VerifyResponse{
 			IsValid:       false,
@@ -39,7 +57,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Convert the authorization valid before to int64
-	validBeforeInt, err := strconv.ParseInt(p.Authorization.ValidBefore, 10, 64)
+	validBeforeInt, err := strconv.ParseInt(p.AuthorizationValidBefore, 10, 64)
 	if err != nil {
 		return types.VerifyResponse{
 			IsValid:       false,
@@ -75,7 +93,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 
 	// Convert the authorization value from string to big.Int
 	authValue := new(big.Int)
-	_, ok := authValue.SetString(p.Authorization.Value, 10)
+	_, ok := authValue.SetString(p.AuthorizationValue, 10)
 	if !ok {
 		return types.VerifyResponse{
 			IsValid:       false,
@@ -93,7 +111,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 
 	// Convert the max amount required from string to big.Int
 	maxAmount := new(big.Int)
-	_, ok = maxAmount.SetString(r.MaxAmountRequired, 10)
+	_, ok = maxAmount.SetString(p.MaxAmountRequired, 10)
 	if !ok {
 		return types.VerifyResponse{
 			IsValid:       false,
@@ -110,7 +128,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Verify the requirements max timeout seconds is positive
-	if r.MaxTimeoutSeconds <= 0 {
+	if p.MaxTimeoutSeconds <= 0 {
 		return types.VerifyResponse{
 			IsValid:       false,
 			InvalidReason: types.InvalidReasonInvalidRequirementsMaxTimeout,
@@ -118,7 +136,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Verify authorization from is a valid address
-	if !common.IsHexAddress(p.Authorization.From) {
+	if !common.IsHexAddress(p.AuthorizationFrom) {
 		return types.VerifyResponse{
 			IsValid:       false,
 			InvalidReason: types.InvalidReasonInvalidAuthorizationFromAddress,
@@ -126,10 +144,10 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Convert the authorization from address to common.Address
-	fromAddress := common.HexToAddress(p.Authorization.From)
+	fromAddress := common.HexToAddress(p.AuthorizationFrom)
 
 	// Verify requirements asset is a valid address
-	if !common.IsHexAddress(r.Asset) {
+	if !common.IsHexAddress(p.Asset) {
 		return types.VerifyResponse{
 			IsValid:       false,
 			InvalidReason: types.InvalidReasonInvalidRequirementsAsset,
@@ -137,7 +155,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Convert the requirements asset address to common.Address
-	assetAddress := common.HexToAddress(r.Asset)
+	assetAddress := common.HexToAddress(p.Asset)
 
 	// Set the raw JSON for balanceOf
 	balanceOfJSON := `[{
@@ -180,7 +198,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Create the context for network operations with timeout
-	timeout := time.Duration(r.MaxTimeoutSeconds) * time.Second
+	timeout := time.Duration(p.MaxTimeoutSeconds) * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -215,7 +233,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Verify authorization to is a valid address
-	if !common.IsHexAddress(p.Authorization.To) {
+	if !common.IsHexAddress(p.AuthorizationTo) {
 		return types.VerifyResponse{
 			IsValid:       false,
 			InvalidReason: types.InvalidReasonInvalidAuthorizationToAddress,
@@ -223,7 +241,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Verify requirements pay to is a valid address
-	if !common.IsHexAddress(r.PayTo) {
+	if !common.IsHexAddress(p.PayTo) {
 		return types.VerifyResponse{
 			IsValid:       false,
 			InvalidReason: types.InvalidReasonInvalidRequirementsPayToAddress,
@@ -231,7 +249,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Verify the authorization to address matches the required pay to address
-	if common.HexToAddress(p.Authorization.To) != common.HexToAddress(r.PayTo) {
+	if common.HexToAddress(p.AuthorizationTo) != common.HexToAddress(p.PayTo) {
 		return types.VerifyResponse{
 			IsValid:       false,
 			InvalidReason: types.InvalidReasonInvalidAuthorizationToAddressMismatch,
@@ -239,7 +257,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Decode the nonce from hex to bytes
-	nonceBytes, err := hex.DecodeString(strings.TrimPrefix(p.Authorization.Nonce, "0x"))
+	nonceBytes, err := hex.DecodeString(strings.TrimPrefix(p.AuthorizationNonce, "0x"))
 	if err != nil {
 		return types.VerifyResponse{
 			IsValid:       false,
@@ -256,7 +274,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Verify requirements extra name is not empty
-	if r.Extra.Name == "" {
+	if p.ExtraName == "" {
 		return types.VerifyResponse{
 			IsValid:       false,
 			InvalidReason: types.InvalidReasonInvalidRequirementsExtraName,
@@ -264,7 +282,7 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Verify requirements extra version is not empty
-	if r.Extra.Version == "" {
+	if p.ExtraVersion == "" {
 		return types.VerifyResponse{
 			IsValid:       false,
 			InvalidReason: types.InvalidReasonInvalidRequirementsExtraVersion,
@@ -329,14 +347,14 @@ func VerifyExact(c VerifyExactConfig, p types.Payload, r types.PaymentRequiremen
 		},
 		PrimaryType: "TransferWithAuthorization",
 		Domain: apitypes.TypedDataDomain{
-			Name:              r.Extra.Name,
-			Version:           r.Extra.Version,
+			Name:              p.ExtraName,
+			Version:           p.ExtraVersion,
 			ChainId:           &hexChainID,
-			VerifyingContract: r.Asset,
+			VerifyingContract: p.Asset,
 		},
 		Message: apitypes.TypedDataMessage{
-			"from":        p.Authorization.From,
-			"to":          p.Authorization.To,
+			"from":        p.AuthorizationFrom,
+			"to":          p.AuthorizationTo,
 			"value":       authValue,
 			"validAfter":  big.NewInt(validAfterInt),
 			"validBefore": big.NewInt(validBeforeInt),

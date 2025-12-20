@@ -10,6 +10,8 @@ import (
 	"github.com/raid-guild/x402-facilitator-go/auth"
 	"github.com/raid-guild/x402-facilitator-go/core"
 	"github.com/raid-guild/x402-facilitator-go/types"
+	v1 "github.com/raid-guild/x402-facilitator-go/types/v1"
+	v2 "github.com/raid-guild/x402-facilitator-go/types/v2"
 	"github.com/raid-guild/x402-facilitator-go/utils"
 )
 
@@ -43,11 +45,8 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 	// Handle requests for x402 Version 1
 	if requestBody.X402Version == types.X402Version1 {
 
-		// NOTE: The types for payment payload and payment requirements are the same for v1 and v2.
-		// This will change in the future but for now we perform the same checks for both versions.
-
 		// Unmarshal the payment payload
-		var paymentPayload types.PaymentPayload
+		var paymentPayload v1.PaymentPayload
 		err = json.Unmarshal(requestBody.PaymentPayload, &paymentPayload)
 		if err != nil {
 			// Write http ok response with error reason and then exit handler
@@ -56,7 +55,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Unmarshal the payment requirements
-		var paymentRequirements types.PaymentRequirements
+		var paymentRequirements v1.PaymentRequirements
 		err = json.Unmarshal(requestBody.PaymentRequirements, &paymentRequirements)
 		if err != nil {
 			// Write http ok response with error reason and then exit handler
@@ -79,10 +78,28 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Handle requests for exact scheme
-		if paymentPayload.Scheme == types.SchemeExact {
+		if paymentRequirements.Scheme == v1.SchemeExact {
+
+			// Set the verify exact parameters
+			exactParams := core.VerifyExactParams{
+				Signature:                paymentPayload.Payload.Signature,
+				AuthorizationValidAfter:  paymentPayload.Payload.Authorization.ValidAfter,
+				AuthorizationValidBefore: paymentPayload.Payload.Authorization.ValidBefore,
+				AuthorizationValue:       paymentPayload.Payload.Authorization.Value,
+				AuthorizationFrom:        paymentPayload.Payload.Authorization.From,
+				AuthorizationTo:          paymentPayload.Payload.Authorization.To,
+				AuthorizationNonce:       paymentPayload.Payload.Authorization.Nonce,
+				Asset:                    paymentRequirements.Asset,
+				PayTo:                    paymentRequirements.PayTo,
+				MaxAmountRequired:        paymentRequirements.MaxAmountRequired,
+				MaxTimeoutSeconds:        paymentRequirements.MaxTimeoutSeconds,
+				ExtraName:                paymentRequirements.Extra.Name,
+				ExtraVersion:             paymentRequirements.Extra.Version,
+				ExtraGasLimit:            paymentRequirements.Extra.GasLimit,
+			}
 
 			// Handle requests for sepolia network
-			if paymentPayload.Network == types.NetworkSepolia {
+			if paymentRequirements.Network == v1.NetworkSepolia {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
@@ -91,7 +108,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Verify the payment that will be settled on the Sepolia test network
-				response, err := core.VerifyExact(cfg, paymentPayload.Payload, paymentRequirements)
+				response, err := core.VerifyExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -104,7 +121,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Handle requests for base sepolia network
-			if paymentPayload.Network == types.NetworkBaseSepolia {
+			if paymentRequirements.Network == v1.NetworkBaseSepolia {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
@@ -113,7 +130,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Verify the payment that will be settled on the Base Sepolia test network
-				response, err := core.VerifyExact(cfg, paymentPayload.Payload, paymentRequirements)
+				response, err := core.VerifyExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -142,11 +159,8 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 	// Handle requests for x402 Version 2
 	if requestBody.X402Version == types.X402Version2 {
 
-		// NOTE: The types for payment payload and payment requirements are the same for v1 and v2.
-		// This will change in the future but for now we perform the same checks for both versions.
-
 		// Unmarshal the payment payload
-		var paymentPayload types.PaymentPayload
+		var paymentPayload v2.PaymentPayload
 		err = json.Unmarshal(requestBody.PaymentPayload, &paymentPayload)
 		if err != nil {
 			// Write http ok response with error reason and then exit handler
@@ -155,7 +169,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Unmarshal the payment requirements
-		var paymentRequirements types.PaymentRequirements
+		var paymentRequirements v2.PaymentRequirements
 		err = json.Unmarshal(requestBody.PaymentRequirements, &paymentRequirements)
 		if err != nil {
 			// Write http ok response with error reason and then exit handler
@@ -164,24 +178,42 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Check the payment payload and requirements scheme
-		if paymentPayload.Scheme != paymentRequirements.Scheme {
+		if paymentPayload.Accepted.Scheme != paymentRequirements.Scheme {
 			// Write http ok response with error reason and then exit handler
 			writeVerifyResponseWithInvalidReason(w, types.InvalidReasonInvalidSchemeMismatch)
 			return
 		}
 
 		// Check the payment payload and requirements network
-		if paymentPayload.Network != paymentRequirements.Network {
+		if paymentPayload.Accepted.Network != paymentRequirements.Network {
 			// Write http ok response with error reason and then exit handler
 			writeVerifyResponseWithInvalidReason(w, types.InvalidReasonInvalidNetworkMismatch)
 			return
 		}
 
 		// Handle requests for exact scheme
-		if paymentPayload.Scheme == types.SchemeExact {
+		if paymentRequirements.Scheme == v2.SchemeExact {
+
+			// Set the verify exact parameters
+			exactParams := core.VerifyExactParams{
+				Signature:                paymentPayload.Payload.Signature,
+				AuthorizationFrom:        paymentPayload.Payload.Authorization.From,
+				AuthorizationTo:          paymentPayload.Payload.Authorization.To,
+				AuthorizationValue:       paymentPayload.Payload.Authorization.Value,
+				AuthorizationValidAfter:  paymentPayload.Payload.Authorization.ValidAfter,
+				AuthorizationValidBefore: paymentPayload.Payload.Authorization.ValidBefore,
+				AuthorizationNonce:       paymentPayload.Payload.Authorization.Nonce,
+				Asset:                    paymentRequirements.Asset,
+				PayTo:                    paymentRequirements.PayTo,
+				MaxAmountRequired:        paymentRequirements.Amount,
+				MaxTimeoutSeconds:        paymentRequirements.MaxTimeoutSeconds,
+				ExtraName:                paymentRequirements.Extra.Name,
+				ExtraVersion:             paymentRequirements.Extra.Version,
+				ExtraGasLimit:            paymentRequirements.Extra.GasLimit,
+			}
 
 			// Handle requests for sepolia network
-			if paymentPayload.Network == types.NetworkSepoliaV2 {
+			if paymentRequirements.Network == v2.NetworkSepolia {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
@@ -190,7 +222,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Verify the payment that will be settled on the Sepolia test network
-				response, err := core.VerifyExact(cfg, paymentPayload.Payload, paymentRequirements)
+				response, err := core.VerifyExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -203,7 +235,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Handle requests for base sepolia network
-			if paymentPayload.Network == types.NetworkBaseSepoliaV2 {
+			if paymentRequirements.Network == v2.NetworkBaseSepolia {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
@@ -212,7 +244,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Verify the payment that will be settled on the Base Sepolia test network
-				response, err := core.VerifyExact(cfg, paymentPayload.Payload, paymentRequirements)
+				response, err := core.VerifyExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
