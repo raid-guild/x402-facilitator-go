@@ -193,13 +193,27 @@ func TestVerify_Compatibility(t *testing.T) {
 		t.Run(v.name, func(t *testing.T) {
 
 			t.Run("missing payment payload", func(t *testing.T) {
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `"
-					}
-				}`
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `"
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `"
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -218,14 +232,29 @@ func TestVerify_Compatibility(t *testing.T) {
 			})
 
 			t.Run("invalid payment payload JSON", func(t *testing.T) {
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": "invalid json",
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `"
-					}
-				}`
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": "invalid json",
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `"
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": "invalid json",
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `"
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -244,13 +273,29 @@ func TestVerify_Compatibility(t *testing.T) {
 			})
 
 			t.Run("missing payment requirements", func(t *testing.T) {
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `"
-					}
-				}`
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `"
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -269,14 +314,31 @@ func TestVerify_Compatibility(t *testing.T) {
 			})
 
 			t.Run("invalid payment requirements JSON", func(t *testing.T) {
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `"
-					},
-					"paymentRequirements": "invalid json"
-				}`
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `"
+						},
+						"paymentRequirements": "invalid json"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							}
+						},
+						"paymentRequirements": "invalid json"
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -295,17 +357,37 @@ func TestVerify_Compatibility(t *testing.T) {
 			})
 
 			t.Run("unsupported scheme", func(t *testing.T) {
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "other",
-						"network": "` + v.network + `"
-					},
-					"paymentRequirements": {
-						"scheme": "other",
-						"network": "` + v.network + `"
-					}
-				}`
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "other",
+							"network": "` + v.network + `"
+						},
+						"paymentRequirements": {
+							"scheme": "other",
+							"network": "` + v.network + `"
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "other",
+								"network": "` + v.network + `"
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "other",
+							"network": "` + v.network + `"
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -324,17 +406,37 @@ func TestVerify_Compatibility(t *testing.T) {
 			})
 
 			t.Run("unsupported network", func(t *testing.T) {
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "other"
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "other"
-					}
-				}`
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "other"
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "other"
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "other"
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "other"
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -353,17 +455,37 @@ func TestVerify_Compatibility(t *testing.T) {
 			})
 
 			t.Run("scheme mismatch", func(t *testing.T) {
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `"
-					},
-					"paymentRequirements": {
-						"scheme": "other",
-						"network": "` + v.network + `"
-					}
-				}`
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `"
+						},
+						"paymentRequirements": {
+							"scheme": "other",
+							"network": "` + v.network + `"
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "other",
+							"network": "` + v.network + `"
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -382,17 +504,37 @@ func TestVerify_Compatibility(t *testing.T) {
 			})
 
 			t.Run("network mismatch", func(t *testing.T) {
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `"
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "other"
-					}
-				}`
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `"
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "other"
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "other"
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -480,36 +622,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("authorization time window invalid equals", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validAfter + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validAfter + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validAfter + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -529,36 +710,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("authorization time window invalid inverted", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validBefore + `",
-								"validBefore": "` + validAfter + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validBefore + `",
+									"validBefore": "` + validAfter + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validBefore + `",
+									"validBefore": "` + validAfter + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -578,36 +798,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("authorization valid before expired", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + expiredBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + expiredBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + expiredBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -627,36 +886,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("authorization valid after future", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + futureAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + futureAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + futureAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -676,36 +974,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("authorization value not a number", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "not-a-number",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "not-a-number",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "not-a-number",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -725,36 +1062,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("authorization value negative", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "-1",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "-1",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "-1",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -774,36 +1150,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("requirements max amount not a number", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "not-a-number",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "not-a-number",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "not-a-number",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -823,36 +1238,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("authorization value exceeds", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "2000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "2000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "2000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -872,35 +1326,73 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("requirements max timeout missing", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -920,36 +1412,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("requirements max timeout negative", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": -30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": -30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": -30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -969,36 +1500,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("authorization from invalid", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "invalid-address",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "invalid-address",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "invalid-address",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -1018,36 +1588,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("authorization from insufficient funds", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "2000000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "2000000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "2000000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "2000000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "2000000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "2000000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -1067,36 +1676,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("authorization to invalid", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "invalid-address",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "invalid-address",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "invalid-address",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -1116,36 +1764,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("requirements pay to invalid", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "invalid-address",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "invalid-address",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "invalid-address",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -1165,36 +1852,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("authorization to address mismatch", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress1 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress1 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress1 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -1214,36 +1940,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("authorization nonce hex invalid", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + invalidHexNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + invalidHexNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + invalidHexNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -1263,36 +2028,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("authorization nonce length invalid", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + invalidNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + invalidNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + invalidNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -1312,36 +2116,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("requirements asset invalid", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "invalid-address",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "invalid-address",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "invalid-address",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -1361,36 +2204,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("requirements extra name empty", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -1410,36 +2292,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("requirements extra version empty", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": ""
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": ""
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": ""
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -1459,36 +2380,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("signature hex invalid", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + invalidHexSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + invalidHexSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + invalidHexSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -1508,36 +2468,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("signature length invalid", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + invalidSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + invalidSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + invalidSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -1571,36 +2570,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to generate signature: %v", err)
 				}
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + sig + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + sig + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + sig + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -1634,36 +2672,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to generate signature: %v", err)
 				}
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + sig + `",
-							"authorization": {
-								"from": "` + signerAddress.Hex() + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + sig + `",
+								"authorization": {
+									"from": "` + signerAddress.Hex() + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + sig + `",
+								"authorization": {
+									"from": "` + signerAddress.Hex() + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -1702,36 +2779,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to generate signature: %v", err)
 				}
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + sig + `",
-							"authorization": {
-								"from": "` + signerAddress.Hex() + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + sig + `",
+								"authorization": {
+									"from": "` + signerAddress.Hex() + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + sig + `",
+								"authorization": {
+									"from": "` + signerAddress.Hex() + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`
@@ -1767,36 +2883,75 @@ func TestVerify_VerifyExact(t *testing.T) {
 				if err != nil {
 					t.Fatalf("failed to generate signature: %v", err)
 				}
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + sig + `",
-							"authorization": {
-								"from": "` + signerAddress.Hex() + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + sig + `",
+								"authorization": {
+									"from": "` + signerAddress.Hex() + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + sig + `",
+								"authorization": {
+									"from": "` + signerAddress.Hex() + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						IsValid       bool   `json:"isValid"`

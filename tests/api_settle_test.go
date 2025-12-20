@@ -183,13 +183,27 @@ func TestSettle_Compatibility(t *testing.T) {
 		t.Run(v.name, func(t *testing.T) {
 
 			t.Run("missing payment payload", func(t *testing.T) {
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `"
-					}
-				}`
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `"
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `"
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						Success     bool   `json:"success"`
@@ -208,14 +222,29 @@ func TestSettle_Compatibility(t *testing.T) {
 			})
 
 			t.Run("invalid payment payload JSON", func(t *testing.T) {
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": "invalid json",
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `"
-					}
-				}`
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": "invalid json",
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `"
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": "invalid json",
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `"
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						Success     bool   `json:"success"`
@@ -234,13 +263,29 @@ func TestSettle_Compatibility(t *testing.T) {
 			})
 
 			t.Run("missing payment requirements", func(t *testing.T) {
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `"
-					}
-				}`
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `"
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						Success     bool   `json:"success"`
@@ -259,14 +304,31 @@ func TestSettle_Compatibility(t *testing.T) {
 			})
 
 			t.Run("invalid payment requirements JSON", func(t *testing.T) {
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `"
-					},
-					"paymentRequirements": "invalid json"
-				}`
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `"
+						},
+						"paymentRequirements": "invalid json"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							}
+						},
+						"paymentRequirements": "invalid json"
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						Success     bool   `json:"success"`
@@ -285,17 +347,37 @@ func TestSettle_Compatibility(t *testing.T) {
 			})
 
 			t.Run("unsupported scheme", func(t *testing.T) {
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "other",
-						"network": "` + v.network + `"
-					},
-					"paymentRequirements": {
-						"scheme": "other",
-						"network": "` + v.network + `"
-					}
-				}`
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "other",
+							"network": "` + v.network + `"
+						},
+						"paymentRequirements": {
+							"scheme": "other",
+							"network": "` + v.network + `"
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "other",
+								"network": "` + v.network + `"
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "other",
+							"network": "` + v.network + `"
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						Success     bool   `json:"success"`
@@ -314,17 +396,37 @@ func TestSettle_Compatibility(t *testing.T) {
 			})
 
 			t.Run("unsupported network", func(t *testing.T) {
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "other"
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "other"
-					}
-				}`
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "other"
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "other"
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "other"
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "other"
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						Success     bool   `json:"success"`
@@ -407,143 +509,299 @@ func TestSettle_SettleExact(t *testing.T) {
 		t.Run(v.name, func(t *testing.T) {
 
 			t.Run(v.rpcEnvVar+" not set", func(t *testing.T) {
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				settle(t, "", body, http.StatusInternalServerError, nil)
 			})
 
 			t.Run("PRIVATE_KEY not set", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				settle(t, "", body, http.StatusInternalServerError, nil)
 			})
 
 			t.Run("PRIVATE_KEY invalid", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
 				t.Setenv("PRIVATE_KEY", "invalid-hex-key")
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				settle(t, "", body, http.StatusInternalServerError, nil)
 			})
 
 			t.Run("success", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
 				t.Setenv("PRIVATE_KEY", privateKeyHex)
-				body := `{
-					"x402Version": ` + v.x402Version + `,
-					"paymentPayload": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"payload": {
-							"signature": "` + validSignature + `",
-							"authorization": {
-								"from": "` + validAddress1 + `",
-								"to": "` + validAddress2 + `",
-								"value": "1000",
-								"validAfter": "` + validAfter + `",
-								"validBefore": "` + validBefore + `",
-								"nonce": "` + validNonce + `"
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
 							}
 						}
-					},
-					"paymentRequirements": {
-						"scheme": "exact",
-						"network": "` + v.network + `",
-						"maxAmountRequired": "1000",
-						"maxTimeoutSeconds": 30,
-						"asset": "` + validAddress3 + `",
-						"payTo": "` + validAddress2 + `",
-						"extra": {
-							"name": "Coin",
-							"version": "1"
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
 						}
-					}
-				}`
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
 				settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
 					var response struct {
 						Success     bool   `json:"success"`

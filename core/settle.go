@@ -18,18 +18,32 @@ import (
 	"github.com/raid-guild/x402-facilitator-go/types"
 )
 
-// SettleExactConfig are the configuration parameters for the settle exact operation.
+// SettleExactConfig is the configuration for the settle exact operation.
 type SettleExactConfig struct {
 	ChainID    int64
 	RPCURL     string
 	PrivateKey string
 }
 
+// SettleExactParams are the parameters for the settle exact operation.
+type SettleExactParams struct {
+	Signature                string
+	AuthorizationFrom        string
+	AuthorizationTo          string
+	AuthorizationValue       string
+	AuthorizationValidAfter  string
+	AuthorizationValidBefore string
+	AuthorizationNonce       string
+	Asset                    string
+	MaxTimeoutSeconds        int64
+	ExtraGasLimit            uint64
+}
+
 // SettleExact settles the payment on the configured network.
-func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequirements) (types.SettleResponse, error) {
+func SettleExact(c SettleExactConfig, p SettleExactParams) (types.SettleResponse, error) {
 
 	// Verify the requirements max timeout seconds is positive
-	if r.MaxTimeoutSeconds <= 0 {
+	if p.MaxTimeoutSeconds <= 0 {
 		return types.SettleResponse{
 			Success:     false,
 			ErrorReason: types.ErrorReasonInvalidRequirementsMaxTimeout,
@@ -37,7 +51,7 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Create the context for network operations with timeout
-	timeout := time.Duration(r.MaxTimeoutSeconds) * time.Second
+	timeout := time.Duration(p.MaxTimeoutSeconds) * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -45,7 +59,7 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 	chainID := big.NewInt(c.ChainID)
 
 	// Set the contract address
-	contractAddress := common.HexToAddress(r.Asset)
+	contractAddress := common.HexToAddress(p.Asset)
 
 	// Set the raw JSON for transferWithAuthorization
 	contractJSON := `[{
@@ -75,7 +89,7 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 
 	// Convert the authorization value from string to big.Int
 	authValue := new(big.Int)
-	_, ok := authValue.SetString(p.Authorization.Value, 10)
+	_, ok := authValue.SetString(p.AuthorizationValue, 10)
 	if !ok {
 		return types.SettleResponse{
 			Success:     false,
@@ -85,7 +99,7 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 
 	// Convert the authorization valid after to big.Int
 	authValidAfter := new(big.Int)
-	_, ok = authValidAfter.SetString(p.Authorization.ValidAfter, 10)
+	_, ok = authValidAfter.SetString(p.AuthorizationValidAfter, 10)
 	if !ok {
 		return types.SettleResponse{
 			Success:     false,
@@ -95,7 +109,7 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 
 	// Convert the authorization valid before to big.Int
 	authValidBefore := new(big.Int)
-	_, ok = authValidBefore.SetString(p.Authorization.ValidBefore, 10)
+	_, ok = authValidBefore.SetString(p.AuthorizationValidBefore, 10)
 	if !ok {
 		return types.SettleResponse{
 			Success:     false,
@@ -104,7 +118,7 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 	}
 
 	// Extract the authorization nonce from the payment payload
-	authNonceHex := strings.TrimPrefix(p.Authorization.Nonce, "0x")
+	authNonceHex := strings.TrimPrefix(p.AuthorizationNonce, "0x")
 
 	// Decode the authorization nonce from hex to bytes
 	authNonceBytes, err := hex.DecodeString(authNonceHex)
@@ -159,8 +173,8 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 	// Pack the function call data
 	txData, err := contractABI.Pack(
 		"transferWithAuthorization",
-		common.HexToAddress(p.Authorization.From),
-		common.HexToAddress(p.Authorization.To),
+		common.HexToAddress(p.AuthorizationFrom),
+		common.HexToAddress(p.AuthorizationTo),
 		authValue,
 		authValidAfter,
 		authValidBefore,
@@ -253,7 +267,7 @@ func SettleExact(c SettleExactConfig, p types.Payload, r types.PaymentRequiremen
 	gasLimit = gasLimit * 120 / 100
 
 	// Ensure gas limit does not exceed the allowed gas limit
-	if r.Extra.GasLimit > 0 && gasLimit > r.Extra.GasLimit {
+	if p.ExtraGasLimit > 0 && gasLimit > p.ExtraGasLimit {
 		return types.SettleResponse{
 			Success:     false,
 			ErrorReason: types.ErrorReasonInsufficientRequirementsGasLimit,
