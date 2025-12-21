@@ -82,18 +82,20 @@
     </code>
     <p>An example response from the <b>/api/verify</b> endpoint (<b>500 Internal Server Error</b>):</p>
     <code>
-        failed to verify payment
+        failed to get token balance
     </code>
     <h2>Settle Examples</h2>
     <p>An example request to the <b>/api/settle</b> endpoint (<b>with API key</b>):</p>
     <code>
         curl -X POST <span class="url"></span>api/settle \
         -H "X-API-Key: your-api-key" \
+        -H "Content-Type: application/json" \
         -d '{"x402Version": 1, "paymentPayload": {...}, "paymentRequirements": {...}}'
     </code>
     <p>An example request to the <b>/api/settle</b> endpoint (<b>without API key</b>):</p>
     <code>
         curl -X POST <span class="url"></span>api/settle \
+        -H "Content-Type: application/json" \
         -d '{"x402Version": 1, "paymentPayload": {...}, "paymentRequirements": {...}}'
     </code>
     <p>An example response from the <b>/api/settle</b> endpoint (<b>200 OK</b> - successful):</p>
@@ -120,7 +122,7 @@
     </code>
     <p>An example response from the <b>/api/settle</b> endpoint (<b>500 Internal Server Error</b>):</p>
     <code>
-        failed to settle payment
+        failed to send transaction
     </code>
     <h2>Supported Examples</h2>
     <p>An example request to the <b>api/supported</b> endpoint:</p>
