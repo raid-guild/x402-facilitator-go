@@ -27,7 +27,7 @@
             margin-bottom: 2em;
             background-color: #fcfcfc;
             border-radius: 0.5em;
-            border: 1px solid #e0e0e0;
+            border: 1px solid #f3f3f3;
         }
     </style>
 </head>
@@ -45,62 +45,84 @@
         <li><b>/api/supported</b> (no API key required)</li>
     </ul>
     <h2>Verify Examples</h2>
-    <p>An example request to the <b>/api/verify</b> endpoint (<b>with api key</b>):</p>
+    <p>An example request to the <b>/api/verify</b> endpoint (<b>with API key</b>):</p>
     <code>
         curl -X POST <span class="url"></span>api/verify \
         -H "X-API-Key: your-api-key" \
         -H "Content-Type: application/json" \
         -d '{"x402Version": 1, "paymentPayload": {...}, "paymentRequirements": {...}}'
     </code>
-    <p>An example request to the <b>/api/verify</b> endpoint (<b>without api key</b>):</p>
+    <p>An example request to the <b>/api/verify</b> endpoint (<b>without API key</b>):</p>
     <code>
         curl -X POST <span class="url"></span>api/verify \
         -H "Content-Type: application/json" \
         -d '{"x402Version": 1, "paymentPayload": {...}, "paymentRequirements": {...}}'
     </code>
-    <p>An example response from the <b>/api/verify</b> endpoint (<b>valid</b>):</p>
+    <p>An example response from the <b>/api/verify</b> endpoint (<b>200 OK</b> - valid):</p>
     <code>
         {
-            "valid": true
+            "isValid": true,
+            "payer": "0x..."
         }
     </code>
-    <p>An example response from the <b>/api/verify</b> endpoint (<b>invalid</b>):</p>
+    <p>An example response from the <b>/api/verify</b> endpoint (<b>200 OK</b> - invalid):</p>
     <code>
         {
-            "valid": false,
-            "reason": "signature sender does not match authorization from address"
+            "isValid": false,
+            "invalidReason": "invalid_authorization_signature"
         }
     </code>
-    <p>An example response from the <b>/api/verify</b> endpoint (<b>error</b>):</p>
+    <p>An example response from the <b>/api/verify</b> endpoint (<b>401 Unauthorized</b>):</p>
     <code>
-        {
-            "error": "unsupported payment network"
-        }
+        unauthorized
+    </code>
+    <p>An example response from the <b>/api/verify</b> endpoint (<b>400 Bad Request</b>):</p>
+    <code>
+        invalid character 'x' looking for beginning of value
+    </code>
+    <p>An example response from the <b>/api/verify</b> endpoint (<b>500 Internal Server Error</b>):</p>
+    <code>
+        failed to get token balance
     </code>
     <h2>Settle Examples</h2>
-    <p>An example request to the <b>/api/settle</b> endpoint (<b>with api key</b>):</p>
+    <p>An example request to the <b>/api/settle</b> endpoint (<b>with API key</b>):</p>
     <code>
         curl -X POST <span class="url"></span>api/settle \
         -H "X-API-Key: your-api-key" \
-        -H "X-PAYMENT: base64-encoded-payment-payload"
+        -H "Content-Type: application/json" \
+        -d '{"x402Version": 1, "paymentPayload": {...}, "paymentRequirements": {...}}'
     </code>
-    <p>An example request to the <b>/api/settle</b> endpoint (<b>without api key</b>):</p>
+    <p>An example request to the <b>/api/settle</b> endpoint (<b>without API key</b>):</p>
     <code>
         curl -X POST <span class="url"></span>api/settle \
-        -H "X-PAYMENT: base64-encoded-payment-payload"
+        -H "Content-Type: application/json" \
+        -d '{"x402Version": 1, "paymentPayload": {...}, "paymentRequirements": {...}}'
     </code>
-    <p>An example response from the <b>/api/settle</b> endpoint (<b>success</b>):</p>
+    <p>An example response from the <b>/api/settle</b> endpoint (<b>200 OK</b> - successful):</p>
     <code>
         {
             "success": true,
-            "txHash": "0x..."
+            "transaction": "0x..."
         }
     </code>
-    <p>An example response from the <b>/api/settle</b> endpoint (<b>error</b>):</p>
+    <p>An example response from the <b>/api/settle</b> endpoint (<b>200 OK</b> - unsuccessful):</p>
     <code>
         {
-            "error": "missing base64-encoded payment payload"
+            "success": false,
+            "errorReason": "invalid_authorization_signature"
         }
+    </code>
+    <p>An example response from the <b>/api/settle</b> endpoint (<b>401 Unauthorized</b>):</p>
+    <code>
+        unauthorized
+    </code>
+    <p>An example response from the <b>/api/settle</b> endpoint (<b>400 Bad Request</b>):</p>
+    <code>
+        invalid character 'x' looking for beginning of value
+    </code>
+    <p>An example response from the <b>/api/settle</b> endpoint (<b>500 Internal Server Error</b>):</p>
+    <code>
+        failed to send transaction
     </code>
     <h2>Supported Examples</h2>
     <p>An example request to the <b>api/supported</b> endpoint:</p>
@@ -110,11 +132,26 @@
     <p>An example response from the <b>api/supported</b> endpoint:</p>
     <code>
         {
-            "supported": [
+            "kinds": [
                 {
-                    "version": 1,
+                    "x402Version": 1,
                     "scheme": "exact",
                     "network": "sepolia"
+                },
+                {
+                    "x402Version": 1,
+                    "scheme": "exact",
+                    "network": "base-sepolia"
+                },
+                {
+                    "x402Version": 2,
+                    "scheme": "exact",
+                    "network": "eip155:11155111"
+                },
+                {
+                    "x402Version": 2,
+                    "scheme": "exact",
+                    "network": "eip155:84532"
                 }
             ]
         }
