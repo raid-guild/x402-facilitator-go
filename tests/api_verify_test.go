@@ -1148,7 +1148,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 				})
 			})
 
-			t.Run("requirements max amount not a number", func(t *testing.T) {
+			t.Run("requirements amount not a number", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
 				body := ""
 				switch v.x402Version {
@@ -1230,13 +1230,101 @@ func TestVerify_VerifyExact(t *testing.T) {
 					if response.IsValid {
 						t.Errorf("expected valid=false, got valid=true")
 					}
-					if response.InvalidReason != "invalid_requirements_max_amount" {
-						t.Errorf("expected invalid reason 'invalid_requirements_max_amount', got '%s'", response.InvalidReason)
+					if response.InvalidReason != "invalid_requirements_amount" {
+						t.Errorf("expected invalid reason 'invalid_requirements_amount', got '%s'", response.InvalidReason)
 					}
 				})
 			})
 
-			t.Run("authorization value exceeds", func(t *testing.T) {
+			t.Run("authorization value too low", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "https://test.node")
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"maxAmountRequired": "2000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"amount": "2000",
+							"maxTimeoutSeconds": 30,
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				verify(t, "", body, http.StatusOK, func(t *testing.T, body string) {
+					var response struct {
+						IsValid       bool   `json:"isValid"`
+						InvalidReason string `json:"invalidReason"`
+					}
+					if err := json.Unmarshal([]byte(body), &response); err != nil {
+						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+					}
+					if response.IsValid {
+						t.Errorf("expected valid=false, got valid=true")
+					}
+					if response.InvalidReason != "invalid_authorization_value_mismatch" {
+						t.Errorf("expected invalid reason 'invalid_authorization_value_mismatch', got '%s'", response.InvalidReason)
+					}
+				})
+			})
+
+			t.Run("authorization value too high", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "https://test.node")
 				body := ""
 				switch v.x402Version {
@@ -1318,8 +1406,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 					if response.IsValid {
 						t.Errorf("expected valid=false, got valid=true")
 					}
-					if response.InvalidReason != "invalid_authorization_value_exceeded" {
-						t.Errorf("expected invalid reason 'invalid_authorization_value_exceeded', got '%s'", response.InvalidReason)
+					if response.InvalidReason != "invalid_authorization_value_mismatch" {
+						t.Errorf("expected invalid reason 'invalid_authorization_value_mismatch', got '%s'", response.InvalidReason)
 					}
 				})
 			})

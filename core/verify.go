@@ -35,7 +35,7 @@ type VerifyExactParams struct {
 	AuthorizationNonce       string
 	Asset                    string
 	PayTo                    string
-	MaxAmountRequired        string
+	Amount                   string
 	MaxTimeoutSeconds        int64
 	ExtraName                string
 	ExtraVersion             string
@@ -109,21 +109,21 @@ func VerifyExact(c VerifyExactConfig, p VerifyExactParams) (types.VerifyResponse
 		}, nil
 	}
 
-	// Convert the max amount required from string to big.Int
-	maxAmount := new(big.Int)
-	_, ok = maxAmount.SetString(p.MaxAmountRequired, 10)
+	// Convert amount required from string to big.Int
+	amount := new(big.Int)
+	_, ok = amount.SetString(p.Amount, 10)
 	if !ok {
 		return types.VerifyResponse{
 			IsValid:       false,
-			InvalidReason: types.InvalidReasonInvalidRequirementsMaxAmount,
+			InvalidReason: types.InvalidReasonInvalidRequirementsAmount,
 		}, nil
 	}
 
-	// Verify the authorization value does not exceed the maximum allowed amount
-	if authValue.Cmp(maxAmount) > 0 {
+	// Verify the authorization value matches the required amount
+	if authValue.Cmp(amount) != 0 {
 		return types.VerifyResponse{
 			IsValid:       false,
-			InvalidReason: types.InvalidReasonInvalidAuthorizationValueExceeded,
+			InvalidReason: types.InvalidReasonInvalidAuthorizationValueMismatch,
 		}, nil
 	}
 
