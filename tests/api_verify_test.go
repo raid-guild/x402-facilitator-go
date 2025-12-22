@@ -15,6 +15,8 @@ func TestVerify_Authentication(t *testing.T) {
 
 	setupMockEthClient(t) // do not make any actual RPC calls
 
+	t.Setenv("RPC_URL_SEPOLIA", "rpc-url")
+
 	body := `{
 		"x402Version": 1,
 		"paymentPayload": {
@@ -538,7 +540,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 		t.Run(v.name, func(t *testing.T) {
 
 			t.Run("invalid_authorization_time_window equals", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -612,7 +614,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_authorization_time_window inverted", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -686,7 +688,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_authorization_valid_before expired", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -760,7 +762,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_authorization_valid_after future", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -834,7 +836,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_authorization_value not a number", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -908,7 +910,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_authorization_value negative", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -982,7 +984,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_requirements_amount not a number", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1056,7 +1058,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_authorization_value_mismatch too low", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1130,7 +1132,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_authorization_value_mismatch too high", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1204,7 +1206,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_requirements_max_timeout empty", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1276,7 +1278,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_requirements_max_timeout negative", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1349,8 +1351,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_max_timeout"))
 			})
 
-			t.Run("invalid_authorization_from_address not an address", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+			t.Run("invalid_authorization_from not an address", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1420,11 +1422,11 @@ func TestVerify_VerifyExact(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_from_address"))
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_from"))
 			})
 
 			t.Run("insufficient_funds", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1497,8 +1499,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 				verify(t, "", body, http.StatusOK, expectInvalidReason("insufficient_funds"))
 			})
 
-			t.Run("invalid_authorization_to_address not an address", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+			t.Run("invalid_authorization_to not an address", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1568,11 +1570,11 @@ func TestVerify_VerifyExact(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_to_address"))
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_to"))
 			})
 
-			t.Run("invalid_requirements_pay_to_address not an address", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+			t.Run("invalid_requirements_pay_to not an address", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1642,11 +1644,11 @@ func TestVerify_VerifyExact(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_pay_to_address"))
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_pay_to"))
 			})
 
-			t.Run("invalid_authorization_to_address_mismatch", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+			t.Run("invalid_authorization_to_mismatch", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1716,11 +1718,11 @@ func TestVerify_VerifyExact(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_to_address_mismatch"))
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_to_mismatch"))
 			})
 
 			t.Run("invalid_authorization_nonce", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1794,7 +1796,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_authorization_nonce_length", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1868,7 +1870,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_requirements_asset not an address", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1942,7 +1944,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_requirements_extra_name empty", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -2016,7 +2018,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_requirements_extra_version empty", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -2090,7 +2092,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_authorization_signature", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -2164,7 +2166,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_authorization_signature_length", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -2237,8 +2239,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_signature_length"))
 			})
 
-			t.Run("invalid_authorization_sender_mismatch", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+			t.Run("invalid_authorization_pubkey_mismatch", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				sig, _, err := generateEIP712Signature(
 					validAddress2,
 					validAddress3,
@@ -2322,11 +2324,11 @@ func TestVerify_VerifyExact(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_sender_mismatch"))
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_pubkey_mismatch"))
 			})
 
 			t.Run("valid signature", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				sig, signerAddress, err := generateEIP712Signature(
 					validAddress2,
 					validAddress3,
@@ -2414,7 +2416,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("valid signature V value 27", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				sig, signerAddress, err := generateEIP712SignatureWithLegacyV(
 					validAddress2,
 					validAddress3,
@@ -2503,7 +2505,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("valid signature V value 28", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				sig, signerAddress, err := generateEIP712SignatureWithLegacyV(
 					validAddress2,
 					validAddress3,

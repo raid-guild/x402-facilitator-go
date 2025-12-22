@@ -42,24 +42,72 @@ type SettleExactParams struct {
 // SettleExact settles the payment on the configured network.
 func SettleExact(c SettleExactConfig, p SettleExactParams) (types.SettleResponse, error) {
 
-	// Verify the requirements max timeout seconds is positive
-	if p.MaxTimeoutSeconds <= 0 {
+	// Verify the RPC URL is set
+	if c.RPCURL == "" {
+		// Return an error that will be handled as an internal server error
+		return types.SettleResponse{}, fmt.Errorf("RPC URL is not set")
+	}
+
+	// Verify the private key is set
+	if c.PrivateKey == "" {
+		// Return an error that will be handled as an internal server error
+		return types.SettleResponse{}, fmt.Errorf("private key is not set")
+	}
+
+	// Convert the authorization value from string to big.Int
+	authValue, ok := new(big.Int).SetString(p.AuthorizationValue, 10)
+	if !ok {
 		return types.SettleResponse{
 			Success:     false,
-			ErrorReason: types.ErrorReasonInvalidRequirementsMaxTimeout,
+			ErrorReason: types.ErrorReasonInvalidAuthorizationValue,
 		}, nil
 	}
 
-	// Create the context for network operations with timeout
-	timeout := time.Duration(p.MaxTimeoutSeconds) * time.Second
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+	// Convert the authorization valid after to big.Int
+	authValidAfter, ok := new(big.Int).SetString(p.AuthorizationValidAfter, 10)
+	if !ok {
+		return types.SettleResponse{
+			Success:     false,
+			ErrorReason: types.ErrorReasonInvalidAuthorizationValidAfter,
+		}, nil
+	}
 
-	// Set the chain ID
-	chainID := big.NewInt(c.ChainID)
+	// Convert the authorization valid before to big.Int
+	authValidBefore, ok := new(big.Int).SetString(p.AuthorizationValidBefore, 10)
+	if !ok {
+		return types.SettleResponse{
+			Success:     false,
+			ErrorReason: types.ErrorReasonInvalidAuthorizationValidBefore,
+		}, nil
+	}
 
-	// Set the contract address
-	contractAddress := common.HexToAddress(p.Asset)
+	// Extract the authorization nonce from the payment payload
+	authNonceHex := strings.TrimPrefix(p.AuthorizationNonce, "0x")
+
+	// Decode the authorization nonce from hex to bytes
+	authNonceBytes, err := hex.DecodeString(authNonceHex)
+	if err != nil {
+		return types.SettleResponse{
+			Success:     false,
+			ErrorReason: types.ErrorReasonInvalidAuthorizationNonce,
+		}, nil
+	}
+
+	// Parse the authorization signature from the payment payload
+	authSignature, err := common.ParseHexOrString(p.Signature)
+	if err != nil {
+		return types.SettleResponse{
+			Success:     false,
+			ErrorReason: types.ErrorReasonInvalidAuthorizationSignature,
+		}, nil
+	}
+
+	// Parse the facilitator private key (before network operations)
+	privateKey, err := crypto.HexToECDSA(strings.TrimPrefix(c.PrivateKey, "0x"))
+	if err != nil {
+		// Return an error that will be handled as an internal server error
+		return types.SettleResponse{}, fmt.Errorf("failed to parse private key: %v", err)
+	}
 
 	// Set the raw JSON for transferWithAuthorization
 	contractJSON := `[{
@@ -87,76 +135,9 @@ func SettleExact(c SettleExactConfig, p SettleExactParams) (types.SettleResponse
 		return types.SettleResponse{}, fmt.Errorf("failed to parse contract ABI: %v", err)
 	}
 
-	// Convert the authorization value from string to big.Int
-	authValue := new(big.Int)
-	_, ok := authValue.SetString(p.AuthorizationValue, 10)
-	if !ok {
-		return types.SettleResponse{
-			Success:     false,
-			ErrorReason: types.ErrorReasonInvalidAuthorizationValue,
-		}, nil
-	}
-
-	// Convert the authorization valid after to big.Int
-	authValidAfter := new(big.Int)
-	_, ok = authValidAfter.SetString(p.AuthorizationValidAfter, 10)
-	if !ok {
-		return types.SettleResponse{
-			Success:     false,
-			ErrorReason: types.ErrorReasonInvalidAuthorizationValidAfter,
-		}, nil
-	}
-
-	// Convert the authorization valid before to big.Int
-	authValidBefore := new(big.Int)
-	_, ok = authValidBefore.SetString(p.AuthorizationValidBefore, 10)
-	if !ok {
-		return types.SettleResponse{
-			Success:     false,
-			ErrorReason: types.ErrorReasonInvalidAuthorizationValidBefore,
-		}, nil
-	}
-
-	// Extract the authorization nonce from the payment payload
-	authNonceHex := strings.TrimPrefix(p.AuthorizationNonce, "0x")
-
-	// Decode the authorization nonce from hex to bytes
-	authNonceBytes, err := hex.DecodeString(authNonceHex)
-	if err != nil {
-		return types.SettleResponse{
-			Success:     false,
-			ErrorReason: types.ErrorReasonInvalidAuthorizationNonce,
-		}, nil
-	}
-
-	// Validate the nonce is exactly 32 bytes
-	if len(authNonceBytes) != 32 {
-		return types.SettleResponse{
-			Success:     false,
-			ErrorReason: types.ErrorReasonInvalidAuthorizationNonceLength,
-		}, nil
-	}
-
-	// Convert the authorization nonce to a 32 byte slice
+	// Convert the authorization nonce to a 32 byte slice (right before use)
 	var authNonce [32]byte
 	copy(authNonce[:], authNonceBytes)
-
-	// Parse the authorization signature from the payment payload
-	authSignature, err := common.ParseHexOrString(p.Signature)
-	if err != nil {
-		return types.SettleResponse{
-			Success:     false,
-			ErrorReason: types.ErrorReasonInvalidAuthorizationSignature,
-		}, nil
-	}
-
-	// Verify the signature is exactly 65 bytes (32 bytes r + 32 bytes s + 1 byte v)
-	if len(authSignature) != 65 {
-		return types.SettleResponse{
-			Success:     false,
-			ErrorReason: types.ErrorReasonInvalidAuthorizationSignatureLength,
-		}, nil
-	}
 
 	// Extract R, S, and V from the authorization signature
 	var authSignatureR [32]byte
@@ -190,34 +171,28 @@ func SettleExact(c SettleExactConfig, p SettleExactParams) (types.SettleResponse
 		}, nil
 	}
 
-	// Get the RPC URL for the configured network
-	if c.RPCURL == "" {
-		// Return an error that will be handled as an internal server error
-		return types.SettleResponse{}, fmt.Errorf("RPC_URL environment variable is not set")
-	}
+	// Set the chain ID
+	chainID := big.NewInt(c.ChainID)
+
+	// Set the contract address
+	contractAddress := common.HexToAddress(p.Asset)
+
+	// Get the facilitator address from the private key
+	facilitatorAddress := crypto.PubkeyToAddress(privateKey.PublicKey)
+
+	// Set the timeout duration for network operations
+	timeout := time.Duration(p.MaxTimeoutSeconds) * time.Second
+
+	// Create the context for network operations with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 
 	// Dial the Ethereum RPC client
 	client, err := NewEthClient(c.RPCURL)
 	if err != nil {
 		// Return an error that will be handled as an internal server error
-		return types.SettleResponse{}, fmt.Errorf("failed to dial Ethereum RPC client: %v", err)
+		return types.SettleResponse{}, fmt.Errorf("failed to dial RPC client: %v", err)
 	}
-
-	// Get the facilitator private key from the environment
-	if c.PrivateKey == "" {
-		// Return an error that will be handled as an internal server error
-		return types.SettleResponse{}, fmt.Errorf("PRIVATE_KEY environment variable is not set")
-	}
-
-	// Parse the facilitator private key
-	facilitatorPrivateKey, err := crypto.HexToECDSA(strings.TrimPrefix(c.PrivateKey, "0x"))
-	if err != nil {
-		// Return an error that will be handled as an internal server error
-		return types.SettleResponse{}, fmt.Errorf("failed to parse facilitator private key: %v", err)
-	}
-
-	// Get the facilitator address
-	facilitatorAddress := crypto.PubkeyToAddress(facilitatorPrivateKey.PublicKey)
 
 	// Get the pending nonce for the facilitator account
 	txNonce, err := client.PendingNonceAt(ctx, facilitatorAddress)
@@ -270,7 +245,7 @@ func SettleExact(c SettleExactConfig, p SettleExactParams) (types.SettleResponse
 	if p.ExtraGasLimit > 0 && gasLimit > p.ExtraGasLimit {
 		return types.SettleResponse{
 			Success:     false,
-			ErrorReason: types.ErrorReasonInsufficientRequirementsGasLimit,
+			ErrorReason: types.ErrorReasonInsufficientGasLimit,
 		}, nil
 	}
 
@@ -290,7 +265,7 @@ func SettleExact(c SettleExactConfig, p SettleExactParams) (types.SettleResponse
 	signer := ethtypes.NewLondonSigner(chainID)
 
 	// Sign the transaction with the facilitator's private key
-	signedTx, err := ethtypes.SignTx(transaction, signer, facilitatorPrivateKey)
+	signedTx, err := ethtypes.SignTx(transaction, signer, privateKey)
 	if err != nil {
 		// Return an error that will be handled as an internal server error
 		return types.SettleResponse{}, fmt.Errorf("failed to sign transaction: %v", err)
