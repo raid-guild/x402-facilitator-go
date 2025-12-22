@@ -480,10 +480,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -513,10 +513,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -554,10 +554,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -587,10 +587,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -629,10 +629,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -662,10 +662,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -704,10 +704,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -737,10 +737,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
