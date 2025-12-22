@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"io"
 	"math/big"
 	"net/http/httptest"
@@ -110,6 +111,43 @@ func settle(t *testing.T, apiKey string, body string, expectedStatus int, checkR
 		checkResponse(t, w.Body.String())
 	}
 }
+func expectErrorReason(expectedReason string) func(*testing.T, string) {
+	return func(t *testing.T, body string) {
+		t.Helper()
+		var response struct {
+			Success     bool   `json:"success"`
+			ErrorReason string `json:"errorReason"`
+		}
+		if err := json.Unmarshal([]byte(body), &response); err != nil {
+			t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+		}
+		if response.Success {
+			t.Errorf("expected success=false, got success=true")
+		}
+		if response.ErrorReason != expectedReason {
+			t.Errorf("expected error reason '%s', got '%s'", expectedReason, response.ErrorReason)
+		}
+	}
+}
+
+func expectSuccess() func(*testing.T, string) {
+	return func(t *testing.T, body string) {
+		t.Helper()
+		var response struct {
+			Success     bool   `json:"success"`
+			Transaction string `json:"transaction"`
+		}
+		if err := json.Unmarshal([]byte(body), &response); err != nil {
+			t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+		}
+		if !response.Success {
+			t.Errorf("expected success=true, got success=false")
+		}
+		if response.Transaction == "" {
+			t.Errorf("expected tx hash to be set, got '%s'", response.Transaction)
+		}
+	}
+}
 
 func verify(t *testing.T, apiKey string, body string, expectedStatus int, checkResponse func(*testing.T, string)) {
 	t.Helper()
@@ -130,5 +168,44 @@ func verify(t *testing.T, apiKey string, body string, expectedStatus int, checkR
 
 	if checkResponse != nil {
 		checkResponse(t, w.Body.String())
+	}
+}
+
+func expectInvalidReason(expectedReason string) func(*testing.T, string) {
+	return func(t *testing.T, body string) {
+		t.Helper()
+		var response struct {
+			IsValid       bool   `json:"isValid"`
+			InvalidReason string `json:"invalidReason"`
+		}
+		if err := json.Unmarshal([]byte(body), &response); err != nil {
+			t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+		}
+		if response.IsValid {
+			t.Errorf("expected isValid=false, got isValid=true")
+		}
+		if response.InvalidReason != expectedReason {
+			t.Errorf("expected invalid reason '%s', got '%s'", expectedReason, response.InvalidReason)
+		}
+	}
+}
+
+func expectValid(signerAddress common.Address) func(*testing.T, string) {
+	return func(t *testing.T, body string) {
+		t.Helper()
+		var response struct {
+			IsValid       bool   `json:"isValid"`
+			Payer         string `json:"payer"`
+			InvalidReason string `json:"invalidReason"`
+		}
+		if err := json.Unmarshal([]byte(body), &response); err != nil {
+			t.Fatalf("failed to decode response: %v. Body: %s", err, body)
+		}
+		if !response.IsValid {
+			t.Errorf("expected valid=true, got valid=false. InvalidReason: %s", response.InvalidReason)
+		}
+		if response.Payer != signerAddress.Hex() {
+			t.Errorf("expected payer=%s, got payer=%s", signerAddress.Hex(), response.Payer)
+		}
 	}
 }
