@@ -17,6 +17,9 @@ func TestSettle_Authentication(t *testing.T) {
 
 	setupMockEthClient(t) // do not make any actual RPC calls
 
+	t.Setenv("RPC_URL_SEPOLIA", "rpc-url")
+	t.Setenv("PRIVATE_KEY", "private-key")
+
 	body := `{
 		"x402Version": 1,
 		"paymentPayload": {
@@ -398,16 +401,16 @@ func TestSettle_SettleExact(t *testing.T) {
 
 	setupMockEthClient(t) // do not make any actual RPC calls
 
+	validAddress1 := "0x0000000000000000000000000000000000000001"
+	validAddress2 := "0x0000000000000000000000000000000000000002"
+	validAddress3 := "0x0000000000000000000000000000000000000003"
+
 	now := time.Now()
 
 	validAfter := strconv.FormatInt(now.Add(-2*time.Minute).Unix(), 10)
 	validBefore := strconv.FormatInt(now.Add(2*time.Minute).Unix(), 10)
 
 	validNonce := "0x" + strings.Repeat("00", 32)
-
-	validAddress1 := "0x0000000000000000000000000000000000000001"
-	validAddress2 := "0x0000000000000000000000000000000000000002"
-	validAddress3 := "0x0000000000000000000000000000000000000003"
 
 	validSignature := "0x" + strings.Repeat("00", 65)
 
@@ -477,10 +480,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -510,10 +513,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -527,7 +530,7 @@ func TestSettle_SettleExact(t *testing.T) {
 			})
 
 			t.Run("PRIVATE_KEY not set", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -551,10 +554,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -584,10 +587,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -601,7 +604,7 @@ func TestSettle_SettleExact(t *testing.T) {
 			})
 
 			t.Run("PRIVATE_KEY invalid", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				t.Setenv("PRIVATE_KEY", "invalid-hex-key")
 				body := ""
 				switch v.x402Version {
@@ -626,10 +629,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -659,10 +662,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -676,7 +679,7 @@ func TestSettle_SettleExact(t *testing.T) {
 			})
 
 			t.Run("success", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				t.Setenv("PRIVATE_KEY", privateKeyHex)
 				body := ""
 				switch v.x402Version {
@@ -701,10 +704,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -734,10 +737,10 @@ func TestSettle_SettleExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"

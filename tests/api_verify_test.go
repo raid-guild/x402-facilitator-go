@@ -15,6 +15,8 @@ func TestVerify_Authentication(t *testing.T) {
 
 	setupMockEthClient(t) // do not make any actual RPC calls
 
+	t.Setenv("RPC_URL_SEPOLIA", "rpc-url")
+
 	body := `{
 		"x402Version": 1,
 		"paymentPayload": {
@@ -478,24 +480,24 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 	setupMockEthClient(t) // do not make any actual RPC calls
 
-	now := time.Now()
-
-	validAfter := strconv.FormatInt(now.Add(-2*time.Minute).Unix(), 10)
-	validBefore := strconv.FormatInt(now.Add(2*time.Minute).Unix(), 10)
-	expiredBefore := strconv.FormatInt(now.Add(-1*time.Minute).Unix(), 10)
-	futureAfter := strconv.FormatInt(now.Add(1*time.Minute).Unix(), 10)
-
-	validNonce := "0x" + strings.Repeat("00", 32)
-	invalidNonce := "0x" + strings.Repeat("00", 33)
-	invalidHexNonce := "0xZZ" + strings.Repeat("00", 30)
-
 	validAddress1 := "0x0000000000000000000000000000000000000001"
 	validAddress2 := "0x0000000000000000000000000000000000000002"
 	validAddress3 := "0x0000000000000000000000000000000000000003"
 
+	now := time.Now()
+
+	validAfter := strconv.FormatInt(now.Add(-2*time.Minute).Unix(), 10)
+	validBefore := strconv.FormatInt(now.Add(2*time.Minute).Unix(), 10)
+	futureAfter := strconv.FormatInt(now.Add(1*time.Minute).Unix(), 10)
+	expiredBefore := strconv.FormatInt(now.Add(-1*time.Minute).Unix(), 10)
+
+	validNonce := "0x" + strings.Repeat("00", 32)
+	invalidNonceHex := "0xZZ" + strings.Repeat("00", 30)
+	invalidNonceLength := "0x" + strings.Repeat("00", 33)
+
 	validSignature := "0x" + strings.Repeat("00", 65)
-	invalidSignature := "0x" + strings.Repeat("00", 64)
-	invalidHexSignature := "0xZZ" + strings.Repeat("00", 63)
+	invalidSignatureHex := "0xZZ" + strings.Repeat("00", 63)
+	invalidSignatureLength := "0x" + strings.Repeat("00", 66)
 
 	versions := []struct {
 		name        string
@@ -537,8 +539,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 	for _, v := range versions {
 		t.Run(v.name, func(t *testing.T) {
 
-			t.Run("invalid_authorization_time_window equals", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+			t.Run("invalid_authorization_from not an address", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -550,232 +552,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"payload": {
 								"signature": "` + validSignature + `",
 								"authorization": {
-									"from": "` + validAddress1 + `",
+									"from": "invalid-address",
 									"to": "` + validAddress2 + `",
 									"value": "1000",
 									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validAfter + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				case "2":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"accepted": {
-								"scheme": "exact",
-								"network": "` + v.network + `"
-							},
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validAfter + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				default:
-					t.Fatalf("unexpected x402 version: %s", v.x402Version)
-				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_time_window"))
-			})
-
-			t.Run("invalid_authorization_time_window inverted", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := ""
-				switch v.x402Version {
-				case "1":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validBefore + `",
-									"validBefore": "` + validAfter + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				case "2":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"accepted": {
-								"scheme": "exact",
-								"network": "` + v.network + `"
-							},
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validBefore + `",
-									"validBefore": "` + validAfter + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				default:
-					t.Fatalf("unexpected x402 version: %s", v.x402Version)
-				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_time_window"))
-			})
-
-			t.Run("invalid_authorization_valid_before expired", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := ""
-				switch v.x402Version {
-				case "1":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + expiredBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				case "2":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"accepted": {
-								"scheme": "exact",
-								"network": "` + v.network + `"
-							},
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + expiredBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				default:
-					t.Fatalf("unexpected x402 version: %s", v.x402Version)
-				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_valid_before"))
-			})
-
-			t.Run("invalid_authorization_valid_after future", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := ""
-				switch v.x402Version {
-				case "1":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + futureAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
 								}
@@ -784,10 +564,158 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "invalid-address",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_from"))
+			})
+
+			t.Run("invalid_authorization_to not an address", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "invalid-address",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "invalid-address",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_to"))
+			})
+
+			t.Run("invalid_requirements_asset not an address", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "invalid-address",
+							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -808,7 +736,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
 									"value": "1000",
-									"validAfter": "` + futureAfter + `",
+									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
 								}
@@ -817,10 +745,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
+							"asset": "invalid-address",
+							"payTo": "` + validAddress2 + `",
 							"amount": "1000",
 							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -830,11 +758,159 @@ func TestVerify_VerifyExact(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_valid_after"))
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_asset"))
+			})
+
+			t.Run("invalid_requirements_pay_to not an address", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "invalid-address",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "invalid-address",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_pay_to"))
+			})
+
+			t.Run("invalid_authorization_to_mismatch", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress1 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress1 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_to_mismatch"))
 			})
 
 			t.Run("invalid_authorization_value not a number", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -858,10 +934,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -891,10 +967,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -907,82 +983,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_value"))
 			})
 
-			t.Run("invalid_authorization_value negative", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := ""
-				switch v.x402Version {
-				case "1":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "-1",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				case "2":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"accepted": {
-								"scheme": "exact",
-								"network": "` + v.network + `"
-							},
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "-1",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				default:
-					t.Fatalf("unexpected x402 version: %s", v.x402Version)
-				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_value_negative"))
-			})
-
 			t.Run("invalid_requirements_amount not a number", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1006,10 +1008,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
 							"maxAmountRequired": "not-a-number",
 							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -1039,10 +1041,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "not-a-number",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "not-a-number",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -1055,8 +1057,82 @@ func TestVerify_VerifyExact(t *testing.T) {
 				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_amount"))
 			})
 
+			t.Run("invalid_authorization_value negative", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "-1",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "-1",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_value_negative"))
+			})
+
 			t.Run("invalid_authorization_value_mismatch too low", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1080,10 +1156,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "2000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "2000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -1113,10 +1189,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "2000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "2000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -1130,7 +1206,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_authorization_value_mismatch too high", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1154,10 +1230,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -1187,10 +1263,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -1203,8 +1279,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_value_mismatch"))
 			})
 
-			t.Run("invalid_requirements_max_timeout empty", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+			t.Run("invalid_authorization_time_window equals", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1220,7 +1296,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"to": "` + validAddress2 + `",
 									"value": "1000",
 									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
+									"validBefore": "` + validAfter + `",
 									"nonce": "` + validNonce + `"
 								}
 							}
@@ -1228,156 +1304,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				case "2":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"accepted": {
-								"scheme": "exact",
-								"network": "` + v.network + `"
-							},
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"amount": "1000",
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				default:
-					t.Fatalf("unexpected x402 version: %s", v.x402Version)
-				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_max_timeout"))
-			})
-
-			t.Run("invalid_requirements_max_timeout negative", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := ""
-				switch v.x402Version {
-				case "1":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": -30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				case "2":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"accepted": {
-								"scheme": "exact",
-								"network": "` + v.network + `"
-							},
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": -30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				default:
-					t.Fatalf("unexpected x402 version: %s", v.x402Version)
-				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_max_timeout"))
-			})
-
-			t.Run("invalid_authorization_from_address not an address", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := ""
-				switch v.x402Version {
-				case "1":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "invalid-address",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
 							"maxAmountRequired": "1000",
 							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -1395,11 +1325,11 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"payload": {
 								"signature": "` + validSignature + `",
 								"authorization": {
-									"from": "invalid-address",
+									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
 									"value": "1000",
 									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
+									"validBefore": "` + validAfter + `",
 									"nonce": "` + validNonce + `"
 								}
 							}
@@ -1407,10 +1337,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
 							"amount": "1000",
 							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -1420,11 +1350,11 @@ func TestVerify_VerifyExact(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_from_address"))
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_time_window"))
 			})
 
-			t.Run("insufficient_funds", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+			t.Run("invalid_authorization_time_window inverted", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1438,9 +1368,9 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
-									"value": "2000000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
+									"value": "1000",
+									"validAfter": "` + validBefore + `",
+									"validBefore": "` + validAfter + `",
 									"nonce": "` + validNonce + `"
 								}
 							}
@@ -1448,10 +1378,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "2000000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -1471,9 +1401,9 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
-									"value": "2000000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
+									"value": "1000",
+									"validAfter": "` + validBefore + `",
+									"validBefore": "` + validAfter + `",
 									"nonce": "` + validNonce + `"
 								}
 							}
@@ -1481,10 +1411,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "2000000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -1494,11 +1424,11 @@ func TestVerify_VerifyExact(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("insufficient_funds"))
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_time_window"))
 			})
 
-			t.Run("invalid_authorization_to_address not an address", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+			t.Run("invalid_authorization_valid_after future", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1511,9 +1441,9 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
-									"to": "invalid-address",
+									"to": "` + validAddress2 + `",
 									"value": "1000",
-									"validAfter": "` + validAfter + `",
+									"validAfter": "` + futureAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
 								}
@@ -1544,9 +1474,9 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
-									"to": "invalid-address",
+									"to": "` + validAddress2 + `",
 									"value": "1000",
-									"validAfter": "` + validAfter + `",
+									"validAfter": "` + futureAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
 								}
@@ -1555,10 +1485,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -1568,11 +1498,11 @@ func TestVerify_VerifyExact(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_to_address"))
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_valid_after"))
 			})
 
-			t.Run("invalid_requirements_pay_to_address not an address", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+			t.Run("invalid_authorization_valid_before expired", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -1588,7 +1518,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"to": "` + validAddress2 + `",
 									"value": "1000",
 									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
+									"validBefore": "` + expiredBefore + `",
 									"nonce": "` + validNonce + `"
 								}
 							}
@@ -1596,10 +1526,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
 							"maxAmountRequired": "1000",
 							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "invalid-address",
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -1621,7 +1551,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"to": "` + validAddress2 + `",
 									"value": "1000",
 									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
+									"validBefore": "` + expiredBefore + `",
 									"nonce": "` + validNonce + `"
 								}
 							}
@@ -1629,10 +1559,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
 							"amount": "1000",
 							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "invalid-address",
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -1642,455 +1572,11 @@ func TestVerify_VerifyExact(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_pay_to_address"))
-			})
-
-			t.Run("invalid_authorization_to_address_mismatch", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := ""
-				switch v.x402Version {
-				case "1":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress1 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				case "2":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"accepted": {
-								"scheme": "exact",
-								"network": "` + v.network + `"
-							},
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress1 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				default:
-					t.Fatalf("unexpected x402 version: %s", v.x402Version)
-				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_to_address_mismatch"))
-			})
-
-			t.Run("invalid_authorization_nonce", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := ""
-				switch v.x402Version {
-				case "1":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + invalidHexNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				case "2":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"accepted": {
-								"scheme": "exact",
-								"network": "` + v.network + `"
-							},
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + invalidHexNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				default:
-					t.Fatalf("unexpected x402 version: %s", v.x402Version)
-				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_nonce"))
-			})
-
-			t.Run("invalid_authorization_nonce_length", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := ""
-				switch v.x402Version {
-				case "1":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + invalidNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				case "2":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"accepted": {
-								"scheme": "exact",
-								"network": "` + v.network + `"
-							},
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + invalidNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				default:
-					t.Fatalf("unexpected x402 version: %s", v.x402Version)
-				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_nonce_length"))
-			})
-
-			t.Run("invalid_requirements_asset not an address", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := ""
-				switch v.x402Version {
-				case "1":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "invalid-address",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				case "2":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"accepted": {
-								"scheme": "exact",
-								"network": "` + v.network + `"
-							},
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "invalid-address",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": "1"
-							}
-						}
-					}`
-				default:
-					t.Fatalf("unexpected x402 version: %s", v.x402Version)
-				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_asset"))
-			})
-
-			t.Run("invalid_requirements_extra_name empty", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := ""
-				switch v.x402Version {
-				case "1":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "",
-								"version": "1"
-							}
-						}
-					}`
-				case "2":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"accepted": {
-								"scheme": "exact",
-								"network": "` + v.network + `"
-							},
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "",
-								"version": "1"
-							}
-						}
-					}`
-				default:
-					t.Fatalf("unexpected x402 version: %s", v.x402Version)
-				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_extra_name"))
-			})
-
-			t.Run("invalid_requirements_extra_version empty", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
-				body := ""
-				switch v.x402Version {
-				case "1":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": ""
-							}
-						}
-					}`
-				case "2":
-					body = `{
-						"x402Version": ` + v.x402Version + `,
-						"paymentPayload": {
-							"accepted": {
-								"scheme": "exact",
-								"network": "` + v.network + `"
-							},
-							"payload": {
-								"signature": "` + validSignature + `",
-								"authorization": {
-									"from": "` + validAddress1 + `",
-									"to": "` + validAddress2 + `",
-									"value": "1000",
-									"validAfter": "` + validAfter + `",
-									"validBefore": "` + validBefore + `",
-									"nonce": "` + validNonce + `"
-								}
-							}
-						},
-						"paymentRequirements": {
-							"scheme": "exact",
-							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
-							"asset": "` + validAddress3 + `",
-							"payTo": "` + validAddress2 + `",
-							"extra": {
-								"name": "Coin",
-								"version": ""
-							}
-						}
-					}`
-				default:
-					t.Fatalf("unexpected x402 version: %s", v.x402Version)
-				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_extra_version"))
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_valid_before"))
 			})
 
 			t.Run("invalid_authorization_signature", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -2100,7 +1586,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + invalidHexSignature + `",
+								"signature": "` + invalidSignatureHex + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2114,10 +1600,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -2133,7 +1619,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + invalidHexSignature + `",
+								"signature": "` + invalidSignatureHex + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2147,10 +1633,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -2164,7 +1650,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("invalid_authorization_signature_length", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -2174,7 +1660,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + invalidSignature + `",
+								"signature": "` + invalidSignatureLength + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2188,10 +1674,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -2207,7 +1693,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + invalidSignature + `",
+								"signature": "` + invalidSignatureLength + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2221,10 +1707,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -2237,8 +1723,520 @@ func TestVerify_VerifyExact(t *testing.T) {
 				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_signature_length"))
 			})
 
-			t.Run("invalid_authorization_sender_mismatch", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+			t.Run("invalid_authorization_nonce", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + invalidNonceHex + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + invalidNonceHex + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_nonce"))
+			})
+
+			t.Run("invalid_authorization_nonce_length", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + invalidNonceLength + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + invalidNonceLength + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_nonce_length"))
+			})
+
+			t.Run("invalid_requirements_max_timeout empty", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_max_timeout"))
+			})
+
+			t.Run("invalid_requirements_max_timeout negative", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": -30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": -30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_max_timeout"))
+			})
+
+			t.Run("invalid_requirements_extra_name empty", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"version": "1"
+							}
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"version": "1"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_extra_name"))
+			})
+
+			t.Run("invalid_requirements_extra_version empty", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin"
+							}
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "1000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_extra_version"))
+			})
+
+			t.Run("insufficient_funds", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "2000000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "2000000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"value": "2000000",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"amount": "2000000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				verify(t, "", body, http.StatusOK, expectInvalidReason("insufficient_funds"))
+			})
+
+			t.Run("invalid_authorization_pubkey_mismatch", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				sig, _, err := generateEIP712Signature(
 					validAddress2,
 					validAddress3,
@@ -2276,10 +2274,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -2309,10 +2307,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -2322,11 +2320,11 @@ func TestVerify_VerifyExact(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_sender_mismatch"))
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_pubkey_mismatch"))
 			})
 
 			t.Run("valid signature", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				sig, signerAddress, err := generateEIP712Signature(
 					validAddress2,
 					validAddress3,
@@ -2364,10 +2362,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -2397,10 +2395,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -2414,7 +2412,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("valid signature V value 27", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				sig, signerAddress, err := generateEIP712SignatureWithLegacyV(
 					validAddress2,
 					validAddress3,
@@ -2453,10 +2451,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -2486,10 +2484,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -2503,7 +2501,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 			})
 
 			t.Run("valid signature V value 28", func(t *testing.T) {
-				t.Setenv(v.rpcEnvVar, "https://test.node")
+				t.Setenv(v.rpcEnvVar, "rpc-url")
 				sig, signerAddress, err := generateEIP712SignatureWithLegacyV(
 					validAddress2,
 					validAddress3,
@@ -2542,10 +2540,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"maxAmountRequired": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"
@@ -2575,10 +2573,10 @@ func TestVerify_VerifyExact(t *testing.T) {
 						"paymentRequirements": {
 							"scheme": "exact",
 							"network": "` + v.network + `",
-							"amount": "1000",
-							"maxTimeoutSeconds": 30,
 							"asset": "` + validAddress3 + `",
 							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
 							"extra": {
 								"name": "Coin",
 								"version": "1"

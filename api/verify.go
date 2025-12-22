@@ -95,7 +95,6 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				MaxTimeoutSeconds:        paymentRequirements.MaxTimeoutSeconds,
 				ExtraName:                paymentRequirements.Extra.Name,
 				ExtraVersion:             paymentRequirements.Extra.Version,
-				ExtraGasLimit:            paymentRequirements.Extra.GasLimit,
 			}
 
 			// Handle requests for sepolia network
@@ -209,7 +208,6 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				MaxTimeoutSeconds:        paymentRequirements.MaxTimeoutSeconds,
 				ExtraName:                paymentRequirements.Extra.Name,
 				ExtraVersion:             paymentRequirements.Extra.Version,
-				ExtraGasLimit:            paymentRequirements.Extra.GasLimit,
 			}
 
 			// Handle requests for sepolia network
