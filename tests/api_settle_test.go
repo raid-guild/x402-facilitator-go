@@ -3,7 +3,6 @@ package tests
 import (
 	"database/sql"
 	"encoding/hex"
-	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
@@ -40,19 +39,16 @@ func TestSettle_Authentication(t *testing.T) {
 
 	t.Run("static api key required and valid api key provided", func(t *testing.T) {
 		t.Setenv("STATIC_API_KEY", "valid-api-key")
-
 		settle(t, "valid-api-key", body, http.StatusOK, nil)
 	})
 
 	t.Run("static api key required and invalid api key provided", func(t *testing.T) {
 		t.Setenv("STATIC_API_KEY", "valid-api-key")
-
 		settle(t, "invalid-api-key", body, http.StatusUnauthorized, nil)
 	})
 
 	t.Run("static api key required and no api key provided", func(t *testing.T) {
 		t.Setenv("STATIC_API_KEY", "valid-api-key")
-
 		settle(t, "", body, http.StatusUnauthorized, nil)
 	})
 
@@ -93,7 +89,6 @@ func TestSettle_Authentication(t *testing.T) {
 
 	t.Run("database api key required and no api key provided", func(t *testing.T) {
 		t.Setenv("DATABASE_URL", "test-database-url")
-
 		settle(t, "", body, http.StatusUnauthorized, nil)
 	})
 
@@ -107,49 +102,21 @@ func TestSettle_Compatibility(t *testing.T) {
 		settle(t, "", `{invalid json}`, http.StatusBadRequest, nil)
 	})
 
-	t.Run("missing x402 version", func(t *testing.T) {
+	t.Run("invalid_x402_version empty", func(t *testing.T) {
 		body := `{
 			"paymentPayload": {},
 			"paymentRequirements": {}
 		}`
-		settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				Success     bool   `json:"success"`
-				ErrorReason string `json:"errorReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.Success {
-				t.Errorf("expected success=false, got success=true")
-			}
-			if response.ErrorReason != "invalid_x402_version" {
-				t.Errorf("expected error reason 'invalid_x402_version', got '%s'", response.ErrorReason)
-			}
-		})
+		settle(t, "", body, http.StatusOK, expectErrorReason("invalid_x402_version"))
 	})
 
-	t.Run("unsupported x402 version", func(t *testing.T) {
+	t.Run("invalid_x402_version unsupported", func(t *testing.T) {
 		body := `{
 			"x402Version": 100,
 			"paymentPayload": {},
 			"paymentRequirements": {}
 		}`
-		settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-			var response struct {
-				Success     bool   `json:"success"`
-				ErrorReason string `json:"errorReason"`
-			}
-			if err := json.Unmarshal([]byte(body), &response); err != nil {
-				t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-			}
-			if response.Success {
-				t.Errorf("expected success=false, got success=true")
-			}
-			if response.ErrorReason != "invalid_x402_version" {
-				t.Errorf("expected error reason 'invalid_x402_version', got '%s'", response.ErrorReason)
-			}
-		})
+		settle(t, "", body, http.StatusOK, expectErrorReason("invalid_x402_version"))
 	})
 
 	versions := []struct {
@@ -182,7 +149,7 @@ func TestSettle_Compatibility(t *testing.T) {
 	for _, v := range versions {
 		t.Run(v.name, func(t *testing.T) {
 
-			t.Run("missing payment payload", func(t *testing.T) {
+			t.Run("invalid_payment_payload empty", func(t *testing.T) {
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -204,24 +171,10 @@ func TestSettle_Compatibility(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-					var response struct {
-						Success     bool   `json:"success"`
-						ErrorReason string `json:"errorReason"`
-					}
-					if err := json.Unmarshal([]byte(body), &response); err != nil {
-						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-					}
-					if response.Success {
-						t.Errorf("expected success=false, got success=true")
-					}
-					if response.ErrorReason != "invalid_payment_payload" {
-						t.Errorf("expected error reason 'invalid_payment_payload', got '%s'", response.ErrorReason)
-					}
-				})
+				settle(t, "", body, http.StatusOK, expectErrorReason("invalid_payment_payload"))
 			})
 
-			t.Run("invalid payment payload JSON", func(t *testing.T) {
+			t.Run("invalid_payment_payload invalid json", func(t *testing.T) {
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -245,24 +198,10 @@ func TestSettle_Compatibility(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-					var response struct {
-						Success     bool   `json:"success"`
-						ErrorReason string `json:"errorReason"`
-					}
-					if err := json.Unmarshal([]byte(body), &response); err != nil {
-						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-					}
-					if response.Success {
-						t.Errorf("expected success=false, got success=true")
-					}
-					if response.ErrorReason != "invalid_payment_payload" {
-						t.Errorf("expected error reason 'invalid_payment_payload', got '%s'", response.ErrorReason)
-					}
-				})
+				settle(t, "", body, http.StatusOK, expectErrorReason("invalid_payment_payload"))
 			})
 
-			t.Run("missing payment requirements", func(t *testing.T) {
+			t.Run("invalid_payment_requirements empty", func(t *testing.T) {
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -286,24 +225,10 @@ func TestSettle_Compatibility(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-					var response struct {
-						Success     bool   `json:"success"`
-						ErrorReason string `json:"errorReason"`
-					}
-					if err := json.Unmarshal([]byte(body), &response); err != nil {
-						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-					}
-					if response.Success {
-						t.Errorf("expected success=false, got success=true")
-					}
-					if response.ErrorReason != "invalid_payment_requirements" {
-						t.Errorf("expected error reason 'invalid_payment_requirements', got '%s'", response.ErrorReason)
-					}
-				})
+				settle(t, "", body, http.StatusOK, expectErrorReason("invalid_payment_requirements"))
 			})
 
-			t.Run("invalid payment requirements JSON", func(t *testing.T) {
+			t.Run("invalid_payment_requirements invalid json", func(t *testing.T) {
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -329,24 +254,41 @@ func TestSettle_Compatibility(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-					var response struct {
-						Success     bool   `json:"success"`
-						ErrorReason string `json:"errorReason"`
-					}
-					if err := json.Unmarshal([]byte(body), &response); err != nil {
-						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-					}
-					if response.Success {
-						t.Errorf("expected success=false, got success=true")
-					}
-					if response.ErrorReason != "invalid_payment_requirements" {
-						t.Errorf("expected error reason 'invalid_payment_requirements', got '%s'", response.ErrorReason)
-					}
-				})
+				settle(t, "", body, http.StatusOK, expectErrorReason("invalid_payment_requirements"))
 			})
 
-			t.Run("unsupported scheme", func(t *testing.T) {
+			t.Run("invalid_scheme empty", func(t *testing.T) {
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"network": "` + v.network + `"
+						},
+						"paymentRequirements": {
+							"network": "` + v.network + `"
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"network": "` + v.network + `"
+							}
+						},
+						"paymentRequirements": {
+							"network": "` + v.network + `"
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				settle(t, "", body, http.StatusOK, expectErrorReason("invalid_scheme"))
+			})
+
+			t.Run("invalid_scheme unsupported", func(t *testing.T) {
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -378,24 +320,41 @@ func TestSettle_Compatibility(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-					var response struct {
-						Success     bool   `json:"success"`
-						ErrorReason string `json:"errorReason"`
-					}
-					if err := json.Unmarshal([]byte(body), &response); err != nil {
-						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-					}
-					if response.Success {
-						t.Errorf("expected success=false, got success=true")
-					}
-					if response.ErrorReason != "invalid_scheme" {
-						t.Errorf("expected error reason 'invalid_scheme', got '%s'", response.ErrorReason)
-					}
-				})
+				settle(t, "", body, http.StatusOK, expectErrorReason("invalid_scheme"))
 			})
 
-			t.Run("unsupported network", func(t *testing.T) {
+			t.Run("invalid_network empty", func(t *testing.T) {
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact"
+						},
+						"paymentRequirements": {
+							"scheme": "exact"
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact"
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact"
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				settle(t, "", body, http.StatusOK, expectErrorReason("invalid_network"))
+			})
+
+			t.Run("invalid_network unsupported", func(t *testing.T) {
 				body := ""
 				switch v.x402Version {
 				case "1":
@@ -427,21 +386,7 @@ func TestSettle_Compatibility(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-					var response struct {
-						Success     bool   `json:"success"`
-						ErrorReason string `json:"errorReason"`
-					}
-					if err := json.Unmarshal([]byte(body), &response); err != nil {
-						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-					}
-					if response.Success {
-						t.Errorf("expected success=false, got success=true")
-					}
-					if response.ErrorReason != "invalid_network" {
-						t.Errorf("expected error reason 'invalid_network', got '%s'", response.ErrorReason)
-					}
-				})
+				settle(t, "", body, http.StatusOK, expectErrorReason("invalid_network"))
 			})
 
 		})
@@ -802,21 +747,7 @@ func TestSettle_SettleExact(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				settle(t, "", body, http.StatusOK, func(t *testing.T, body string) {
-					var response struct {
-						Success     bool   `json:"success"`
-						Transaction string `json:"transaction"`
-					}
-					if err := json.Unmarshal([]byte(body), &response); err != nil {
-						t.Fatalf("failed to decode response: %v. Body: %s", err, body)
-					}
-					if !response.Success {
-						t.Errorf("expected success=true, got success=false")
-					}
-					if response.Transaction == "" {
-						t.Errorf("expected tx hash to be set, got '%s'", response.Transaction)
-					}
-				})
+				settle(t, "", body, http.StatusOK, expectSuccess())
 			})
 
 		})
