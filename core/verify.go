@@ -412,7 +412,7 @@ func VerifyExact(c VerifyExactConfig, p VerifyExactParams) (types.VerifyResponse
 	if err != nil {
 		return types.VerifyResponse{
 			IsValid:       false,
-			InvalidReason: types.InvalidReasonInvalidAuthorizationSignatureHash,
+			InvalidReason: types.InvalidReasonInvalidAuthorizationPubkey,
 		}, nil
 	}
 

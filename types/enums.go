@@ -32,7 +32,6 @@ const (
 	InvalidReasonInvalidAuthorizationNonceLength     InvalidReason = "invalid_authorization_nonce_length"
 	InvalidReasonInvalidAuthorizationSignature       InvalidReason = "invalid_authorization_signature"
 	InvalidReasonInvalidAuthorizationSignatureLength InvalidReason = "invalid_authorization_signature_length"
-	InvalidReasonInvalidAuthorizationSignatureHash   InvalidReason = "invalid_authorization_signature_hash"
 	InvalidReasonInvalidRequirementsAsset            InvalidReason = "invalid_requirements_asset"
 	InvalidReasonInvalidRequirementsPayTo            InvalidReason = "invalid_requirements_pay_to"
 	InvalidReasonInvalidRequirementsAmount           InvalidReason = "invalid_requirements_amount"
