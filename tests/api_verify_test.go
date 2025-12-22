@@ -480,24 +480,24 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 	setupMockEthClient(t) // do not make any actual RPC calls
 
-	now := time.Now()
-
-	validAfter := strconv.FormatInt(now.Add(-2*time.Minute).Unix(), 10)
-	validBefore := strconv.FormatInt(now.Add(2*time.Minute).Unix(), 10)
-	expiredBefore := strconv.FormatInt(now.Add(-1*time.Minute).Unix(), 10)
-	futureAfter := strconv.FormatInt(now.Add(1*time.Minute).Unix(), 10)
-
-	validNonce := "0x" + strings.Repeat("00", 32)
-	invalidNonce := "0x" + strings.Repeat("00", 33)
-	invalidHexNonce := "0xZZ" + strings.Repeat("00", 30)
-
 	validAddress1 := "0x0000000000000000000000000000000000000001"
 	validAddress2 := "0x0000000000000000000000000000000000000002"
 	validAddress3 := "0x0000000000000000000000000000000000000003"
 
+	now := time.Now()
+
+	validAfter := strconv.FormatInt(now.Add(-2*time.Minute).Unix(), 10)
+	validBefore := strconv.FormatInt(now.Add(2*time.Minute).Unix(), 10)
+	futureAfter := strconv.FormatInt(now.Add(1*time.Minute).Unix(), 10)
+	expiredBefore := strconv.FormatInt(now.Add(-1*time.Minute).Unix(), 10)
+
+	validNonce := "0x" + strings.Repeat("00", 32)
+	invalidNonceHex := "0xZZ" + strings.Repeat("00", 30)
+	invalidNonceLength := "0x" + strings.Repeat("00", 33)
+
 	validSignature := "0x" + strings.Repeat("00", 65)
-	invalidSignature := "0x" + strings.Repeat("00", 64)
-	invalidHexSignature := "0xZZ" + strings.Repeat("00", 63)
+	invalidSignatureHex := "0xZZ" + strings.Repeat("00", 63)
+	invalidSignatureLength := "0x" + strings.Repeat("00", 66)
 
 	versions := []struct {
 		name        string
@@ -1586,7 +1586,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + invalidHexSignature + `",
+								"signature": "` + invalidSignatureHex + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1619,7 +1619,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + invalidHexSignature + `",
+								"signature": "` + invalidSignatureHex + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1660,7 +1660,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + invalidSignature + `",
+								"signature": "` + invalidSignatureLength + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1693,7 +1693,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + invalidSignature + `",
+								"signature": "` + invalidSignatureLength + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1741,7 +1741,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"value": "1000",
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
-									"nonce": "` + invalidHexNonce + `"
+									"nonce": "` + invalidNonceHex + `"
 								}
 							}
 						},
@@ -1774,7 +1774,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"value": "1000",
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
-									"nonce": "` + invalidHexNonce + `"
+									"nonce": "` + invalidNonceHex + `"
 								}
 							}
 						},
@@ -1815,7 +1815,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"value": "1000",
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
-									"nonce": "` + invalidNonce + `"
+									"nonce": "` + invalidNonceLength + `"
 								}
 							}
 						},
@@ -1848,7 +1848,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"value": "1000",
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
-									"nonce": "` + invalidNonce + `"
+									"nonce": "` + invalidNonceLength + `"
 								}
 							}
 						},

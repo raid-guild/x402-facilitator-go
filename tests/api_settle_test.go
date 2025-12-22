@@ -401,16 +401,16 @@ func TestSettle_SettleExact(t *testing.T) {
 
 	setupMockEthClient(t) // do not make any actual RPC calls
 
+	validAddress1 := "0x0000000000000000000000000000000000000001"
+	validAddress2 := "0x0000000000000000000000000000000000000002"
+	validAddress3 := "0x0000000000000000000000000000000000000003"
+
 	now := time.Now()
 
 	validAfter := strconv.FormatInt(now.Add(-2*time.Minute).Unix(), 10)
 	validBefore := strconv.FormatInt(now.Add(2*time.Minute).Unix(), 10)
 
 	validNonce := "0x" + strings.Repeat("00", 32)
-
-	validAddress1 := "0x0000000000000000000000000000000000000001"
-	validAddress2 := "0x0000000000000000000000000000000000000002"
-	validAddress3 := "0x0000000000000000000000000000000000000003"
 
 	validSignature := "0x" + strings.Repeat("00", 65)
 
