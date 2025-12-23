@@ -80,7 +80,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				ExtraGasLimit:            paymentRequirements.Extra.GasLimit,
 			}
 
-			// Handle requests for sepolia network
+			// Handle requests for the sepolia network
 			if paymentRequirements.Network == v1.NetworkSepolia {
 
 				// Set the settle exact configuration
@@ -90,7 +90,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 					PrivateKey: os.Getenv("PRIVATE_KEY"),
 				}
 
-				// Settle the payment by sending a transaction on the Sepolia test network
+				// Settle the payment by sending a transaction on the sepolia network
 				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
@@ -99,11 +99,17 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Write http ok response and then exit handler
-				writeSettleResponse(w, response)
+				writeSettleResponse(w, types.SettleResponse{
+					Scheme:      string(v1.SchemeExact),
+					Network:     string(v1.NetworkSepolia),
+					Success:     response.Success,
+					Transaction: response.Transaction,
+					ErrorReason: response.ErrorReason,
+				})
 				return
 			}
 
-			// Handle requests for base sepolia network
+			// Handle requests for the base sepolia network
 			if paymentRequirements.Network == v1.NetworkBaseSepolia {
 
 				// Set the settle exact configuration
@@ -113,7 +119,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 					PrivateKey: os.Getenv("PRIVATE_KEY"),
 				}
 
-				// Settle the payment by sending a transaction on the Base Sepolia test network
+				// Settle the payment by sending a transaction on the base sepolia network
 				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
@@ -122,7 +128,13 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Write http ok response and then exit handler
-				writeSettleResponse(w, response)
+				writeSettleResponse(w, types.SettleResponse{
+					Scheme:      string(v1.SchemeExact),
+					Network:     string(v1.NetworkBaseSepolia),
+					Success:     response.Success,
+					Transaction: response.Transaction,
+					ErrorReason: response.ErrorReason,
+				})
 				return
 			}
 
@@ -178,7 +190,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				ExtraGasLimit:            paymentRequirements.Extra.GasLimit,
 			}
 
-			// Handle requests for sepolia network
+			// Handle requests for the sepolia network
 			if paymentRequirements.Network == v2.NetworkSepolia {
 
 				// Set the settle exact configuration
@@ -188,7 +200,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 					PrivateKey: os.Getenv("PRIVATE_KEY"),
 				}
 
-				// Settle the payment by sending a transaction on the Sepolia test network
+				// Settle the payment by sending a transaction on the sepolia network
 				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
@@ -197,11 +209,17 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Write http ok response and then exit handler
-				writeSettleResponse(w, response)
+				writeSettleResponse(w, types.SettleResponse{
+					Scheme:      string(v2.SchemeExact),
+					Network:     string(v2.NetworkSepolia),
+					Success:     response.Success,
+					Transaction: response.Transaction,
+					ErrorReason: response.ErrorReason,
+				})
 				return
 			}
 
-			// Handle requests for base sepolia network
+			// Handle requests for the base sepolia network
 			if paymentRequirements.Network == v2.NetworkBaseSepolia {
 
 				// Set the settle exact configuration
@@ -211,7 +229,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 					PrivateKey: os.Getenv("PRIVATE_KEY"),
 				}
 
-				// Settle the payment by sending a transaction on the Base Sepolia test network
+				// Settle the payment by sending a transaction on the base sepolia network
 				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
@@ -220,7 +238,13 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Write http ok response and then exit handler
-				writeSettleResponse(w, response)
+				writeSettleResponse(w, types.SettleResponse{
+					Scheme:      string(v2.SchemeExact),
+					Network:     string(v2.NetworkBaseSepolia),
+					Success:     response.Success,
+					Transaction: response.Transaction,
+					ErrorReason: response.ErrorReason,
+				})
 				return
 			}
 

@@ -97,7 +97,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				ExtraVersion:             paymentRequirements.Extra.Version,
 			}
 
-			// Handle requests for sepolia network
+			// Handle requests for the sepolia network
 			if paymentRequirements.Network == v1.NetworkSepolia {
 
 				// Set the verify exact configuration
@@ -106,7 +106,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 					RPCURL:  os.Getenv("RPC_URL_SEPOLIA"),
 				}
 
-				// Verify the payment that will be settled on the Sepolia test network
+				// Verify the payment that will be settled on the sepolia network
 				response, err := core.VerifyExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
@@ -115,11 +115,17 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Write http ok response and then exit handler
-				writeVerifyResponse(w, response)
+				writeVerifyResponse(w, types.VerifyResponse{
+					Scheme:        string(v1.SchemeExact),
+					Network:       string(v1.NetworkSepolia),
+					IsValid:       response.IsValid,
+					Payer:         response.Payer,
+					InvalidReason: response.InvalidReason,
+				})
 				return
 			}
 
-			// Handle requests for base sepolia network
+			// Handle requests for the base sepolia network
 			if paymentRequirements.Network == v1.NetworkBaseSepolia {
 
 				// Set the verify exact configuration
@@ -128,7 +134,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 					RPCURL:  os.Getenv("RPC_URL_BASE_SEPOLIA"),
 				}
 
-				// Verify the payment that will be settled on the Base Sepolia test network
+				// Verify the payment that will be settled on the base sepolia network
 				response, err := core.VerifyExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
@@ -137,7 +143,13 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Write http ok response and then exit handler
-				writeVerifyResponse(w, response)
+				writeVerifyResponse(w, types.VerifyResponse{
+					Scheme:        string(v1.SchemeExact),
+					Network:       string(v1.NetworkBaseSepolia),
+					IsValid:       response.IsValid,
+					Payer:         response.Payer,
+					InvalidReason: response.InvalidReason,
+				})
 				return
 			}
 
@@ -210,7 +222,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				ExtraVersion:             paymentRequirements.Extra.Version,
 			}
 
-			// Handle requests for sepolia network
+			// Handle requests for the sepolia network
 			if paymentRequirements.Network == v2.NetworkSepolia {
 
 				// Set the verify exact configuration
@@ -219,7 +231,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 					RPCURL:  os.Getenv("RPC_URL_SEPOLIA"),
 				}
 
-				// Verify the payment that will be settled on the Sepolia test network
+				// Verify the payment that will be settled on the sepolia network
 				response, err := core.VerifyExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
@@ -228,11 +240,17 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Write http ok response and then exit handler
-				writeVerifyResponse(w, response)
+				writeVerifyResponse(w, types.VerifyResponse{
+					Scheme:        string(v2.SchemeExact),
+					Network:       string(v2.NetworkSepolia),
+					IsValid:       response.IsValid,
+					Payer:         response.Payer,
+					InvalidReason: response.InvalidReason,
+				})
 				return
 			}
 
-			// Handle requests for base sepolia network
+			// Handle requests for the base sepolia network
 			if paymentRequirements.Network == v2.NetworkBaseSepolia {
 
 				// Set the verify exact configuration
@@ -241,7 +259,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 					RPCURL:  os.Getenv("RPC_URL_BASE_SEPOLIA"),
 				}
 
-				// Verify the payment that will be settled on the Base Sepolia test network
+				// Verify the payment that will be settled on the base sepolia network
 				response, err := core.VerifyExact(cfg, exactParams)
 				if err != nil {
 					// Write http error response and then exit handler
@@ -250,7 +268,13 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// Write http ok response and then exit handler
-				writeVerifyResponse(w, response)
+				writeVerifyResponse(w, types.VerifyResponse{
+					Scheme:        string(v2.SchemeExact),
+					Network:       string(v2.NetworkBaseSepolia),
+					IsValid:       response.IsValid,
+					Payer:         response.Payer,
+					InvalidReason: response.InvalidReason,
+				})
 				return
 			}
 

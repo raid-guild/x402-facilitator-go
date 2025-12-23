@@ -18,14 +18,14 @@ import (
 	"github.com/raid-guild/x402-facilitator-go/types"
 )
 
-// SettleExactConfig is the configuration for the settle exact operation.
+// SettleExactConfig is the SettleExact configuration.
 type SettleExactConfig struct {
 	ChainID    int64
 	RPCURL     string
 	PrivateKey string
 }
 
-// SettleExactParams are the parameters for the settle exact operation.
+// SettleExactParams is the SettleExact parameters.
 type SettleExactParams struct {
 	Signature                string
 	AuthorizationFrom        string
@@ -63,7 +63,7 @@ func SettleExact(c SettleExactConfig, p SettleExactParams) (types.SettleResponse
 		}, nil
 	}
 
-	// Convert the authorization valid after to big.Int
+	// Convert the authorization valid after from string to big.Int
 	authValidAfter, ok := new(big.Int).SetString(p.AuthorizationValidAfter, 10)
 	if !ok {
 		return types.SettleResponse{
@@ -72,7 +72,7 @@ func SettleExact(c SettleExactConfig, p SettleExactParams) (types.SettleResponse
 		}, nil
 	}
 
-	// Convert the authorization valid before to big.Int
+	// Convert the authorization valid before from string to big.Int
 	authValidBefore, ok := new(big.Int).SetString(p.AuthorizationValidBefore, 10)
 	if !ok {
 		return types.SettleResponse{
@@ -102,7 +102,7 @@ func SettleExact(c SettleExactConfig, p SettleExactParams) (types.SettleResponse
 		}, nil
 	}
 
-	// Parse the facilitator private key (before network operations)
+	// Parse the facilitator private key
 	privateKey, err := crypto.HexToECDSA(strings.TrimPrefix(c.PrivateKey, "0x"))
 	if err != nil {
 		// Return an error that will be handled as an internal server error
@@ -135,7 +135,7 @@ func SettleExact(c SettleExactConfig, p SettleExactParams) (types.SettleResponse
 		return types.SettleResponse{}, fmt.Errorf("failed to parse contract ABI: %v", err)
 	}
 
-	// Convert the authorization nonce to a 32 byte slice (right before use)
+	// Convert the authorization nonce to a 32 byte slice
 	var authNonce [32]byte
 	copy(authNonce[:], authNonceBytes)
 
@@ -291,7 +291,7 @@ func SettleExact(c SettleExactConfig, p SettleExactParams) (types.SettleResponse
 		return types.SettleResponse{}, fmt.Errorf("transaction failed with status %d", receipt.Status)
 	}
 
-	// Return the settle response
+	// Return a successful settle response with the transaction hash
 	return types.SettleResponse{
 		Success:     true,
 		Transaction: signedTx.Hash().Hex(),
