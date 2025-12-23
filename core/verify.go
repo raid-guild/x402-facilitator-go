@@ -18,13 +18,13 @@ import (
 	"github.com/raid-guild/x402-facilitator-go/types"
 )
 
-// VerifyExactConfig is the configuration for the verify exact operation.
+// VerifyExactConfig is the VerifyExact configuration.
 type VerifyExactConfig struct {
 	ChainID int64
 	RPCURL  string
 }
 
-// VerifyExactParams are the parameters for the verify exact operation.
+// VerifyExactParams is the VerifyExact parameters.
 type VerifyExactParams struct {
 	Signature                string
 	AuthorizationFrom        string
@@ -127,7 +127,7 @@ func VerifyExact(c VerifyExactConfig, p VerifyExactParams) (types.VerifyResponse
 		}, nil
 	}
 
-	// Convert the authorization valid after to big.Int
+	// Convert the authorization valid after from string to big.Int
 	authValidAfter, ok := new(big.Int).SetString(p.AuthorizationValidAfter, 10)
 	if !ok {
 		return types.VerifyResponse{
@@ -136,7 +136,7 @@ func VerifyExact(c VerifyExactConfig, p VerifyExactParams) (types.VerifyResponse
 		}, nil
 	}
 
-	// Convert the authorization valid before to big.Int
+	// Convert the authorization valid before from string to big.Int
 	authValidBefore, ok := new(big.Int).SetString(p.AuthorizationValidBefore, 10)
 	if !ok {
 		return types.VerifyResponse{
@@ -172,7 +172,7 @@ func VerifyExact(c VerifyExactConfig, p VerifyExactParams) (types.VerifyResponse
 		}, nil
 	}
 
-	// Parse the payload signature (format validation before expensive operations)
+	// Parse the payload signature
 	signature, err := common.ParseHexOrString(p.Signature)
 	if err != nil {
 		return types.VerifyResponse{
@@ -189,7 +189,7 @@ func VerifyExact(c VerifyExactConfig, p VerifyExactParams) (types.VerifyResponse
 		}, nil
 	}
 
-	// Decode the nonce from hex to bytes (format validation before expensive operations)
+	// Decode the nonce from hex to bytes
 	nonceBytes, err := hex.DecodeString(strings.TrimPrefix(p.AuthorizationNonce, "0x"))
 	if err != nil {
 		return types.VerifyResponse{
@@ -408,7 +408,7 @@ func VerifyExact(c VerifyExactConfig, p VerifyExactParams) (types.VerifyResponse
 	}
 
 	// Recover the public key
-	pubkey, err := crypto.Ecrecover(sighash, signature)
+	pubkeyBytes, err := crypto.Ecrecover(sighash, signature)
 	if err != nil {
 		return types.VerifyResponse{
 			IsValid:       false,
@@ -416,8 +416,8 @@ func VerifyExact(c VerifyExactConfig, p VerifyExactParams) (types.VerifyResponse
 		}, nil
 	}
 
-	// Verify public key length
-	if len(pubkey) != 65 {
+	// Verify the public key length is exactly 65 bytes
+	if len(pubkeyBytes) != 65 {
 		return types.VerifyResponse{
 			IsValid:       false,
 			InvalidReason: types.InvalidReasonInvalidAuthorizationPubkeyLength,
@@ -425,7 +425,7 @@ func VerifyExact(c VerifyExactConfig, p VerifyExactParams) (types.VerifyResponse
 	}
 
 	// Unmarshal the public key
-	recoveredPubkey, err := crypto.UnmarshalPubkey(pubkey)
+	pubkey, err := crypto.UnmarshalPubkey(pubkeyBytes)
 	if err != nil {
 		return types.VerifyResponse{
 			IsValid:       false,
@@ -434,7 +434,7 @@ func VerifyExact(c VerifyExactConfig, p VerifyExactParams) (types.VerifyResponse
 	}
 
 	// Convert the public key to an address
-	pubkeyAddress := crypto.PubkeyToAddress(*recoveredPubkey)
+	pubkeyAddress := crypto.PubkeyToAddress(*pubkey)
 
 	// Verify the public key address matches the authorization from address
 	if pubkeyAddress != fromAddress {
@@ -444,7 +444,7 @@ func VerifyExact(c VerifyExactConfig, p VerifyExactParams) (types.VerifyResponse
 		}, nil
 	}
 
-	// Return verify response valid with the payer address
+	// Return a valid verify response with the payer address
 	return types.VerifyResponse{
 		IsValid: true,
 		Payer:   p.AuthorizationFrom,
