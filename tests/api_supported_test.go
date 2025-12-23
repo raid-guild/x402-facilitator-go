@@ -1,48 +1,57 @@
 package tests
 
 import (
-	"encoding/json"
 	"net/http"
-	"net/http/httptest"
-	"reflect"
-	"strings"
 	"testing"
 
-	handler "github.com/raid-guild/x402-facilitator-go/api"
-	jsonfile "github.com/raid-guild/x402-facilitator-go/json"
+	"github.com/raid-guild/x402-facilitator-go/types"
 )
 
 func TestSupported(t *testing.T) {
 
-	t.Run("returns the supported networks and schemes", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/supported", nil)
-		w := httptest.NewRecorder()
+	t.Run("all supported networks", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "rpc-url-sepolia")
+		t.Setenv("RPC_URL_BASE_SEPOLIA", "rpc-url-base-sepolia")
 
-		handler.Supported(w, req)
-
-		if w.Code != http.StatusOK {
-			t.Fatalf("expected status %d, got %d", http.StatusOK, w.Code)
+		expectedKinds := []types.SupportedKind{
+			{X402Version: 1, Scheme: "exact", Network: "sepolia"},
+			{X402Version: 1, Scheme: "exact", Network: "base-sepolia"},
+			{X402Version: 2, Scheme: "exact", Network: "eip155:11155111"},
+			{X402Version: 2, Scheme: "exact", Network: "eip155:84532"},
 		}
 
-		contentType := w.Header().Get("Content-Type")
-		if contentType == "" || !strings.HasPrefix(contentType, "application/json") {
-			t.Fatalf("expected content type application/json, got %q", contentType)
+		supported(t, http.StatusOK, expectSupportedKinds(expectedKinds))
+	})
+
+	t.Run("only sepolia networks", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "rpc-url-sepolia")
+		t.Setenv("RPC_URL_BASE_SEPOLIA", "")
+
+		expectedKinds := []types.SupportedKind{
+			{X402Version: 1, Scheme: "exact", Network: "sepolia"},
+			{X402Version: 2, Scheme: "exact", Network: "eip155:11155111"},
 		}
 
-		respBody := w.Body.String()
+		supported(t, http.StatusOK, expectSupportedKinds(expectedKinds))
+	})
 
-		expectedBytes := jsonfile.SupportedJSON
+	t.Run("only base sepolia networks", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "")
+		t.Setenv("RPC_URL_BASE_SEPOLIA", "rpc-url-base-sepolia")
 
-		var expected, actual any
-		if err := json.Unmarshal(expectedBytes, &expected); err != nil {
-			t.Fatalf("failed to unmarshal expected JSON: %v", err)
+		expectedKinds := []types.SupportedKind{
+			{X402Version: 1, Scheme: "exact", Network: "base-sepolia"},
+			{X402Version: 2, Scheme: "exact", Network: "eip155:84532"},
 		}
-		if err := json.Unmarshal([]byte(respBody), &actual); err != nil {
-			t.Fatalf("failed to unmarshal actual JSON: %v", err)
-		}
-		if !reflect.DeepEqual(expected, actual) {
-			t.Errorf("expected body %s, got %s", string(expectedBytes), respBody)
-		}
+
+		supported(t, http.StatusOK, expectSupportedKinds(expectedKinds))
+	})
+
+	t.Run("no supported networks", func(t *testing.T) {
+		t.Setenv("RPC_URL_SEPOLIA", "")
+		t.Setenv("RPC_URL_BASE_SEPOLIA", "")
+
+		supported(t, http.StatusOK, expectSupportedKinds([]types.SupportedKind{}))
 	})
 
 }
