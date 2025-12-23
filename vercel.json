@@ -1,3 +1,17 @@
 {
-    "$schema": "https://openapi.vercel.sh/vercel.json"
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "rewrites": [
+        {
+            "source": "/settle",
+            "destination": "/api/settle"
+        },
+        {
+            "source": "/supported",
+            "destination": "/api/supported"
+        },
+        {
+            "source": "/verify",
+            "destination": "/api/verify"
+        }
+    ]
 }
