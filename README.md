@@ -59,7 +59,7 @@ The facilitator is an integral component of the x402 protocol that serves as a t
 - **Payment Verification**: Validates payment payloads by cryptographically verifying signatures, checking balances, and ensuring payment details meet all server requirements before settlement
 - **On-Chain Settlement**: Submits validated payments to the blockchain network, monitors for transaction confirmations, and ensures funds are properly transferred to the recipient
 - **Gas Management**: Handles gas estimation, tip and fee calculation, and limit enforcement, paying all gas costs on behalf of users to ensure reliable settlement even during network congestion
-- **Network Abstraction**: Provides a unified API interface that works across multiple blockchain networks, abstracting network-specific implementation details
+- **Network Abstraction**: Provides a unified API that works across multiple blockchain networks, abstracting network-specific implementation details
 - **Error Handling**: Provides structured responses with reasons for invalid verification or failed settlement, helping developers quickly identify and resolve payment issues
 
 ### Key Advantages
