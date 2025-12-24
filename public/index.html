@@ -40,47 +40,51 @@
     <p>If this instance requires an API key, you will need to include the API key in the <b>X-API-Key</b> header.</p>
     <h2>API Endpoints</h2>
     <ul>
-        <li><b>/api/verify</b> (may require API key)</li>
-        <li><b>/api/settle</b> (may require API key)</li>
-        <li><b>/api/supported</b> (no API key required)</li>
+        <li><b>/verify</b> (may require API key)</li>
+        <li><b>/settle</b> (may require API key)</li>
+        <li><b>/supported</b> (no API key required)</li>
     </ul>
     <h2>Verify Examples</h2>
-    <p>An example request to the <b>/api/verify</b> endpoint (<b>with API key</b>):</p>
+    <p>An example request to the <b>/verify</b> endpoint (<b>with API key</b>):</p>
     <code>
-        curl -X POST <span class="url"></span>api/verify \
+        curl -X POST <span class="url"></span>verify \
         -H "X-API-Key: your-api-key" \
         -H "Content-Type: application/json" \
         -d '{"x402Version": 1, "paymentPayload": {...}, "paymentRequirements": {...}}'
     </code>
-    <p>An example request to the <b>/api/verify</b> endpoint (<b>without API key</b>):</p>
+    <p>An example request to the <b>/verify</b> endpoint (<b>without API key</b>):</p>
     <code>
         curl -X POST <span class="url"></span>api/verify \
         -H "Content-Type: application/json" \
         -d '{"x402Version": 1, "paymentPayload": {...}, "paymentRequirements": {...}}'
     </code>
-    <p>An example response from the <b>/api/verify</b> endpoint (<b>200 OK</b> - valid):</p>
+    <p>An example response from the <b>/verify</b> endpoint (<b>200 OK</b> - valid):</p>
     <code>
         {
+            "scheme": "exact",
+            "network": "sepolia",
             "isValid": true,
             "payer": "0x..."
         }
     </code>
-    <p>An example response from the <b>/api/verify</b> endpoint (<b>200 OK</b> - invalid):</p>
+    <p>An example response from the <b>/verify</b> endpoint (<b>200 OK</b> - invalid):</p>
     <code>
         {
+            "scheme": "exact",
+            "network": "sepolia",
             "isValid": false,
             "invalidReason": "invalid_authorization_signature"
         }
     </code>
-    <p>An example response from the <b>/api/verify</b> endpoint (<b>401 Unauthorized</b>):</p>
+    <p>An example response from the <b>/verify</b> endpoint (<b>401 Unauthorized</b>):</p>
     <code>
         unauthorized
     </code>
-    <p>An example response from the <b>/api/verify</b> endpoint (<b>400 Bad Request</b>):</p>
+    <p>An example response from the <b>/verify</b> endpoint (<b>400 Bad Request</b>):</p>
     <code>
         invalid character 'x' looking for beginning of value
     </code>
-    <p>An example response from the <b>/api/verify</b> endpoint (<b>500 Internal Server Error</b>):</p>
+    <p>An example response from the <b>/verify</b> endpoint (<b>500 Internal Server Error</b>):</p>
     <code>
         failed to get token balance
     </code>
@@ -98,16 +102,20 @@
         -H "Content-Type: application/json" \
         -d '{"x402Version": 1, "paymentPayload": {...}, "paymentRequirements": {...}}'
     </code>
-    <p>An example response from the <b>/api/settle</b> endpoint (<b>200 OK</b> - successful):</p>
+    <p>An example response from the <b>/api/settle</b> endpoint (<b>200 OK</b> - success):</p>
     <code>
         {
+            "scheme": "exact",
+            "network": "sepolia",
             "success": true,
             "transaction": "0x..."
         }
     </code>
-    <p>An example response from the <b>/api/settle</b> endpoint (<b>200 OK</b> - unsuccessful):</p>
+    <p>An example response from the <b>/api/settle</b> endpoint (<b>200 OK</b> - failed):</p>
     <code>
         {
+            "scheme": "exact",
+            "network": "sepolia",
             "success": false,
             "errorReason": "invalid_authorization_signature"
         }
@@ -139,19 +147,9 @@
                     "network": "sepolia"
                 },
                 {
-                    "x402Version": 1,
-                    "scheme": "exact",
-                    "network": "base-sepolia"
-                },
-                {
                     "x402Version": 2,
                     "scheme": "exact",
                     "network": "eip155:11155111"
-                },
-                {
-                    "x402Version": 2,
-                    "scheme": "exact",
-                    "network": "eip155:84532"
                 }
             ]
         }
