@@ -1,0 +1,22 @@
+{
+  "name": "test-coinbase-x402-v1",
+  "scripts": {
+    "server": "tsx server.ts",
+    "client-without-pay": "tsx client-without-pay.ts",
+    "client-with-pay": "tsx client-with-pay.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^5.2.1",
+    "viem": "^2.23.10",
+    "x402-express": "^1.0.0",
+    "x402-fetch": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.3",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
