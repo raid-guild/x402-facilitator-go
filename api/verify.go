@@ -97,6 +97,62 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				ExtraVersion:             paymentRequirements.Extra.Version,
 			}
 
+			// Handle requests for the ethereum network
+			if paymentRequirements.Network == v1.NetworkEthereum {
+
+				// Set the verify exact configuration
+				cfg := core.VerifyExactConfig{
+					ChainID: 1,
+					RPCURL:  os.Getenv("RPC_URL_ETHEREUM"),
+				}
+
+				// Verify the payment that will be settled on the ethereum network
+				response, err := core.VerifyExact(cfg, exactParams)
+				if err != nil {
+					// Write http error response and then exit handler
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				// Write http ok response and then exit handler
+				writeVerifyResponse(w, types.VerifyResponse{
+					Scheme:        string(v1.SchemeExact),
+					Network:       string(v1.NetworkEthereum),
+					IsValid:       response.IsValid,
+					Payer:         response.Payer,
+					InvalidReason: response.InvalidReason,
+				})
+				return
+			}
+
+			// Handle requests for the base network
+			if paymentRequirements.Network == v1.NetworkBase {
+
+				// Set the verify exact configuration
+				cfg := core.VerifyExactConfig{
+					ChainID: 8453,
+					RPCURL:  os.Getenv("RPC_URL_BASE"),
+				}
+
+				// Verify the payment that will be settled on the base network
+				response, err := core.VerifyExact(cfg, exactParams)
+				if err != nil {
+					// Write http error response and then exit handler
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				// Write http ok response and then exit handler
+				writeVerifyResponse(w, types.VerifyResponse{
+					Scheme:        string(v1.SchemeExact),
+					Network:       string(v1.NetworkBase),
+					IsValid:       response.IsValid,
+					Payer:         response.Payer,
+					InvalidReason: response.InvalidReason,
+				})
+				return
+			}
+
 			// Handle requests for the sepolia network
 			if paymentRequirements.Network == v1.NetworkSepolia {
 
@@ -220,6 +276,62 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 				MaxTimeoutSeconds:        paymentRequirements.MaxTimeoutSeconds,
 				ExtraName:                paymentRequirements.Extra.Name,
 				ExtraVersion:             paymentRequirements.Extra.Version,
+			}
+
+			// Handle requests for the ethereum network
+			if paymentRequirements.Network == v2.NetworkEthereum {
+
+				// Set the verify exact configuration
+				cfg := core.VerifyExactConfig{
+					ChainID: 1,
+					RPCURL:  os.Getenv("RPC_URL_ETHEREUM"),
+				}
+
+				// Verify the payment that will be settled on the ethereum network
+				response, err := core.VerifyExact(cfg, exactParams)
+				if err != nil {
+					// Write http error response and then exit handler
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				// Write http ok response and then exit handler
+				writeVerifyResponse(w, types.VerifyResponse{
+					Scheme:        string(v2.SchemeExact),
+					Network:       string(v2.NetworkEthereum),
+					IsValid:       response.IsValid,
+					Payer:         response.Payer,
+					InvalidReason: response.InvalidReason,
+				})
+				return
+			}
+
+			// Handle requests for the base network
+			if paymentRequirements.Network == v2.NetworkBase {
+
+				// Set the verify exact configuration
+				cfg := core.VerifyExactConfig{
+					ChainID: 8453,
+					RPCURL:  os.Getenv("RPC_URL_BASE"),
+				}
+
+				// Verify the payment that will be settled on the base network
+				response, err := core.VerifyExact(cfg, exactParams)
+				if err != nil {
+					// Write http error response and then exit handler
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				// Write http ok response and then exit handler
+				writeVerifyResponse(w, types.VerifyResponse{
+					Scheme:        string(v2.SchemeExact),
+					Network:       string(v2.NetworkBase),
+					IsValid:       response.IsValid,
+					Payer:         response.Payer,
+					InvalidReason: response.InvalidReason,
+				})
+				return
 			}
 
 			// Handle requests for the sepolia network

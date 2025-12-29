@@ -185,6 +185,10 @@ After deploying to Vercel, configure the following environment variables in your
 
 - **`PRIVATE_KEY`** (required): The private key of the facilitator account (without `0x` prefix). This account will be used to submit settlement transactions and must have sufficient funds for gas fees.
 
+- **`RPC_URL_ETHEREUM`** (optional): RPC URL for Ethereum mainnet.
+
+- **`RPC_URL_BASE`** (optional): RPC URL for Base mainnet.
+
 - **`RPC_URL_SEPOLIA`** (optional): RPC URL for Ethereum Sepolia testnet.
 
 - **`RPC_URL_BASE_SEPOLIA`** (optional): RPC URL for Base Sepolia testnet.
@@ -232,10 +236,12 @@ Currently supported schemes:
 ## 📚 Supported Networks
 
 Currently supported networks:
+- **Ethereum** (Ethereum mainnet) - Chain ID: `1`
+- **Base** (Base mainnet) - Chain ID: `8453`
 - **Sepolia** (Ethereum testnet) - Chain ID: `11155111`
 - **Base Sepolia** (Base testnet) - Chain ID: `84532`
 
-> **Note**: This facilitator currently supports two test networks only. Support for additional networks can be added by extending the codebase.
+> **Note**: This facilitator currently supports four networks only. Support for additional networks can be added by extending the codebase.
 
 ## 📝 License
 

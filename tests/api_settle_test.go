@@ -128,6 +128,16 @@ func TestSettle_Compatibility(t *testing.T) {
 		network     string
 	}{
 		{
+			name:        "v1 ethereum",
+			x402Version: "1",
+			network:     "ethereum",
+		},
+		{
+			name:        "v1 base",
+			x402Version: "1",
+			network:     "base",
+		},
+		{
 			name:        "v1 sepolia",
 			x402Version: "1",
 			network:     "sepolia",
@@ -136,6 +146,16 @@ func TestSettle_Compatibility(t *testing.T) {
 			name:        "v1 base sepolia",
 			x402Version: "1",
 			network:     "base-sepolia",
+		},
+		{
+			name:        "v2 ethereum",
+			x402Version: "2",
+			network:     "eip155:1",
+		},
+		{
+			name:        "v2 base",
+			x402Version: "2",
+			network:     "eip155:8453",
 		},
 		{
 			name:        "v2 sepolia",
@@ -428,6 +448,18 @@ func TestSettle_SettleExact(t *testing.T) {
 		rpcEnvVar   string
 	}{
 		{
+			name:        "v1 ethereum",
+			x402Version: "1",
+			network:     "ethereum",
+			rpcEnvVar:   "RPC_URL_ETHEREUM",
+		},
+		{
+			name:        "v1 base",
+			x402Version: "1",
+			network:     "base",
+			rpcEnvVar:   "RPC_URL_BASE",
+		},
+		{
 			name:        "v1 sepolia",
 			x402Version: "1",
 			network:     "sepolia",
@@ -438,6 +470,18 @@ func TestSettle_SettleExact(t *testing.T) {
 			x402Version: "1",
 			network:     "base-sepolia",
 			rpcEnvVar:   "RPC_URL_BASE_SEPOLIA",
+		},
+		{
+			name:        "v2 ethereum",
+			x402Version: "2",
+			network:     "eip155:1",
+			rpcEnvVar:   "RPC_URL_ETHEREUM",
+		},
+		{
+			name:        "v2 base",
+			x402Version: "2",
+			network:     "eip155:8453",
+			rpcEnvVar:   "RPC_URL_BASE",
 		},
 		{
 			name:        "v2 sepolia",
