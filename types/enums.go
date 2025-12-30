@@ -8,6 +8,16 @@ const (
 	X402Version2 X402Version = 2
 )
 
+// ChainIDs is the chain ID enum.
+type ChainID int64
+
+const (
+	ChainIDEthereum    ChainID = 1
+	ChainIDBase        ChainID = 8453
+	ChainIDSepolia     ChainID = 11155111
+	ChainIDBaseSepolia ChainID = 84532
+)
+
 // InvalidReason is the invalid reason enum.
 type InvalidReason string
 
@@ -23,7 +33,6 @@ const (
 	InvalidReasonInvalidAuthorizationTo              InvalidReason = "invalid_authorization_to"
 	InvalidReasonInvalidAuthorizationToMismatch      InvalidReason = "invalid_authorization_to_mismatch"
 	InvalidReasonInvalidAuthorizationValue           InvalidReason = "invalid_authorization_value"
-	InvalidReasonInvalidAuthorizationValueNegative   InvalidReason = "invalid_authorization_value_negative"
 	InvalidReasonInvalidAuthorizationValueMismatch   InvalidReason = "invalid_authorization_value_mismatch"
 	InvalidReasonInvalidAuthorizationTimeWindow      InvalidReason = "invalid_authorization_time_window"
 	InvalidReasonInvalidAuthorizationValidAfter      InvalidReason = "invalid_authorization_valid_after"
@@ -61,5 +70,4 @@ const (
 	ErrorReasonInvalidAuthorizationNonce       ErrorReason = "invalid_authorization_nonce"
 	ErrorReasonInvalidAuthorizationSignature   ErrorReason = "invalid_authorization_signature"
 	ErrorReasonInvalidAuthorizationMessage     ErrorReason = "invalid_authorization_message"
-	ErrorReasonInsufficientGasLimit            ErrorReason = "insufficient_gas_limit"
 )

@@ -77,7 +77,6 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				AuthorizationNonce:       paymentPayload.Payload.Authorization.Nonce,
 				Asset:                    paymentRequirements.Asset,
 				MaxTimeoutSeconds:        paymentRequirements.MaxTimeoutSeconds,
-				ExtraGasLimit:            paymentRequirements.Extra.GasLimit,
 			}
 
 			// Handle requests for the ethereum network
@@ -85,7 +84,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 
 				// Set the settle exact configuration
 				cfg := core.SettleExactConfig{
-					ChainID:    1,
+					ChainID:    int64(types.ChainIDEthereum),
 					RPCURL:     os.Getenv("RPC_URL_ETHEREUM"),
 					PrivateKey: os.Getenv("PRIVATE_KEY"),
 				}
@@ -114,7 +113,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 
 				// Set the settle exact configuration
 				cfg := core.SettleExactConfig{
-					ChainID:    8453,
+					ChainID:    int64(types.ChainIDBase),
 					RPCURL:     os.Getenv("RPC_URL_BASE"),
 					PrivateKey: os.Getenv("PRIVATE_KEY"),
 				}
@@ -143,7 +142,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 
 				// Set the settle exact configuration
 				cfg := core.SettleExactConfig{
-					ChainID:    11155111,
+					ChainID:    int64(types.ChainIDSepolia),
 					RPCURL:     os.Getenv("RPC_URL_SEPOLIA"),
 					PrivateKey: os.Getenv("PRIVATE_KEY"),
 				}
@@ -172,7 +171,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 
 				// Set the settle exact configuration
 				cfg := core.SettleExactConfig{
-					ChainID:    84532,
+					ChainID:    int64(types.ChainIDBaseSepolia),
 					RPCURL:     os.Getenv("RPC_URL_BASE_SEPOLIA"),
 					PrivateKey: os.Getenv("PRIVATE_KEY"),
 				}
@@ -245,7 +244,6 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				AuthorizationNonce:       paymentPayload.Payload.Authorization.Nonce,
 				Asset:                    paymentRequirements.Asset,
 				MaxTimeoutSeconds:        paymentRequirements.MaxTimeoutSeconds,
-				ExtraGasLimit:            paymentRequirements.Extra.GasLimit,
 			}
 
 			// Handle requests for the ethereum network
@@ -253,7 +251,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 
 				// Set the settle exact configuration
 				cfg := core.SettleExactConfig{
-					ChainID:    1,
+					ChainID:    int64(types.ChainIDEthereum),
 					RPCURL:     os.Getenv("RPC_URL_ETHEREUM"),
 					PrivateKey: os.Getenv("PRIVATE_KEY"),
 				}
@@ -282,7 +280,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 
 				// Set the settle exact configuration
 				cfg := core.SettleExactConfig{
-					ChainID:    8453,
+					ChainID:    int64(types.ChainIDBase),
 					RPCURL:     os.Getenv("RPC_URL_BASE"),
 					PrivateKey: os.Getenv("PRIVATE_KEY"),
 				}
@@ -311,7 +309,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 
 				// Set the settle exact configuration
 				cfg := core.SettleExactConfig{
-					ChainID:    11155111,
+					ChainID:    int64(types.ChainIDSepolia),
 					RPCURL:     os.Getenv("RPC_URL_SEPOLIA"),
 					PrivateKey: os.Getenv("PRIVATE_KEY"),
 				}
@@ -340,7 +338,7 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 
 				// Set the settle exact configuration
 				cfg := core.SettleExactConfig{
-					ChainID:    84532,
+					ChainID:    int64(types.ChainIDBaseSepolia),
 					RPCURL:     os.Getenv("RPC_URL_BASE_SEPOLIA"),
 					PrivateKey: os.Getenv("PRIVATE_KEY"),
 				}

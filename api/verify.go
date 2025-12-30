@@ -102,7 +102,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: 1,
+					ChainID: int64(types.ChainIDEthereum),
 					RPCURL:  os.Getenv("RPC_URL_ETHEREUM"),
 				}
 
@@ -130,7 +130,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: 8453,
+					ChainID: int64(types.ChainIDBase),
 					RPCURL:  os.Getenv("RPC_URL_BASE"),
 				}
 
@@ -158,7 +158,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: 11155111,
+					ChainID: int64(types.ChainIDSepolia),
 					RPCURL:  os.Getenv("RPC_URL_SEPOLIA"),
 				}
 
@@ -186,7 +186,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: 84532,
+					ChainID: int64(types.ChainIDBaseSepolia),
 					RPCURL:  os.Getenv("RPC_URL_BASE_SEPOLIA"),
 				}
 
@@ -283,7 +283,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: 1,
+					ChainID: int64(types.ChainIDEthereum),
 					RPCURL:  os.Getenv("RPC_URL_ETHEREUM"),
 				}
 
@@ -311,7 +311,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: 8453,
+					ChainID: int64(types.ChainIDBase),
 					RPCURL:  os.Getenv("RPC_URL_BASE"),
 				}
 
@@ -339,7 +339,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: 11155111,
+					ChainID: int64(types.ChainIDSepolia),
 					RPCURL:  os.Getenv("RPC_URL_SEPOLIA"),
 				}
 
@@ -367,7 +367,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: 84532,
+					ChainID: int64(types.ChainIDBaseSepolia),
 					RPCURL:  os.Getenv("RPC_URL_BASE_SEPOLIA"),
 				}
 

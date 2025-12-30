@@ -7,6 +7,8 @@ import (
 	"os"
 
 	"github.com/raid-guild/x402-facilitator-go/types"
+	v1 "github.com/raid-guild/x402-facilitator-go/types/v1"
+	v2 "github.com/raid-guild/x402-facilitator-go/types/v2"
 )
 
 // Supported is the handler function called by Vercel.
@@ -42,15 +44,15 @@ func buildSupportedResponse() types.SupportedResponse {
 	if rpcURL := os.Getenv("RPC_URL_ETHEREUM"); rpcURL != "" {
 		// Add v1 ethereum support
 		v1Kinds = append(v1Kinds, types.SupportedKind{
-			X402Version: 1,
-			Scheme:      "exact",
-			Network:     "ethereum",
+			X402Version: int(types.X402Version1),
+			Scheme:      string(v1.SchemeExact),
+			Network:     string(v1.NetworkEthereum),
 		})
 		// Add v2 ethereum support
 		v2Kinds = append(v2Kinds, types.SupportedKind{
-			X402Version: 2,
-			Scheme:      "exact",
-			Network:     "eip155:1",
+			X402Version: int(types.X402Version2),
+			Scheme:      string(v2.SchemeExact),
+			Network:     string(v2.NetworkEthereum),
 		})
 	}
 
@@ -58,15 +60,15 @@ func buildSupportedResponse() types.SupportedResponse {
 	if rpcURL := os.Getenv("RPC_URL_BASE"); rpcURL != "" {
 		// Add v1 base support
 		v1Kinds = append(v1Kinds, types.SupportedKind{
-			X402Version: 1,
-			Scheme:      "exact",
-			Network:     "base",
+			X402Version: int(types.X402Version1),
+			Scheme:      string(v1.SchemeExact),
+			Network:     string(v1.NetworkBase),
 		})
 		// Add v2 base support
 		v2Kinds = append(v2Kinds, types.SupportedKind{
-			X402Version: 2,
-			Scheme:      "exact",
-			Network:     "eip155:8453",
+			X402Version: int(types.X402Version2),
+			Scheme:      string(v2.SchemeExact),
+			Network:     string(v2.NetworkBase),
 		})
 	}
 
@@ -74,15 +76,15 @@ func buildSupportedResponse() types.SupportedResponse {
 	if rpcURL := os.Getenv("RPC_URL_SEPOLIA"); rpcURL != "" {
 		// Add v1 sepolia support
 		v1Kinds = append(v1Kinds, types.SupportedKind{
-			X402Version: 1,
-			Scheme:      "exact",
-			Network:     "sepolia",
+			X402Version: int(types.X402Version1),
+			Scheme:      string(v1.SchemeExact),
+			Network:     string(v1.NetworkSepolia),
 		})
 		// Add v2 sepolia support
 		v2Kinds = append(v2Kinds, types.SupportedKind{
-			X402Version: 2,
-			Scheme:      "exact",
-			Network:     "eip155:11155111",
+			X402Version: int(types.X402Version2),
+			Scheme:      string(v2.SchemeExact),
+			Network:     string(v2.NetworkSepolia),
 		})
 	}
 
@@ -90,15 +92,15 @@ func buildSupportedResponse() types.SupportedResponse {
 	if rpcURL := os.Getenv("RPC_URL_BASE_SEPOLIA"); rpcURL != "" {
 		// Add v1 base sepolia support
 		v1Kinds = append(v1Kinds, types.SupportedKind{
-			X402Version: 1,
-			Scheme:      "exact",
-			Network:     "base-sepolia",
+			X402Version: int(types.X402Version1),
+			Scheme:      string(v1.SchemeExact),
+			Network:     string(v1.NetworkBaseSepolia),
 		})
 		// Add v2 base sepolia support
 		v2Kinds = append(v2Kinds, types.SupportedKind{
-			X402Version: 2,
-			Scheme:      "exact",
-			Network:     "eip155:84532",
+			X402Version: int(types.X402Version2),
+			Scheme:      string(v2.SchemeExact),
+			Network:     string(v2.NetworkBaseSepolia),
 		})
 	}
 
