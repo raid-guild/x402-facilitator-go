@@ -16,7 +16,7 @@ A one-click deploy x402 facilitator brought to you by [Raid Guild](https://www.r
 4. **Test**: Go to the `/supported` endpoint to verify your setup
 5. **Build**: Add the `/verify` and `/settle` endpoints to your backend
 
-> **Note**: x402-facilitator-go is also compatible with [coinbase/x402](https://github.com/coinbase/x402). For the easiest building experience, use the coinbase/x402 library and configure the middleware to use your deployed facilitator.
+> **Note**: x402-facilitator-go is also compatible with [coinbase/x402](https://github.com/coinbase/x402). For the easiest building experience, use the coinbase/x402 library and configure the middleware to use your deployed facilitator. For examples on how to use the coinbase/x402 library with your deployed facilitator, check out the [demo](https://github.com/raid-guild/x402-facilitator-go/tree/demo) branch.
 
 ## 📐 Why Vercel
 
@@ -29,7 +29,7 @@ This service is designed for deployments to [Vercel](https://vercel.com/home). V
 - **Built-in HTTPS**: SSL certificates are automatically provisioned and renewed
 - **Edge Network**: Low-latency responses from Vercel's global edge network
 
-> **Note**: Support for other hosting options can be implemented by extending the codebase.
+> **Note**: Support for other server setups can be implemented by extending the codebase.
 
 ## 💸 How x402 Works
 
@@ -80,9 +80,36 @@ Verifies a payment authorization without executing it on-chain.
 **Request Body**:
 ```json
 {
-  "x402Version": 1,
-  "paymentPayload": { ... },
-  "paymentRequirements": { ... }
+  "x402Version": 2,
+  "paymentPayload": {
+    "payload": {
+      "authorization": {
+        "from":" 0x0000000000000000000000000000000000000001",
+        "to": "0x0000000000000000000000000000000000000002",
+        "value": "1000",
+        "validAfter": "1764619200",
+        "validBefore": "1764620100",
+        "nonce": "0x0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "signature": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "accepted": {
+      "scheme":"exact",
+      "network":"eip155:11155111"
+    }
+  },
+  "paymentRequirements": {
+    "scheme": "exact",
+    "network": "eip155:11155111",
+    "amount": "1000",
+    "asset": "0x0000000000000000000000000000000000000003",
+    "payTo": "0x0000000000000000000000000000000000000002",
+    "maxTimeoutSeconds": 300,
+    "extra": {
+      "name": "USDC",
+      "version": "2"
+    }
+  }
 }
 ```
 
@@ -90,9 +117,9 @@ Verifies a payment authorization without executing it on-chain.
 ```json
 {
   "scheme": "exact",
-  "network": "sepolia",
+  "network": "eip155:11155111",
   "isValid": true,
-  "payer": "0x..."
+  "payer": "0x0000000000000000000000000000000000000001"
 }
 ```
 
@@ -100,7 +127,7 @@ Verifies a payment authorization without executing it on-chain.
 ```json
 {
   "scheme": "exact",
-  "network": "sepolia",
+  "network": "eip155:11155111",
   "isValid": false,
   "invalidReason": "invalid_authorization_signature"
 }
@@ -120,9 +147,36 @@ Settles a payment authorization by executing it on-chain.
 **Request Body**:
 ```json
 {
-  "x402Version": 1,
-  "paymentPayload": { ... },
-  "paymentRequirements": { ... }
+  "x402Version": 2,
+  "paymentPayload": {
+    "payload": {
+      "authorization": {
+        "from":" 0x0000000000000000000000000000000000000001",
+        "to": "0x0000000000000000000000000000000000000002",
+        "value": "1000",
+        "validAfter": "1764619200",
+        "validBefore": "1764620100",
+        "nonce": "0x0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "signature": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "accepted": {
+      "scheme":"exact",
+      "network":"eip155:11155111"
+    }
+  },
+  "paymentRequirements": {
+    "scheme": "exact",
+    "network": "eip155:11155111",
+    "amount": "1000",
+    "asset": "0x0000000000000000000000000000000000000003",
+    "payTo": "0x0000000000000000000000000000000000000002",
+    "maxTimeoutSeconds": 300,
+    "extra": {
+      "name": "USDC",
+      "version": "2"
+    }
+  }
 }
 ```
 
@@ -130,9 +184,9 @@ Settles a payment authorization by executing it on-chain.
 ```json
 {
   "scheme": "exact",
-  "network": "sepolia",
+  "network": "eip155:11155111",
   "success": true,
-  "transaction": "0x..."
+  "transaction": "0x0000000000000000000000000000000000000000000000000000000000000000"
 }
 ```
 
@@ -140,7 +194,7 @@ Settles a payment authorization by executing it on-chain.
 ```json
 {
   "scheme": "exact",
-  "network": "sepolia",
+  "network": "eip155:11155111",
   "success": false,
   "errorReason": "invalid_authorization_signature"
 }

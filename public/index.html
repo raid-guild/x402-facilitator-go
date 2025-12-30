@@ -22,12 +22,13 @@
         }
         code {
             display: block;
-            white-space: pre-wrap;
             padding: 2em;
             margin-bottom: 2em;
             background-color: #fcfcfc;
-            border-radius: 0.5em;
             border: 1px solid #f3f3f3;
+            border-radius: 0.5em;
+            overflow-x: auto;
+            white-space: pre;
         }
     </style>
 </head>
@@ -50,28 +51,53 @@
         curl -X POST <span class="url"></span>verify \
         -H "X-API-Key: your-api-key" \
         -H "Content-Type: application/json" \
-        -d '{"x402Version": 1, "paymentPayload": {...}, "paymentRequirements": {...}}'
-    </code>
-    <p>An example request to the <b>/verify</b> endpoint (<b>without API key</b>):</p>
-    <code>
-        curl -X POST <span class="url"></span>verify \
-        -H "Content-Type: application/json" \
-        -d '{"x402Version": 1, "paymentPayload": {...}, "paymentRequirements": {...}}'
+        -d '{
+          "x402Version": 2,
+          "paymentPayload": {
+            "payload": {
+              "authorization": {
+                "from":" 0x0000000000000000000000000000000000000001",
+                "to": "0x0000000000000000000000000000000000000002",
+                "value": "1000",
+                "validAfter": "1764619200",
+                "validBefore": "1764620100",
+                "nonce": "0x0000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "signature": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+            },
+            "accepted": {
+              "scheme":"exact",
+              "network":"eip155:11155111"
+            }
+          },
+          "paymentRequirements": {
+            "scheme": "exact",
+            "network": "eip155:11155111",
+            "amount": "1000",
+            "asset": "0x0000000000000000000000000000000000000003",
+            "payTo": "0x0000000000000000000000000000000000000002",
+            "maxTimeoutSeconds": 300,
+            "extra": {
+              "name": "USDC",
+              "version": "2"
+            }
+          }
+        }'
     </code>
     <p>An example response from the <b>/verify</b> endpoint (<b>200 OK</b> - valid):</p>
     <code>
         {
             "scheme": "exact",
-            "network": "sepolia",
+            "network": "eip155:11155111",
             "isValid": true,
-            "payer": "0x..."
+            "payer": "0x0000000000000000000000000000000000000001"
         }
     </code>
     <p>An example response from the <b>/verify</b> endpoint (<b>200 OK</b> - invalid):</p>
     <code>
         {
             "scheme": "exact",
-            "network": "sepolia",
+            "network": "eip155:11155111",
             "isValid": false,
             "invalidReason": "invalid_authorization_signature"
         }
@@ -94,28 +120,53 @@
         curl -X POST <span class="url"></span>settle \
         -H "X-API-Key: your-api-key" \
         -H "Content-Type: application/json" \
-        -d '{"x402Version": 1, "paymentPayload": {...}, "paymentRequirements": {...}}'
-    </code>
-    <p>An example request to the <b>/settle</b> endpoint (<b>without API key</b>):</p>
-    <code>
-        curl -X POST <span class="url"></span>settle \
-        -H "Content-Type: application/json" \
-        -d '{"x402Version": 1, "paymentPayload": {...}, "paymentRequirements": {...}}'
+        -d '{
+          "x402Version": 2,
+          "paymentPayload": {
+            "payload": {
+              "authorization": {
+                "from":" 0x0000000000000000000000000000000000000001",
+                "to": "0x0000000000000000000000000000000000000002",
+                "value": "1000",
+                "validAfter": "1764619200",
+                "validBefore": "1764620100",
+                "nonce": "0x0000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "signature": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+            },
+            "accepted": {
+              "scheme":"exact",
+              "network":"eip155:11155111"
+            }
+          },
+          "paymentRequirements": {
+            "scheme": "exact",
+            "network": "eip155:11155111",
+            "amount": "1000",
+            "asset": "0x0000000000000000000000000000000000000003",
+            "payTo": "0x0000000000000000000000000000000000000002",
+            "maxTimeoutSeconds": 300,
+            "extra": {
+              "name": "USDC",
+              "version": "2"
+            }
+          }
+        }'
     </code>
     <p>An example response from the <b>/settle</b> endpoint (<b>200 OK</b> - success):</p>
     <code>
         {
             "scheme": "exact",
-            "network": "sepolia",
+            "network": "eip155:11155111",
             "success": true,
-            "transaction": "0x..."
+            "transaction": "0x0000000000000000000000000000000000000000000000000000000000000000"
         }
     </code>
     <p>An example response from the <b>/settle</b> endpoint (<b>200 OK</b> - failed):</p>
     <code>
         {
             "scheme": "exact",
-            "network": "sepolia",
+            "network": "eip155:11155111",
             "success": false,
             "errorReason": "invalid_authorization_signature"
         }
