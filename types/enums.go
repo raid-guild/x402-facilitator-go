@@ -8,6 +8,16 @@ const (
 	X402Version2 X402Version = 2
 )
 
+// ChainIDs is the chain ID enum.
+type ChainID int64
+
+const (
+	ChainIDEthereum    ChainID = 1
+	ChainIDBase        ChainID = 8453
+	ChainIDSepolia     ChainID = 11155111
+	ChainIDBaseSepolia ChainID = 84532
+)
+
 // InvalidReason is the invalid reason enum.
 type InvalidReason string
 
