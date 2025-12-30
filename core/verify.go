@@ -111,11 +111,11 @@ func VerifyExact(c VerifyExactConfig, p VerifyExactParams) (types.VerifyResponse
 	// Set big.Int zero
 	zero := big.NewInt(0)
 
-	// Verify the authorization value is positive
+	// Verify the authorization value is greater than zero
 	if authValue.Cmp(zero) <= 0 {
 		return types.VerifyResponse{
 			IsValid:       false,
-			InvalidReason: types.InvalidReasonInvalidAuthorizationValueNegative,
+			InvalidReason: types.InvalidReasonInvalidAuthorizationValue,
 		}, nil
 	}
 
@@ -283,16 +283,19 @@ func VerifyExact(c VerifyExactConfig, p VerifyExactParams) (types.VerifyResponse
 		Data: balanceOfData,
 	}, nil)
 	if err != nil {
+		// Return an error that will be handled as an internal server error
 		return types.VerifyResponse{}, fmt.Errorf("failed to get token balance: %v", err)
 	}
 
 	// Verify the balance result is not nil
 	if balanceResult == nil {
+		// Return an error that will be handled as an internal server error
 		return types.VerifyResponse{}, fmt.Errorf("failed to get token balance: balance result is nil")
 	}
 
 	// Verify the balance result is 32 bytes
 	if len(balanceResult) != 32 {
+		// Return an error that will be handled as an internal server error
 		return types.VerifyResponse{}, fmt.Errorf("failed to get token balance: balance result is not 32 bytes")
 	}
 

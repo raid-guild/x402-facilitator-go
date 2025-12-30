@@ -1105,6 +1105,78 @@ func TestVerify_VerifyExact(t *testing.T) {
 				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_requirements_amount"))
 			})
 
+			t.Run("invalid_authorization_value empty", func(t *testing.T) {
+				t.Setenv(v.rpcEnvVar, "rpc-url")
+				body := ""
+				switch v.x402Version {
+				case "1":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"maxAmountRequired": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				case "2":
+					body = `{
+						"x402Version": ` + v.x402Version + `,
+						"paymentPayload": {
+							"accepted": {
+								"scheme": "exact",
+								"network": "` + v.network + `"
+							},
+							"payload": {
+								"signature": "` + validSignature + `",
+								"authorization": {
+									"from": "` + validAddress1 + `",
+									"to": "` + validAddress2 + `",
+									"validAfter": "` + validAfter + `",
+									"validBefore": "` + validBefore + `",
+									"nonce": "` + validNonce + `"
+								}
+							}
+						},
+						"paymentRequirements": {
+							"scheme": "exact",
+							"network": "` + v.network + `",
+							"asset": "` + validAddress3 + `",
+							"payTo": "` + validAddress2 + `",
+							"amount": "1000",
+							"maxTimeoutSeconds": 30,
+							"extra": {
+								"name": "Coin",
+								"version": "1"
+							}
+						}
+					}`
+				default:
+					t.Fatalf("unexpected x402 version: %s", v.x402Version)
+				}
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_value"))
+			})
+
 			t.Run("invalid_authorization_value negative", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "rpc-url")
 				body := ""
@@ -1176,7 +1248,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 				default:
 					t.Fatalf("unexpected x402 version: %s", v.x402Version)
 				}
-				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_value_negative"))
+				verify(t, "", body, http.StatusOK, expectInvalidReason("invalid_authorization_value"))
 			})
 
 			t.Run("invalid_authorization_value_mismatch too low", func(t *testing.T) {

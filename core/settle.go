@@ -80,7 +80,7 @@ func SettleExact(c SettleExactConfig, p SettleExactParams) (types.SettleResponse
 		}, nil
 	}
 
-	// Extract the authorization nonce from the payment payload
+	// Trim the authorization nonce prefix
 	authNonceHex := strings.TrimPrefix(p.AuthorizationNonce, "0x")
 
 	// Decode the authorization nonce from hex to bytes
@@ -101,8 +101,11 @@ func SettleExact(c SettleExactConfig, p SettleExactParams) (types.SettleResponse
 		}, nil
 	}
 
+	// Trim the private key prefix
+	privateKeyHex := strings.TrimPrefix(c.PrivateKey, "0x")
+
 	// Parse the facilitator private key
-	privateKey, err := crypto.HexToECDSA(strings.TrimPrefix(c.PrivateKey, "0x"))
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
 	if err != nil {
 		// Return an error that will be handled as an internal server error
 		return types.SettleResponse{}, fmt.Errorf("failed to parse private key: %v", err)

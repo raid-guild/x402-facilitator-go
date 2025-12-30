@@ -33,7 +33,6 @@ const (
 	InvalidReasonInvalidAuthorizationTo              InvalidReason = "invalid_authorization_to"
 	InvalidReasonInvalidAuthorizationToMismatch      InvalidReason = "invalid_authorization_to_mismatch"
 	InvalidReasonInvalidAuthorizationValue           InvalidReason = "invalid_authorization_value"
-	InvalidReasonInvalidAuthorizationValueNegative   InvalidReason = "invalid_authorization_value_negative"
 	InvalidReasonInvalidAuthorizationValueMismatch   InvalidReason = "invalid_authorization_value_mismatch"
 	InvalidReasonInvalidAuthorizationTimeWindow      InvalidReason = "invalid_authorization_time_window"
 	InvalidReasonInvalidAuthorizationValidAfter      InvalidReason = "invalid_authorization_valid_after"
