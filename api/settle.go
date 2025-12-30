@@ -77,7 +77,6 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				AuthorizationNonce:       paymentPayload.Payload.Authorization.Nonce,
 				Asset:                    paymentRequirements.Asset,
 				MaxTimeoutSeconds:        paymentRequirements.MaxTimeoutSeconds,
-				ExtraGasLimit:            paymentRequirements.Extra.GasLimit,
 			}
 
 			// Handle requests for the ethereum network
@@ -245,7 +244,6 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				AuthorizationNonce:       paymentPayload.Payload.Authorization.Nonce,
 				Asset:                    paymentRequirements.Asset,
 				MaxTimeoutSeconds:        paymentRequirements.MaxTimeoutSeconds,
-				ExtraGasLimit:            paymentRequirements.Extra.GasLimit,
 			}
 
 			// Handle requests for the ethereum network

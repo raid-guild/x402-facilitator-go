@@ -61,5 +61,4 @@ const (
 	ErrorReasonInvalidAuthorizationNonce       ErrorReason = "invalid_authorization_nonce"
 	ErrorReasonInvalidAuthorizationSignature   ErrorReason = "invalid_authorization_signature"
 	ErrorReasonInvalidAuthorizationMessage     ErrorReason = "invalid_authorization_message"
-	ErrorReasonInsufficientGasLimit            ErrorReason = "insufficient_gas_limit"
 )

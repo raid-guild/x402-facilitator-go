@@ -36,7 +36,6 @@ type SettleExactParams struct {
 	AuthorizationNonce       string
 	Asset                    string
 	MaxTimeoutSeconds        int64
-	ExtraGasLimit            uint64
 }
 
 // SettleExact settles the payment on the configured network.
@@ -240,14 +239,6 @@ func SettleExact(c SettleExactConfig, p SettleExactParams) (types.SettleResponse
 
 	// Add 20% buffer to the gas estimate for safety
 	gasLimit = gasLimit * 120 / 100
-
-	// Ensure gas limit does not exceed the allowed gas limit
-	if p.ExtraGasLimit > 0 && gasLimit > p.ExtraGasLimit {
-		return types.SettleResponse{
-			Success:     false,
-			ErrorReason: types.ErrorReasonInsufficientGasLimit,
-		}, nil
-	}
 
 	// Create the transaction using EIP-1559
 	transaction := ethtypes.NewTx(&ethtypes.DynamicFeeTx{
