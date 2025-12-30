@@ -80,6 +80,64 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				ExtraGasLimit:            paymentRequirements.Extra.GasLimit,
 			}
 
+			// Handle requests for the ethereum network
+			if paymentRequirements.Network == v1.NetworkEthereum {
+
+				// Set the settle exact configuration
+				cfg := core.SettleExactConfig{
+					ChainID:    1,
+					RPCURL:     os.Getenv("RPC_URL_ETHEREUM"),
+					PrivateKey: os.Getenv("PRIVATE_KEY"),
+				}
+
+				// Settle the payment by sending a transaction on the ethereum network
+				response, err := core.SettleExact(cfg, exactParams)
+				if err != nil {
+					// Write http error response and then exit handler
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				// Write http ok response and then exit handler
+				writeSettleResponse(w, types.SettleResponse{
+					Scheme:      string(v1.SchemeExact),
+					Network:     string(v1.NetworkEthereum),
+					Success:     response.Success,
+					Transaction: response.Transaction,
+					ErrorReason: response.ErrorReason,
+				})
+				return
+			}
+
+			// Handle requests for the base network
+			if paymentRequirements.Network == v1.NetworkBase {
+
+				// Set the settle exact configuration
+				cfg := core.SettleExactConfig{
+					ChainID:    8453,
+					RPCURL:     os.Getenv("RPC_URL_BASE"),
+					PrivateKey: os.Getenv("PRIVATE_KEY"),
+				}
+
+				// Settle the payment by sending a transaction on the base network
+				response, err := core.SettleExact(cfg, exactParams)
+				if err != nil {
+					// Write http error response and then exit handler
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				// Write http ok response and then exit handler
+				writeSettleResponse(w, types.SettleResponse{
+					Scheme:      string(v1.SchemeExact),
+					Network:     string(v1.NetworkBase),
+					Success:     response.Success,
+					Transaction: response.Transaction,
+					ErrorReason: response.ErrorReason,
+				})
+				return
+			}
+
 			// Handle requests for the sepolia network
 			if paymentRequirements.Network == v1.NetworkSepolia {
 
@@ -188,6 +246,64 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				Asset:                    paymentRequirements.Asset,
 				MaxTimeoutSeconds:        paymentRequirements.MaxTimeoutSeconds,
 				ExtraGasLimit:            paymentRequirements.Extra.GasLimit,
+			}
+
+			// Handle requests for the ethereum network
+			if paymentRequirements.Network == v2.NetworkEthereum {
+
+				// Set the settle exact configuration
+				cfg := core.SettleExactConfig{
+					ChainID:    1,
+					RPCURL:     os.Getenv("RPC_URL_ETHEREUM"),
+					PrivateKey: os.Getenv("PRIVATE_KEY"),
+				}
+
+				// Settle the payment by sending a transaction on the ethereum network
+				response, err := core.SettleExact(cfg, exactParams)
+				if err != nil {
+					// Write http error response and then exit handler
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				// Write http ok response and then exit handler
+				writeSettleResponse(w, types.SettleResponse{
+					Scheme:      string(v2.SchemeExact),
+					Network:     string(v2.NetworkEthereum),
+					Success:     response.Success,
+					Transaction: response.Transaction,
+					ErrorReason: response.ErrorReason,
+				})
+				return
+			}
+
+			// Handle requests for the base network
+			if paymentRequirements.Network == v2.NetworkBase {
+
+				// Set the settle exact configuration
+				cfg := core.SettleExactConfig{
+					ChainID:    8453,
+					RPCURL:     os.Getenv("RPC_URL_BASE"),
+					PrivateKey: os.Getenv("PRIVATE_KEY"),
+				}
+
+				// Settle the payment by sending a transaction on the base network
+				response, err := core.SettleExact(cfg, exactParams)
+				if err != nil {
+					// Write http error response and then exit handler
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				// Write http ok response and then exit handler
+				writeSettleResponse(w, types.SettleResponse{
+					Scheme:      string(v2.SchemeExact),
+					Network:     string(v2.NetworkBase),
+					Success:     response.Success,
+					Transaction: response.Transaction,
+					ErrorReason: response.ErrorReason,
+				})
+				return
 			}
 
 			// Handle requests for the sepolia network
