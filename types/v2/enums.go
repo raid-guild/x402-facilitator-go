@@ -11,11 +11,8 @@ const (
 type Network string
 
 const (
-	// main networks
-	NetworkEthereum Network = "eip155:1"
-	NetworkBase     Network = "eip155:8453"
-
-	// test networks
+	NetworkEthereum    Network = "eip155:1"
+	NetworkBase        Network = "eip155:8453"
 	NetworkSepolia     Network = "eip155:11155111"
 	NetworkBaseSepolia Network = "eip155:84532"
 )

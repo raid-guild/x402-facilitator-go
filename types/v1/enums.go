@@ -11,11 +11,8 @@ const (
 type Network string
 
 const (
-	// main networks
-	NetworkEthereum Network = "ethereum"
-	NetworkBase     Network = "base"
-
-	// test networks
+	NetworkEthereum    Network = "ethereum"
+	NetworkBase        Network = "base"
 	NetworkSepolia     Network = "sepolia"
 	NetworkBaseSepolia Network = "base-sepolia"
 )
