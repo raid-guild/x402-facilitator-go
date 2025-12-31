@@ -598,7 +598,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "invalid-address",
 									"to": "` + validAddress2 + `",
@@ -606,7 +605,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -631,7 +631,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "invalid-address",
 									"to": "` + validAddress2 + `",
@@ -639,7 +638,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -672,7 +672,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "invalid-address",
@@ -680,7 +679,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -705,7 +705,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "invalid-address",
@@ -713,7 +712,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -746,7 +746,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -754,7 +753,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -779,7 +779,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -787,7 +786,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -820,7 +820,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -828,7 +827,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -853,7 +853,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -861,7 +860,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -894,7 +894,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress1 + `",
@@ -902,7 +901,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -927,7 +927,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress1 + `",
@@ -935,7 +934,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -968,7 +968,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -976,7 +975,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1001,7 +1001,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1009,7 +1008,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1042,7 +1042,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1050,7 +1049,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1075,7 +1075,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1083,7 +1082,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1116,14 +1116,14 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1148,14 +1148,14 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1188,7 +1188,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1196,7 +1195,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1221,7 +1221,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1229,7 +1228,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1262,7 +1262,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1270,7 +1269,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1295,7 +1295,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1303,7 +1302,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1336,7 +1336,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1344,7 +1343,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1369,7 +1369,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1377,7 +1376,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1410,7 +1410,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1418,7 +1417,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validAfter + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1443,7 +1443,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1451,7 +1450,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validAfter + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1484,7 +1484,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1492,7 +1491,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validBefore + `",
 									"validBefore": "` + validAfter + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1517,7 +1517,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1525,7 +1524,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validBefore + `",
 									"validBefore": "` + validAfter + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1558,7 +1558,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1566,7 +1565,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + futureAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1591,7 +1591,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1599,7 +1598,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + futureAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1632,7 +1632,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1640,7 +1639,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + expiredBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1665,7 +1665,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1673,7 +1672,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + expiredBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1706,7 +1706,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + invalidSignatureHex + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1714,7 +1713,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + invalidSignatureHex + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1739,7 +1739,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + invalidSignatureHex + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1747,7 +1746,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + invalidSignatureHex + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1780,7 +1780,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + invalidSignatureLength + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1788,7 +1787,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + invalidSignatureLength + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1813,7 +1813,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + invalidSignatureLength + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1821,7 +1820,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + invalidSignatureLength + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1854,7 +1854,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1862,7 +1861,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + invalidNonceHex + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1887,7 +1887,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1895,7 +1894,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + invalidNonceHex + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1928,7 +1928,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1936,7 +1935,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + invalidNonceLength + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -1961,7 +1961,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -1969,7 +1968,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + invalidNonceLength + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2002,7 +2002,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2010,7 +2009,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2034,7 +2034,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2042,7 +2041,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2074,7 +2074,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2082,7 +2081,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2107,7 +2107,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2115,7 +2114,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2148,7 +2148,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2156,7 +2155,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2180,7 +2180,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2188,7 +2187,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2220,7 +2220,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2228,7 +2227,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2252,7 +2252,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2260,7 +2259,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2292,7 +2292,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2300,7 +2299,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2325,7 +2325,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + validSignature + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2333,7 +2332,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + validSignature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2357,7 +2357,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("invalid_authorization_pubkey_mismatch", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "rpc-url")
-				sig, _, err := generateEIP712Signature(
+				signature, _, err := generateEIP712Signature(
 					validAddress2,
 					validAddress3,
 					1000,
@@ -2380,7 +2380,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + sig + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2388,7 +2387,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + signature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2413,7 +2413,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + sig + `",
 								"authorization": {
 									"from": "` + validAddress1 + `",
 									"to": "` + validAddress2 + `",
@@ -2421,7 +2420,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + signature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2445,7 +2445,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("valid signature", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "rpc-url")
-				sig, signerAddress, err := generateEIP712Signature(
+				signature, signerAddress, err := generateEIP712Signature(
 					validAddress2,
 					validAddress3,
 					1000,
@@ -2468,7 +2468,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + sig + `",
 								"authorization": {
 									"from": "` + signerAddress.Hex() + `",
 									"to": "` + validAddress2 + `",
@@ -2476,7 +2475,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + signature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2501,7 +2501,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + sig + `",
 								"authorization": {
 									"from": "` + signerAddress.Hex() + `",
 									"to": "` + validAddress2 + `",
@@ -2509,7 +2508,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + signature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2533,7 +2533,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("valid signature V value 27", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "rpc-url")
-				sig, signerAddress, err := generateEIP712SignatureWithLegacyV(
+				signature, signerAddress, err := generateEIP712SignatureWithLegacyV(
 					validAddress2,
 					validAddress3,
 					1000,
@@ -2557,7 +2557,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + sig + `",
 								"authorization": {
 									"from": "` + signerAddress.Hex() + `",
 									"to": "` + validAddress2 + `",
@@ -2565,7 +2564,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + signature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2590,7 +2590,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + sig + `",
 								"authorization": {
 									"from": "` + signerAddress.Hex() + `",
 									"to": "` + validAddress2 + `",
@@ -2598,7 +2597,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + signature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2622,7 +2622,7 @@ func TestVerify_VerifyExact(t *testing.T) {
 
 			t.Run("valid signature V value 28", func(t *testing.T) {
 				t.Setenv(v.rpcEnvVar, "rpc-url")
-				sig, signerAddress, err := generateEIP712SignatureWithLegacyV(
+				signature, signerAddress, err := generateEIP712SignatureWithLegacyV(
 					validAddress2,
 					validAddress3,
 					1000,
@@ -2646,7 +2646,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 							"scheme": "exact",
 							"network": "` + v.network + `",
 							"payload": {
-								"signature": "` + sig + `",
 								"authorization": {
 									"from": "` + signerAddress.Hex() + `",
 									"to": "` + validAddress2 + `",
@@ -2654,7 +2653,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + signature + `"
 							}
 						},
 						"paymentRequirements": {
@@ -2679,7 +2679,6 @@ func TestVerify_VerifyExact(t *testing.T) {
 								"network": "` + v.network + `"
 							},
 							"payload": {
-								"signature": "` + sig + `",
 								"authorization": {
 									"from": "` + signerAddress.Hex() + `",
 									"to": "` + validAddress2 + `",
@@ -2687,7 +2686,8 @@ func TestVerify_VerifyExact(t *testing.T) {
 									"validAfter": "` + validAfter + `",
 									"validBefore": "` + validBefore + `",
 									"nonce": "` + validNonce + `"
-								}
+								},
+								"signature": "` + signature + `"
 							}
 						},
 						"paymentRequirements": {

@@ -82,28 +82,28 @@ Verifies a payment authorization without executing it on-chain.
 {
   "x402Version": 2,
   "paymentPayload": {
+    "accepted": {
+      "scheme": "exact",
+      "network": "eip155:11155111"
+    },
     "payload": {
       "authorization": {
-        "from":" 0x0000000000000000000000000000000000000001",
-        "to": "0x0000000000000000000000000000000000000002",
+        "from": "0x354b5cBeEaE7751f2055BfC2d9d78556aD2E1c61",
+        "to": "0x9a4e1A0BC77639Fdce69df88E1DF1D589e454811",
         "value": "1000",
-        "validAfter": "1764619200",
-        "validBefore": "1764620100",
-        "nonce": "0x0000000000000000000000000000000000000000000000000000000000000000"
+        "validAfter": "1767140522",
+        "validBefore": "1767141422",
+        "nonce": "0x2454c8d9065ebdffd65226693448da75f3c1227fec5ed9c3d0043892cd593f84"
       },
-      "signature": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-    },
-    "accepted": {
-      "scheme":"exact",
-      "network":"eip155:11155111"
+      "signature": "0xdf3cac4be24a317e07b4374b5f1198fc9760c9849fe80f1383755c2d541c4e042b7b9f79aee3b67c236130127299609998a4b31be154963091dd1920a374b0201b"
     }
   },
   "paymentRequirements": {
     "scheme": "exact",
     "network": "eip155:11155111",
+    "asset": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+    "payTo": "0x9a4e1A0BC77639Fdce69df88E1DF1D589e454811",
     "amount": "1000",
-    "asset": "0x0000000000000000000000000000000000000003",
-    "payTo": "0x0000000000000000000000000000000000000002",
     "maxTimeoutSeconds": 300,
     "extra": {
       "name": "USDC",
@@ -119,7 +119,7 @@ Verifies a payment authorization without executing it on-chain.
   "scheme": "exact",
   "network": "eip155:11155111",
   "isValid": true,
-  "payer": "0x0000000000000000000000000000000000000001"
+  "payer": "0x354b5cBeEaE7751f2055BfC2d9d78556aD2E1c61"
 }
 ```
 
@@ -149,28 +149,28 @@ Settles a payment authorization by executing it on-chain.
 {
   "x402Version": 2,
   "paymentPayload": {
+    "accepted": {
+      "scheme": "exact",
+      "network": "eip155:11155111"
+    },
     "payload": {
       "authorization": {
-        "from":" 0x0000000000000000000000000000000000000001",
-        "to": "0x0000000000000000000000000000000000000002",
+        "from": "0x354b5cBeEaE7751f2055BfC2d9d78556aD2E1c61",
+        "to": "0x9a4e1A0BC77639Fdce69df88E1DF1D589e454811",
         "value": "1000",
-        "validAfter": "1764619200",
-        "validBefore": "1764620100",
-        "nonce": "0x0000000000000000000000000000000000000000000000000000000000000000"
+        "validAfter": "1767140522",
+        "validBefore": "1767141422",
+        "nonce": "0x2454c8d9065ebdffd65226693448da75f3c1227fec5ed9c3d0043892cd593f84"
       },
-      "signature": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-    },
-    "accepted": {
-      "scheme":"exact",
-      "network":"eip155:11155111"
+      "signature": "0xdf3cac4be24a317e07b4374b5f1198fc9760c9849fe80f1383755c2d541c4e042b7b9f79aee3b67c236130127299609998a4b31be154963091dd1920a374b0201b"
     }
   },
   "paymentRequirements": {
     "scheme": "exact",
     "network": "eip155:11155111",
+    "asset": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+    "payTo": "0x9a4e1A0BC77639Fdce69df88E1DF1D589e454811",
     "amount": "1000",
-    "asset": "0x0000000000000000000000000000000000000003",
-    "payTo": "0x0000000000000000000000000000000000000002",
     "maxTimeoutSeconds": 300,
     "extra": {
       "name": "USDC",
@@ -186,7 +186,7 @@ Settles a payment authorization by executing it on-chain.
   "scheme": "exact",
   "network": "eip155:11155111",
   "success": true,
-  "transaction": "0x0000000000000000000000000000000000000000000000000000000000000000"
+  "transaction": "0xb6b3f3770f2a24ab064a0801922616886acd9058ace6a29be00bdf1d7b8289b6"
 }
 ```
 
@@ -214,18 +214,18 @@ Returns a list of supported x402 versions, schemes, and networks based on the co
 **Response** (`200 OK`):
 ```json
 {
-    "kinds": [
-        {
-            "x402Version": 1,
-            "scheme": "exact",
-            "network": "sepolia"
-        },
-        {
-            "x402Version": 2,
-            "scheme": "exact",
-            "network": "eip155:11155111"
-        }
-    ]
+  "kinds": [
+    {
+      "x402Version": 1,
+      "scheme": "exact",
+      "network": "sepolia"
+    },
+    {
+      "x402Version": 2,
+      "scheme": "exact",
+      "network": "eip155:11155111"
+    }
+  ]
 }
 ```
 
@@ -233,25 +233,17 @@ Returns a list of supported x402 versions, schemes, and networks based on the co
 
 After deploying to Vercel, configure the following environment variables in your Vercel project settings. The facilitator will not handle payments until at least `PRIVATE_KEY` and one RPC URL are configured.
 
-### Required Environment Variables
-
-#### Blockchain Configuration
+### Blockchain Configuration
 
 - **`PRIVATE_KEY`** (required): The private key of the facilitator account (without `0x` prefix). This account will be used to submit settlement transactions and must have sufficient funds for gas fees.
-
 - **`RPC_URL_ETHEREUM`** (optional): RPC URL for Ethereum mainnet.
-
 - **`RPC_URL_BASE`** (optional): RPC URL for Base mainnet.
-
 - **`RPC_URL_SEPOLIA`** (optional): RPC URL for Ethereum Sepolia testnet.
-
 - **`RPC_URL_BASE_SEPOLIA`** (optional): RPC URL for Base Sepolia testnet.
 
-> **Note**: At least one RPC URL must be configured for the facilitator to handle payments. The `/supported` endpoint will only return networks for which RPC URLs are configured.
+> **Important**: At least one of the RPC URLs must be configured for the facilitator to handle payments. The `/supported` endpoint will only return networks for which RPC URLs are configured.
 
-### Optional Environment Variables
-
-#### API Authentication
+### API Authentication (Optional)
 
 You can secure your facilitator endpoints using one of two authentication methods:
 
@@ -263,7 +255,7 @@ You can secure your facilitator endpoints using one of two authentication method
 
 - **`DATABASE_URL`**: A PostgreSQL connection string (using the standard `postgres://` format). When set, API keys are validated against a `users` table with an `api_key` column. All requests to `/verify` and `/settle` must include a valid key in the `X-API-Key` header.
 
-> **Important**: You can only set **either** `STATIC_API_KEY` **or** `DATABASE_URL`, not both. If both are set, an error is returned. If neither is set, the endpoints will be publicly accessible.
+> **Important**: You can only set **either** `STATIC_API_KEY` **or** `DATABASE_URL`, not both. If both are set, an error is returned. If neither is set, all endpoints will be publicly accessible.
 
 ### Setting Environment Variables in Vercel
 
@@ -275,7 +267,7 @@ You can secure your facilitator endpoints using one of two authentication method
 
 ## 🔒 Security Considerations
 
-- **Private Key**: Never share your `PRIVATE_KEY`. Never commit your `PRIVATE_KEY` to version control. Use Vercel to manage your environment variables.
+- **Private Key**: Never share your `PRIVATE_KEY`. Never commit your `PRIVATE_KEY` to version control. Use Vercel to manage your `PRIVATE_KEY` environment variable.
 - **Facilitator Account**: Use a dedicated account for your facilitator. The account should never hold funds of significant value. Top off the account regularly based on your usage needs.
 - **API Keys**: Use strong, randomly generated API keys.
 - **Transport**: Use HTTPS (automatically provided by Vercel).
