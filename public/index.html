@@ -54,28 +54,28 @@
         -d '{
           "x402Version": 2,
           "paymentPayload": {
+            "accepted": {
+              "scheme": "exact",
+              "network": "eip155:11155111"
+            },
             "payload": {
               "authorization": {
-                "from":" 0x0000000000000000000000000000000000000001",
-                "to": "0x0000000000000000000000000000000000000002",
+                "from": "0x354b5cBeEaE7751f2055BfC2d9d78556aD2E1c61",
+                "to": "0x9a4e1A0BC77639Fdce69df88E1DF1D589e454811",
                 "value": "1000",
-                "validAfter": "1764619200",
-                "validBefore": "1764620100",
-                "nonce": "0x0000000000000000000000000000000000000000000000000000000000000000"
+                "validAfter": "1767140522",
+                "validBefore": "1767141422",
+                "nonce": "0x2454c8d9065ebdffd65226693448da75f3c1227fec5ed9c3d0043892cd593f84"
               },
-              "signature": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-            },
-            "accepted": {
-              "scheme":"exact",
-              "network":"eip155:11155111"
+              "signature": "0xdf3cac4be24a317e07b4374b5f1198fc9760c9849fe80f1383755c2d541c4e042b7b9f79aee3b67c236130127299609998a4b31be154963091dd1920a374b0201b"
             }
           },
           "paymentRequirements": {
             "scheme": "exact",
             "network": "eip155:11155111",
+            "asset": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+            "payTo": "0x9a4e1A0BC77639Fdce69df88E1DF1D589e454811",
             "amount": "1000",
-            "asset": "0x0000000000000000000000000000000000000003",
-            "payTo": "0x0000000000000000000000000000000000000002",
             "maxTimeoutSeconds": 300,
             "extra": {
               "name": "USDC",
@@ -87,19 +87,19 @@
     <p>An example response from the <b>/verify</b> endpoint (<b>200 OK</b> - valid):</p>
     <code>
         {
-            "scheme": "exact",
-            "network": "eip155:11155111",
-            "isValid": true,
-            "payer": "0x0000000000000000000000000000000000000001"
+          "scheme": "exact",
+          "network": "eip155:11155111",
+          "isValid": true,
+          "payer": "0x354b5cBeEaE7751f2055BfC2d9d78556aD2E1c61"
         }
     </code>
     <p>An example response from the <b>/verify</b> endpoint (<b>200 OK</b> - invalid):</p>
     <code>
         {
-            "scheme": "exact",
-            "network": "eip155:11155111",
-            "isValid": false,
-            "invalidReason": "invalid_authorization_signature"
+          "scheme": "exact",
+          "network": "eip155:11155111",
+          "isValid": false,
+          "invalidReason": "invalid_authorization_signature"
         }
     </code>
     <p>An example response from the <b>/verify</b> endpoint (<b>401 Unauthorized</b>):</p>
@@ -123,28 +123,28 @@
         -d '{
           "x402Version": 2,
           "paymentPayload": {
+            "accepted": {
+              "scheme": "exact",
+              "network": "eip155:11155111"
+            },
             "payload": {
               "authorization": {
-                "from":" 0x0000000000000000000000000000000000000001",
-                "to": "0x0000000000000000000000000000000000000002",
+                "from": "0x354b5cBeEaE7751f2055BfC2d9d78556aD2E1c61",
+                "to": "0x9a4e1A0BC77639Fdce69df88E1DF1D589e454811",
                 "value": "1000",
-                "validAfter": "1764619200",
-                "validBefore": "1764620100",
-                "nonce": "0x0000000000000000000000000000000000000000000000000000000000000000"
+                "validAfter": "1767140522",
+                "validBefore": "1767141422",
+                "nonce": "0x2454c8d9065ebdffd65226693448da75f3c1227fec5ed9c3d0043892cd593f84"
               },
-              "signature": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-            },
-            "accepted": {
-              "scheme":"exact",
-              "network":"eip155:11155111"
+              "signature": "0xdf3cac4be24a317e07b4374b5f1198fc9760c9849fe80f1383755c2d541c4e042b7b9f79aee3b67c236130127299609998a4b31be154963091dd1920a374b0201b"
             }
           },
           "paymentRequirements": {
             "scheme": "exact",
             "network": "eip155:11155111",
+            "asset": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+            "payTo": "0x9a4e1A0BC77639Fdce69df88E1DF1D589e454811",
             "amount": "1000",
-            "asset": "0x0000000000000000000000000000000000000003",
-            "payTo": "0x0000000000000000000000000000000000000002",
             "maxTimeoutSeconds": 300,
             "extra": {
               "name": "USDC",
@@ -156,19 +156,19 @@
     <p>An example response from the <b>/settle</b> endpoint (<b>200 OK</b> - success):</p>
     <code>
         {
-            "scheme": "exact",
-            "network": "eip155:11155111",
-            "success": true,
-            "transaction": "0x0000000000000000000000000000000000000000000000000000000000000000"
+          "scheme": "exact",
+          "network": "eip155:11155111",
+          "success": true,
+          "transaction": "0xb6b3f3770f2a24ab064a0801922616886acd9058ace6a29be00bdf1d7b8289b6"
         }
     </code>
     <p>An example response from the <b>/settle</b> endpoint (<b>200 OK</b> - failed):</p>
     <code>
         {
-            "scheme": "exact",
-            "network": "eip155:11155111",
-            "success": false,
-            "errorReason": "invalid_authorization_signature"
+          "scheme": "exact",
+          "network": "eip155:11155111",
+          "success": false,
+          "errorReason": "invalid_authorization_signature"
         }
     </code>
     <p>An example response from the <b>/settle</b> endpoint (<b>401 Unauthorized</b>):</p>
@@ -191,18 +191,18 @@
     <p>An example response from the <b>/supported</b> endpoint:</p>
     <code>
         {
-            "kinds": [
-                {
-                    "x402Version": 1,
-                    "scheme": "exact",
-                    "network": "sepolia"
-                },
-                {
-                    "x402Version": 2,
-                    "scheme": "exact",
-                    "network": "eip155:11155111"
-                }
-            ]
+          "kinds": [
+            {
+              "x402Version": 1,
+              "scheme": "exact",
+              "network": "sepolia"
+            },
+            {
+              "x402Version": 2,
+              "scheme": "exact",
+              "network": "eip155:11155111"
+            }
+          ]
         }
     </code>
     <h2>More Information</h2>

@@ -2,14 +2,20 @@ package v2
 
 // PaymentPayload is the payment payload.
 type PaymentPayload struct {
-	Payload  Payload  `json:"payload"`
 	Accepted Accepted `json:"accepted"`
+	Payload  Payload  `json:"payload"`
+}
+
+// Accepted is the accepted of the payment payload.
+type Accepted struct {
+	Scheme  Scheme  `json:"scheme"`
+	Network Network `json:"network"`
 }
 
 // Payload is the payload of the payment payload.
 type Payload struct {
-	Signature     string        `json:"signature"`
 	Authorization Authorization `json:"authorization"`
+	Signature     string        `json:"signature"`
 }
 
 // Authorization is the authorization of the payload.
@@ -20,12 +26,6 @@ type Authorization struct {
 	ValidAfter  string `json:"validAfter"`
 	ValidBefore string `json:"validBefore"`
 	Nonce       string `json:"nonce"`
-}
-
-// Accepted is the accepted of the payment payload.
-type Accepted struct {
-	Scheme  Scheme  `json:"scheme"`
-	Network Network `json:"network"`
 }
 
 // PaymentRequirements is the payment requirements.
@@ -41,7 +41,6 @@ type PaymentRequirements struct {
 
 // Extra is the extra of the payment requirements.
 type Extra struct {
-	Name     string `json:"name"`
-	Version  string `json:"version"`
-	GasLimit uint64 `json:"gasLimit"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
 }

@@ -9,8 +9,8 @@ type PaymentPayload struct {
 
 // Payload is the payload of the payment payload.
 type Payload struct {
-	Signature     string        `json:"signature"`
 	Authorization Authorization `json:"authorization"`
+	Signature     string        `json:"signature"`
 }
 
 // Authorization is the authorization of the payload.
@@ -36,7 +36,6 @@ type PaymentRequirements struct {
 
 // Extra is the extra of the payment requirements.
 type Extra struct {
-	Name     string `json:"name"`
-	Version  string `json:"version"`
-	GasLimit uint64 `json:"gasLimit"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
 }
