@@ -2,8 +2,8 @@ package auth
 
 import (
 	"crypto/subtle"
-	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -42,7 +42,7 @@ func Authenticate(r *http.Request) error {
 		}
 	}
 
-	// Check if the API key is required (dynamic key)
+	// Check if the API key is required (database key)
 	if databaseURL != "" {
 
 		// Check if the provided key is empty
@@ -53,36 +53,55 @@ func Authenticate(r *http.Request) error {
 			)
 		}
 
-		// Connect to the database
-		db, err := sql.Open("postgres", databaseURL)
+		// Get the database query from the environment
+		databaseQuery := os.Getenv("DATABASE_QUERY")
+
+		// Validate the custom database query if it is set
+		if databaseQuery != "" {
+			if err := utils.ValidateDatabaseQuery(databaseQuery); err != nil {
+				return utils.NewStatusError(
+					errors.New("invalid database query"),
+					http.StatusInternalServerError,
+				)
+			}
+		}
+
+		// Use the default database query if custom is not set
+		if databaseQuery == "" {
+			databaseQuery = "SELECT 1 FROM users WHERE api_key = $1"
+		}
+
+		// Set the destination for the query
+		var exists bool
+
+		// Wrap the database query in an exists query
+		existsQuery := fmt.Sprintf("SELECT EXISTS(%s)", databaseQuery)
+
+		// Get the database connection pool (reused with warm instances)
+		db, err := utils.GetDBPool(databaseURL)
 		if err != nil {
 			return utils.NewStatusError(
 				errors.New("failed to connect to database"),
 				http.StatusInternalServerError,
 			)
 		}
-		defer db.Close()
 
-		// Check the API key exists in the database
-		var apiKey string
-		err = db.QueryRow(
-			"SELECT api_key FROM users WHERE api_key = $1",
-			providedKey,
-		).Scan(&apiKey)
+		// Execute the query and scan the result
+		err = db.QueryRow(existsQuery, providedKey).Scan(&exists)
 
-		// Check if the query returned a no rows error
-		if err == sql.ErrNoRows {
-			return utils.NewStatusError(
-				errors.New("unauthorized"),
-				http.StatusUnauthorized,
-			)
-		}
-
-		// Check if the query returned a different error
+		// Check if the query returned an error
 		if err != nil {
 			return utils.NewStatusError(
 				errors.New("failed to get key from database"),
 				http.StatusInternalServerError,
+			)
+		}
+
+		// Check if the API key does not exist
+		if !exists {
+			return utils.NewStatusError(
+				errors.New("unauthorized"),
+				http.StatusUnauthorized,
 			)
 		}
 	}

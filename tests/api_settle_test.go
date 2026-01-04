@@ -1,7 +1,8 @@
 package tests
 
+//nolint:paralleltest // Tests use t.Setenv() which is not safe for parallel execution
+
 import (
-	"database/sql"
 	"encoding/hex"
 	"net/http"
 	"strconv"
@@ -32,39 +33,36 @@ func TestSettle_Authentication(t *testing.T) {
 		}
 	}`
 
-	t.Run("no api key required and no api key provided", func(t *testing.T) {
+	t.Run("public with no api key", func(t *testing.T) {
 		settle(t, "", body, http.StatusOK, nil)
 	})
 
-	t.Run("no api key required and irrelevant api key provided", func(t *testing.T) {
-		settle(t, "test-api-key", body, http.StatusOK, nil)
+	t.Run("public with irrelevant api key", func(t *testing.T) {
+		settle(t, "api-key", body, http.StatusOK, nil)
 	})
 
-	t.Run("static api key required and valid api key provided", func(t *testing.T) {
+	t.Run("static with valid api key", func(t *testing.T) {
 		t.Setenv("STATIC_API_KEY", "valid-api-key")
 		settle(t, "valid-api-key", body, http.StatusOK, nil)
 	})
 
-	t.Run("static api key required and invalid api key provided", func(t *testing.T) {
+	t.Run("static with invalid api key", func(t *testing.T) {
 		t.Setenv("STATIC_API_KEY", "valid-api-key")
 		settle(t, "invalid-api-key", body, http.StatusUnauthorized, nil)
 	})
 
-	t.Run("static api key required and no api key provided", func(t *testing.T) {
+	t.Run("static with no api key", func(t *testing.T) {
 		t.Setenv("STATIC_API_KEY", "valid-api-key")
 		settle(t, "", body, http.StatusUnauthorized, nil)
 	})
 
-	t.Run("database api key required and valid api key provided", func(t *testing.T) {
-		mockDB, dsn, cleanup := setupMockDatabase(t, "settle-0")
-		defer cleanup()
+	t.Run("database with valid api key", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "database-url")
 
-		t.Setenv("DATABASE_URL", dsn)
-
-		rows := sqlmock.NewRows([]string{"api_key"}).AddRow("valid-api-key")
-		mockDB.ExpectQuery("SELECT api_key FROM users WHERE api_key = \\$1").
+		mockDB := setupMockDatabase(t)
+		mockDB.ExpectQuery(`SELECT EXISTS\(SELECT 1 FROM users WHERE api_key = \$1\)`).
 			WithArgs("valid-api-key").
-			WillReturnRows(rows)
+			WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 
 		settle(t, "valid-api-key", body, http.StatusOK, nil)
 
@@ -73,15 +71,13 @@ func TestSettle_Authentication(t *testing.T) {
 		}
 	})
 
-	t.Run("database api key required and invalid api key provided", func(t *testing.T) {
-		mockDB, dsn, cleanup := setupMockDatabase(t, "settle-1")
-		defer cleanup()
+	t.Run("database with invalid api key", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "database-url")
 
-		t.Setenv("DATABASE_URL", dsn)
-
-		mockDB.ExpectQuery("SELECT api_key FROM users WHERE api_key = \\$1").
+		mockDB := setupMockDatabase(t)
+		mockDB.ExpectQuery(`SELECT EXISTS\(SELECT 1 FROM users WHERE api_key = \$1\)`).
 			WithArgs("invalid-api-key").
-			WillReturnError(sql.ErrNoRows)
+			WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
 
 		settle(t, "invalid-api-key", body, http.StatusUnauthorized, nil)
 
@@ -90,9 +86,83 @@ func TestSettle_Authentication(t *testing.T) {
 		}
 	})
 
-	t.Run("database api key required and no api key provided", func(t *testing.T) {
-		t.Setenv("DATABASE_URL", "test-database-url")
+	t.Run("database with no api key", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "database-url")
 		settle(t, "", body, http.StatusUnauthorized, nil)
+	})
+
+	t.Run("database with custom query and valid api key", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "database-url")
+		t.Setenv("DATABASE_QUERY", "SELECT 1 FROM organizations WHERE api_key = $1")
+
+		mockDB := setupMockDatabase(t)
+		mockDB.ExpectQuery(`SELECT EXISTS\(SELECT 1 FROM organizations WHERE api_key = \$1\)`).
+			WithArgs("valid-api-key").
+			WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+
+		settle(t, "valid-api-key", body, http.StatusOK, nil)
+
+		if err := mockDB.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
+
+	t.Run("database with custom query and invalid api key", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "database-url")
+		t.Setenv("DATABASE_QUERY", "SELECT 1 FROM organizations WHERE api_key = $1")
+
+		mockDB := setupMockDatabase(t)
+		mockDB.ExpectQuery(`SELECT EXISTS\(SELECT 1 FROM organizations WHERE api_key = \$1\)`).
+			WithArgs("invalid-api-key").
+			WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
+
+		settle(t, "invalid-api-key", body, http.StatusUnauthorized, nil)
+
+		if err := mockDB.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
+
+	t.Run("database with custom query and no api key", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "database-url")
+		t.Setenv("DATABASE_QUERY", "SELECT 1 FROM organizations WHERE api_key = $1")
+		settle(t, "", body, http.StatusUnauthorized, nil)
+	})
+
+	t.Run("database with custom query missing SELECT", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "database-url")
+		t.Setenv("DATABASE_QUERY", "FROM organizations WHERE api_key = $1")
+		settle(t, "api-key", body, http.StatusInternalServerError, nil)
+	})
+
+	t.Run("database with custom query missing FROM", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "database-url")
+		t.Setenv("DATABASE_QUERY", "SELECT 1 WHERE api_key = $1")
+		settle(t, "api-key", body, http.StatusInternalServerError, nil)
+	})
+
+	t.Run("database with custom query missing WHERE", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "database-url")
+		t.Setenv("DATABASE_QUERY", "SELECT 1 FROM users")
+		settle(t, "api-key", body, http.StatusInternalServerError, nil)
+	})
+
+	t.Run("database with custom query missing equality comparison", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "database-url")
+		t.Setenv("DATABASE_QUERY", "SELECT 1 FROM users WHERE id > $1")
+		settle(t, "api-key", body, http.StatusInternalServerError, nil)
+	})
+
+	t.Run("database with custom query using is not null", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "database-url")
+		t.Setenv("DATABASE_QUERY", "SELECT 1 FROM users WHERE $1 IS NOT NULL")
+		settle(t, "api-key", body, http.StatusInternalServerError, nil)
+	})
+
+	t.Run("database with custom query using self comparison", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "database-url")
+		t.Setenv("DATABASE_QUERY", "SELECT 1 FROM users WHERE $1 = $1")
+		settle(t, "api-key", body, http.StatusInternalServerError, nil)
 	})
 
 }

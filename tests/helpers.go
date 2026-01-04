@@ -7,9 +7,9 @@ import (
 	"io"
 	"math/big"
 	"net/http/httptest"
+	"os"
 	"reflect"
 	"strings"
-	"sync"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -20,29 +20,31 @@ import (
 	handler "github.com/raid-guild/x402-facilitator-go/api"
 	"github.com/raid-guild/x402-facilitator-go/core"
 	"github.com/raid-guild/x402-facilitator-go/types"
+	"github.com/raid-guild/x402-facilitator-go/utils"
 )
 
-var registerMockDriverOnce sync.Once
-
-func setupMockDatabase(t *testing.T, dsnID string) (sqlmock.Sqlmock, string, func()) {
+func setupMockDatabase(t *testing.T) sqlmock.Sqlmock {
 	t.Helper()
 
-	dsn := "sqlmock_db_" + dsnID
-	db, mock, err := sqlmock.NewWithDSN(dsn)
+	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("failed to create mock database: %v", err)
 	}
 
-	registerMockDriverOnce.Do(func() {
-		driver := db.Driver()
-		sql.Register("postgres", driver)
+	originalGetDBPool := utils.GetDBPool
+	t.Cleanup(func() {
+		utils.GetDBPool = originalGetDBPool
+		if databaseURL := os.Getenv("DATABASE_URL"); databaseURL != "" {
+			utils.ResetDBPoolCache(databaseURL)
+		}
+		db.Close()
 	})
 
-	cleanup := func() {
-		db.Close()
+	utils.GetDBPool = func(databaseURL string) (*sql.DB, error) {
+		return db, nil
 	}
 
-	return mock, dsn, cleanup
+	return mock
 }
 
 func setupMockEthClient(t *testing.T) {
