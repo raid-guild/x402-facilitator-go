@@ -57,6 +57,7 @@ var (
 		"EXECUTE",
 		"UNION",
 		"OR",
+		"NOT",
 	}
 
 	// Dangerous keyword patterns
@@ -72,13 +73,14 @@ var (
 		regexp.MustCompile(`\bEXECUTE\b`),
 		regexp.MustCompile(`\bUNION\b`),
 		regexp.MustCompile(`\bOR\b`),
+		regexp.MustCompile(`\bNOT\b`),
 	}
 
 	// Query validation patterns
 	fromPattern           = regexp.MustCompile(`(?i)\s+FROM\s+`)
 	wherePattern          = regexp.MustCompile(`(?i)\s+WHERE\s+`)
 	invalidParamPattern   = regexp.MustCompile(`\$([2-9]|\d{2,})`)
-	equalityPattern       = regexp.MustCompile(`\$1\s*=\s*\S|\S\s*=\s*\$1`)
+	equalityPattern       = regexp.MustCompile(`\$1\s*=\s*[^=\s]|[^!<>=]+\s*=\s*\$1`)
 	selfComparisonPattern = regexp.MustCompile(`\$1\s*=\s*\$1(?:\s|$|[^0-9$])`)
 )
 

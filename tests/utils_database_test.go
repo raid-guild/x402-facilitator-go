@@ -242,6 +242,18 @@ func TestValidateDatabaseQuery(t *testing.T) {
 			wantErr: true,
 			errMsg:  "query contains a dangerous keyword: OR",
 		},
+		{
+			name:    "query with NOT",
+			query:   "SELECT 1 FROM users WHERE NOT api_key = $1",
+			wantErr: true,
+			errMsg:  "query contains a dangerous keyword: NOT",
+		},
+		{
+			name:    "query with IS NOT NULL",
+			query:   "SELECT 1 FROM users WHERE $1 IS NOT NULL",
+			wantErr: true,
+			errMsg:  "query contains a dangerous keyword: NOT",
+		},
 		// Starts with SELECT
 		{
 			name:    "query not starting with SELECT",
@@ -332,8 +344,32 @@ func TestValidateDatabaseQuery(t *testing.T) {
 			errMsg:  "query must contain an equality comparison with $1",
 		},
 		{
-			name:    "query with IS NOT NULL",
-			query:   "SELECT 1 FROM users WHERE $1 IS NOT NULL",
+			name:    "query with not equal operator",
+			query:   "SELECT 1 FROM users WHERE id != $1",
+			wantErr: true,
+			errMsg:  "query must contain an equality comparison with $1",
+		},
+		{
+			name:    "query with not equal operator (SQL standard)",
+			query:   "SELECT 1 FROM users WHERE id <> $1",
+			wantErr: true,
+			errMsg:  "query must contain an equality comparison with $1",
+		},
+		{
+			name:    "query with less than or equal operator",
+			query:   "SELECT 1 FROM users WHERE id <= $1",
+			wantErr: true,
+			errMsg:  "query must contain an equality comparison with $1",
+		},
+		{
+			name:    "query with greater than or equal operator",
+			query:   "SELECT 1 FROM users WHERE id >= $1",
+			wantErr: true,
+			errMsg:  "query must contain an equality comparison with $1",
+		},
+		{
+			name:    "query with double equals operator",
+			query:   "SELECT 1 FROM users WHERE id == $1",
 			wantErr: true,
 			errMsg:  "query must contain an equality comparison with $1",
 		},
