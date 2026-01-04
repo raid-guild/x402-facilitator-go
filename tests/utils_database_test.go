@@ -356,6 +356,12 @@ func TestValidateDatabaseQuery(t *testing.T) {
 			wantErr: true,
 			errMsg:  "query must not contain $1 = $1",
 		},
+		{
+			name:    "query with self comparison without spaces",
+			query:   "SELECT 1 FROM users WHERE $1=$1",
+			wantErr: true,
+			errMsg:  "query must not contain $1 = $1",
+		},
 	}
 
 	for _, tt := range tests {

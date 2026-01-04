@@ -77,9 +77,9 @@ var (
 	// Query validation patterns
 	fromPattern           = regexp.MustCompile(`(?i)\s+FROM\s+`)
 	wherePattern          = regexp.MustCompile(`(?i)\s+WHERE\s+`)
-	invalidParamPattern   = regexp.MustCompile(`\$([2-9]|\d{2,}|1\d+)`)
+	invalidParamPattern   = regexp.MustCompile(`\$([2-9]|\d{2,})`)
 	equalityPattern       = regexp.MustCompile(`\$1\s*=\s*\S|\S\s*=\s*\$1`)
-	selfComparisonPattern = regexp.MustCompile(`\$1(?:\s|$)\s*=\s*\$1(?:\s|$)`)
+	selfComparisonPattern = regexp.MustCompile(`\$1\s*=\s*\$1(?:\s|$|[^0-9$])`)
 )
 
 // ValidateDatabaseQuery validates that a database query is safe to use as a subquery.
