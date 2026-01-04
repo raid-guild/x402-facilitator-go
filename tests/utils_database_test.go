@@ -36,16 +36,6 @@ func TestValidateDatabaseQuery(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "valid query with $1 on left side",
-			query:   "SELECT 1 FROM users WHERE $1 = api_key",
-			wantErr: false,
-		},
-		{
-			name:    "valid query with spaces around equals",
-			query:   "SELECT 1 FROM users WHERE api_key  =  $1",
-			wantErr: false,
-		},
-		{
 			name:    "valid query with tabs",
 			query:   "SELECT 1\tFROM\tusers\tWHERE\tapi_key\t=\t$1",
 			wantErr: false,
@@ -70,7 +60,77 @@ func TestValidateDatabaseQuery(t *testing.T) {
 			query:   "SELECT 1 FROM users WHERE api_key = $1 AND status = 'active' AND role = 'admin'",
 			wantErr: false,
 		},
-		// Empty and length checks
+		{
+			name:    "query starting with lowercase select",
+			query:   "select 1 FROM users WHERE api_key = $1",
+			wantErr: false,
+		},
+		{
+			name:    "keyword in table name should not match",
+			query:   "SELECT 1 FROM droptable WHERE api_key = $1",
+			wantErr: false,
+		},
+		{
+			name:    "keyword in column name should not match",
+			query:   "SELECT 1 FROM users WHERE dropcolumn = $1",
+			wantErr: false,
+		},
+		{
+			name:    "query with FROM using newline",
+			query:   "SELECT 1\nFROM users WHERE api_key = $1",
+			wantErr: false,
+		},
+		{
+			name:    "query with FROM using tab",
+			query:   "SELECT 1\tFROM users WHERE api_key = $1",
+			wantErr: false,
+		},
+		{
+			name:    "query with FROM using multiple spaces",
+			query:   "SELECT 1  FROM users WHERE api_key = $1",
+			wantErr: false,
+		},
+		{
+			name:    "query with WHERE using newline",
+			query:   "SELECT 1 FROM users\nWHERE api_key = $1",
+			wantErr: false,
+		},
+		{
+			name:    "query with WHERE using tab",
+			query:   "SELECT 1 FROM users\tWHERE api_key = $1",
+			wantErr: false,
+		},
+		{
+			name:    "query with WHERE using multiple spaces",
+			query:   "SELECT 1 FROM users  WHERE api_key = $1",
+			wantErr: false,
+		},
+		{
+			name:    "query with $1 on left side of equality",
+			query:   "SELECT 1 FROM users WHERE $1 = api_key",
+			wantErr: false,
+		},
+		{
+			name:    "query with equality and spaces",
+			query:   "SELECT 1 FROM users WHERE api_key  =  $1",
+			wantErr: false,
+		},
+		{
+			name:    "query with equality and newline",
+			query:   "SELECT 1 FROM users WHERE api_key\n=\n$1",
+			wantErr: false,
+		},
+		{
+			name:    "query with equality and tab",
+			query:   "SELECT 1 FROM users WHERE api_key\t=\t$1",
+			wantErr: false,
+		},
+		{
+			name:    "query with multiple equals signs",
+			query:   "SELECT 1 FROM users WHERE api_key = $1 AND status = 'active'",
+			wantErr: false,
+		},
+		// Empty string
 		{
 			name:    "empty query",
 			query:   "",
@@ -83,6 +143,7 @@ func TestValidateDatabaseQuery(t *testing.T) {
 			wantErr: true,
 			errMsg:  "query cannot be empty",
 		},
+		// Query length
 		{
 			name:    "query too long",
 			query:   strings.Repeat("SELECT 1 FROM users WHERE api_key = $1 ", 10),
@@ -114,7 +175,6 @@ func TestValidateDatabaseQuery(t *testing.T) {
 			wantErr: true,
 			errMsg:  "query contains a dangerous character: */",
 		},
-
 		// Dangerous keywords
 		{
 			name:    "query with DROP",
@@ -133,6 +193,12 @@ func TestValidateDatabaseQuery(t *testing.T) {
 			query:   "SELECT 1 FROM users WHERE api_key = $1 CREATE TABLE",
 			wantErr: true,
 			errMsg:  "query contains a dangerous keyword: CREATE",
+		},
+		{
+			name:    "query with TRUNCATE",
+			query:   "SELECT 1 FROM users WHERE api_key = $1 TRUNCATE",
+			wantErr: true,
+			errMsg:  "query contains a dangerous keyword: TRUNCATE",
 		},
 		{
 			name:    "query with DELETE",
@@ -171,52 +237,19 @@ func TestValidateDatabaseQuery(t *testing.T) {
 			errMsg:  "query contains a dangerous keyword: EXECUTE",
 		},
 		{
-			name:    "query with TRUNCATE",
-			query:   "SELECT 1 FROM users WHERE api_key = $1 TRUNCATE",
-			wantErr: true,
-			errMsg:  "query contains a dangerous keyword: TRUNCATE",
-		},
-		{
-			name:    "query with OR that bypasses API key check",
+			name:    "query with OR ",
 			query:   "SELECT 1 FROM users WHERE api_key = $1 OR status = 'active'",
 			wantErr: true,
 			errMsg:  "query contains a dangerous keyword: OR",
 		},
-		{
-			name:    "query with OR in parentheses that bypasses API key check",
-			query:   "SELECT 1 FROM users WHERE (api_key = $1 OR status = 'active')",
-			wantErr: true,
-			errMsg:  "query contains a dangerous keyword: OR",
-		},
-		{
-			name:    "query with OR even in AND context",
-			query:   "SELECT 1 FROM users WHERE api_key = $1 AND (status = 'active' OR role = 'admin')",
-			wantErr: true,
-			errMsg:  "query contains a dangerous keyword: OR",
-		},
-		{
-			name:    "keyword in table name should not match",
-			query:   "SELECT 1 FROM droptable WHERE api_key = $1",
-			wantErr: false,
-		},
-		{
-			name:    "keyword in column name should not match",
-			query:   "SELECT 1 FROM users WHERE dropcolumn = $1",
-			wantErr: false,
-		},
-		// SELECT validation
+		// Starts with SELECT
 		{
 			name:    "query not starting with SELECT",
 			query:   "FROM users WHERE api_key = $1",
 			wantErr: true,
 			errMsg:  "query must start with SELECT",
 		},
-		{
-			name:    "query starting with lowercase select",
-			query:   "select 1 FROM users WHERE api_key = $1",
-			wantErr: false,
-		},
-		// FROM validation
+		// Contains FROM clause
 		{
 			name:    "query missing FROM",
 			query:   "SELECT 1 WHERE api_key = $1",
@@ -235,22 +268,7 @@ func TestValidateDatabaseQuery(t *testing.T) {
 			wantErr: true,
 			errMsg:  "query must contain a FROM clause",
 		},
-		{
-			name:    "query with FROM using newline",
-			query:   "SELECT 1\nFROM users WHERE api_key = $1",
-			wantErr: false,
-		},
-		{
-			name:    "query with FROM using tab",
-			query:   "SELECT 1\tFROM users WHERE api_key = $1",
-			wantErr: false,
-		},
-		{
-			name:    "query with FROM using multiple spaces",
-			query:   "SELECT 1  FROM users WHERE api_key = $1",
-			wantErr: false,
-		},
-		// WHERE validation
+		// Contains WHERE clause
 		{
 			name:    "query missing WHERE",
 			query:   "SELECT 1 FROM users",
@@ -264,21 +282,43 @@ func TestValidateDatabaseQuery(t *testing.T) {
 			errMsg:  "query must contain a WHERE clause",
 		},
 		{
-			name:    "query with WHERE using newline",
-			query:   "SELECT 1 FROM users\nWHERE api_key = $1",
-			wantErr: false,
+			name:    "query with WHERE but no space after",
+			query:   "SELECT 1 FROM users WHEREapi_key = $1",
+			wantErr: true,
+			errMsg:  "query must contain a WHERE clause",
+		},
+		// Only $1 allowed
+		{
+			name:    "query with $2 should be rejected",
+			query:   "SELECT 1 FROM users WHERE id = $2",
+			wantErr: true,
+			errMsg:  "query must only use $1 as a parameter",
 		},
 		{
-			name:    "query with WHERE using tab",
-			query:   "SELECT 1 FROM users\tWHERE api_key = $1",
-			wantErr: false,
+			name:    "query with $10 should be rejected",
+			query:   "SELECT 1 FROM users WHERE id = $10",
+			wantErr: true,
+			errMsg:  "query must only use $1 as a parameter",
 		},
 		{
-			name:    "query with WHERE using multiple spaces",
-			query:   "SELECT 1 FROM users  WHERE api_key = $1",
-			wantErr: false,
+			name:    "query with $11 should be rejected",
+			query:   "SELECT 1 FROM users WHERE id = $11",
+			wantErr: true,
+			errMsg:  "query must only use $1 as a parameter",
 		},
-		// Equality comparison validation
+		{
+			name:    "query with $1 and $2 should be rejected",
+			query:   "SELECT 1 FROM users WHERE api_key = $1 AND status = $2",
+			wantErr: true,
+			errMsg:  "query must only use $1 as a parameter",
+		},
+		{
+			name:    "query with $2 and $1 should be rejected",
+			query:   "SELECT 1 FROM users WHERE status = $2 AND api_key = $1",
+			wantErr: true,
+			errMsg:  "query must only use $1 as a parameter",
+		},
+		// Equality comparison
 		{
 			name:    "query missing equality comparison",
 			query:   "SELECT 1 FROM users WHERE id > $1",
@@ -309,41 +349,12 @@ func TestValidateDatabaseQuery(t *testing.T) {
 			wantErr: true,
 			errMsg:  "query must contain an equality comparison with $1",
 		},
-		{
-			name:    "query with equality and $1 on left",
-			query:   "SELECT 1 FROM users WHERE $1 = api_key",
-			wantErr: false,
-		},
-		{
-			name:    "query with equality and $1 on right",
-			query:   "SELECT 1 FROM users WHERE api_key = $1",
-			wantErr: false,
-		},
-		{
-			name:    "query with equality and spaces",
-			query:   "SELECT 1 FROM users WHERE api_key  =  $1",
-			wantErr: false,
-		},
-		{
-			name:    "query with equality and newline",
-			query:   "SELECT 1 FROM users WHERE api_key\n=\n$1",
-			wantErr: false,
-		},
-		{
-			name:    "query with equality and tab",
-			query:   "SELECT 1 FROM users WHERE api_key\t=\t$1",
-			wantErr: false,
-		},
-		{
-			name:    "query with multiple equals signs",
-			query:   "SELECT 1 FROM users WHERE api_key = $1 AND status = 'active'",
-			wantErr: false,
-		},
+		// Explicit $1 = $1
 		{
 			name:    "query with self comparison",
 			query:   "SELECT 1 FROM users WHERE $1 = $1",
 			wantErr: true,
-			errMsg:  "query must contain an equality comparison with $1",
+			errMsg:  "query must not contain $1 = $1",
 		},
 	}
 

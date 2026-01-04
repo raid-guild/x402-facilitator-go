@@ -106,30 +106,33 @@ func ValidateDatabaseQuery(query string) error {
 	}
 
 	// Ensure query contains a FROM clause (handle whitespace variants)
-	// Use regex to match FROM with any whitespace before and after
 	fromPattern := regexp.MustCompile(`(?i)\s+FROM\s+`)
 	if !fromPattern.MatchString(query) {
 		return errors.New("query must contain a FROM clause")
 	}
 
 	// Ensure query contains a WHERE clause (handle whitespace variants)
-	// Use regex to match WHERE with any whitespace before and after
 	wherePattern := regexp.MustCompile(`(?i)\s+WHERE\s+`)
 	if !wherePattern.MatchString(query) {
 		return errors.New("query must contain a WHERE clause")
 	}
 
+	// Ensure the WHERE clause rejects any parameter other than $1
+	invalidParamPattern := regexp.MustCompile(`\$([2-9]|\d{2,}|1\d+)`)
+	if invalidParamPattern.MatchString(query) {
+		return errors.New("query must only use $1 as a parameter")
+	}
+
 	// Ensure the WHERE clause contains an equality comparison with $1
-	// Use regex to match column = $1 or $1 = column (with any whitespace)
-	equalityPattern := regexp.MustCompile(`\$1\s*=\s*[^$\s]|[^$\s]\s*=\s*\$1`)
+	equalityPattern := regexp.MustCompile(`\$1\s*=\s*\S|\S\s*=\s*\$1`)
 	if !equalityPattern.MatchString(query) {
 		return errors.New("query must contain an equality comparison with $1")
 	}
 
-	// Explicitly reject $1 = $1 which would always be true
-	rejectSelfComparison := regexp.MustCompile(`\$1\s*=\s*\$1`)
-	if rejectSelfComparison.MatchString(query) {
-		return errors.New("query must contain an equality comparison with $1")
+	// Ensure the WHERE clause does not contain $1 = $1 which would always be true
+	selfComparisonPattern := regexp.MustCompile(`\$1(?:\s|$)\s*=\s*\$1(?:\s|$)`)
+	if selfComparisonPattern.MatchString(query) {
+		return errors.New("query must not contain $1 = $1")
 	}
 
 	return nil
