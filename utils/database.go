@@ -105,18 +105,23 @@ func ValidateDatabaseQuery(query string) error {
 		return errors.New("query must start with SELECT")
 	}
 
-	// Ensure query contains a FROM clause
-	if !strings.Contains(queryUpper, " FROM ") {
+	// Ensure query contains a FROM clause (handle whitespace variants)
+	// Use regex to match FROM with any whitespace before and after
+	fromPattern := regexp.MustCompile(`(?i)\s+FROM\s+`)
+	if !fromPattern.MatchString(query) {
 		return errors.New("query must contain a FROM clause")
 	}
 
-	// Ensure query contains a WHERE clause
-	if !strings.Contains(queryUpper, " WHERE ") {
+	// Ensure query contains a WHERE clause (handle whitespace variants)
+	// Use regex to match WHERE with any whitespace before and after
+	wherePattern := regexp.MustCompile(`(?i)\s+WHERE\s+`)
+	if !wherePattern.MatchString(query) {
 		return errors.New("query must contain a WHERE clause")
 	}
 
 	// Ensure the WHERE clause contains an equality comparison with $1
-	equalityPattern := regexp.MustCompile(`(?:^|\s|[^!><=$])\s*=\s*\$1|\$1\s*=\s*[^$]`)
+	// Use regex to match column = $1 or $1 = column (with any whitespace)
+	equalityPattern := regexp.MustCompile(`\$1\s*=\s*[^$\s]|[^$\s]\s*=\s*\$1`)
 	if !equalityPattern.MatchString(query) {
 		return errors.New("query must contain an equality comparison with $1")
 	}
