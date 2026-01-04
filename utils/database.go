@@ -43,6 +43,45 @@ func ResetDBPoolCache(databaseURL string) {
 	dbPoolCache.Reset(databaseURL)
 }
 
+var (
+	// Dangerous keyword names
+	dangerousKeywordNames = []string{
+		"DROP",
+		"ALTER",
+		"CREATE",
+		"TRUNCATE",
+		"DELETE",
+		"UPDATE",
+		"INSERT",
+		"EXEC",
+		"EXECUTE",
+		"UNION",
+		"OR",
+	}
+
+	// Dangerous keyword patterns
+	dangerousKeywordPatterns = []*regexp.Regexp{
+		regexp.MustCompile(`\bDROP\b`),
+		regexp.MustCompile(`\bALTER\b`),
+		regexp.MustCompile(`\bCREATE\b`),
+		regexp.MustCompile(`\bTRUNCATE\b`),
+		regexp.MustCompile(`\bDELETE\b`),
+		regexp.MustCompile(`\bUPDATE\b`),
+		regexp.MustCompile(`\bINSERT\b`),
+		regexp.MustCompile(`\bEXEC\b`),
+		regexp.MustCompile(`\bEXECUTE\b`),
+		regexp.MustCompile(`\bUNION\b`),
+		regexp.MustCompile(`\bOR\b`),
+	}
+
+	// Query validation patterns
+	fromPattern           = regexp.MustCompile(`(?i)\s+FROM\s+`)
+	wherePattern          = regexp.MustCompile(`(?i)\s+WHERE\s+`)
+	invalidParamPattern   = regexp.MustCompile(`\$([2-9]|\d{2,}|1\d+)`)
+	equalityPattern       = regexp.MustCompile(`\$1\s*=\s*\S|\S\s*=\s*\$1`)
+	selfComparisonPattern = regexp.MustCompile(`\$1(?:\s|$)\s*=\s*\$1(?:\s|$)`)
+)
+
 // ValidateDatabaseQuery validates that a database query is safe to use as a subquery.
 func ValidateDatabaseQuery(query string) error {
 
@@ -77,26 +116,10 @@ func ValidateDatabaseQuery(query string) error {
 		}
 	}
 
-	// Define dangerous keywords (checked as whole words)
-	dangerousKeywords := []string{
-		"DROP",     // DROP statement
-		"ALTER",    // ALTER statement
-		"CREATE",   // CREATE statement
-		"TRUNCATE", // TRUNCATE statement
-		"DELETE",   // DELETE statement
-		"UPDATE",   // UPDATE statement
-		"INSERT",   // INSERT statement
-		"EXEC",     // EXEC statement
-		"EXECUTE",  // EXECUTE statement
-		"UNION",    // UNION clause/operator
-		"OR",       // OR clause/operator
-	}
-
-	// Check for dangerous keywords (using word boundaries)
-	for _, keyword := range dangerousKeywords {
-		keywordPattern := regexp.MustCompile(`\b` + regexp.QuoteMeta(keyword) + `\b`)
+	// Check for dangerous keywords (using pre-compiled patterns)
+	for i, keywordPattern := range dangerousKeywordPatterns {
 		if keywordPattern.MatchString(queryUpper) {
-			return fmt.Errorf("query contains a dangerous keyword: %s", keyword)
+			return fmt.Errorf("query contains a dangerous keyword: %s", dangerousKeywordNames[i])
 		}
 	}
 
@@ -106,31 +129,26 @@ func ValidateDatabaseQuery(query string) error {
 	}
 
 	// Ensure query contains a FROM clause (handle whitespace variants)
-	fromPattern := regexp.MustCompile(`(?i)\s+FROM\s+`)
 	if !fromPattern.MatchString(query) {
 		return errors.New("query must contain a FROM clause")
 	}
 
 	// Ensure query contains a WHERE clause (handle whitespace variants)
-	wherePattern := regexp.MustCompile(`(?i)\s+WHERE\s+`)
 	if !wherePattern.MatchString(query) {
 		return errors.New("query must contain a WHERE clause")
 	}
 
 	// Ensure the WHERE clause rejects any parameter other than $1
-	invalidParamPattern := regexp.MustCompile(`\$([2-9]|\d{2,}|1\d+)`)
 	if invalidParamPattern.MatchString(query) {
 		return errors.New("query must only use $1 as a parameter")
 	}
 
 	// Ensure the WHERE clause contains an equality comparison with $1
-	equalityPattern := regexp.MustCompile(`\$1\s*=\s*\S|\S\s*=\s*\$1`)
 	if !equalityPattern.MatchString(query) {
 		return errors.New("query must contain an equality comparison with $1")
 	}
 
 	// Ensure the WHERE clause does not contain $1 = $1 which would always be true
-	selfComparisonPattern := regexp.MustCompile(`\$1(?:\s|$)\s*=\s*\$1(?:\s|$)`)
 	if selfComparisonPattern.MatchString(query) {
 		return errors.New("query must not contain $1 = $1")
 	}
