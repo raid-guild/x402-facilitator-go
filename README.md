@@ -253,9 +253,12 @@ You can secure your facilitator endpoints using one of two authentication method
 
 **Option 2: Database API Keys** (for multi-user deployments)
 
-- **`DATABASE_URL`**: A PostgreSQL connection string (using the standard `postgres://` format). When set, API keys are validated against a `users` table with an `api_key` column. All requests to `/verify` and `/settle` must include a valid key in the `X-API-Key` header.
+- **`DATABASE_URL`**: A Postgres connection string (`postgres://`). When set, API keys are validated against a database using a SQL query (either the default query or a custom query specified by `DATABASE_QUERY`). All requests to `/verify` and `/settle` must include a valid key in the `X-API-Key` header.
+- **`DATABASE_QUERY`**: (optional) A custom SQL query to validate API keys. The custom query must accept the provided API key as a parameter (`$1`) and return at least one row if the key is valid. The query is wrapped in `EXISTS()`, so it must be written as a subquery (e.g. `SELECT 1 FROM table WHERE column = $1`). If not set, the default query will be used (i.e. `SELECT 1 FROM users WHERE api_key = $1`).
 
 > **Important**: You can only set **either** `STATIC_API_KEY` **or** `DATABASE_URL`, not both. If both are set, an error is returned. If neither is set, all endpoints will be publicly accessible.
+
+> **Note**: If you are using `DATABASE_URL` with a database managed by [Supabase](https://supabase.com/), use the pooled connection string (includes `.pooler.supabase.com`) which is specifically designed for serverless environments.
 
 ### Setting Environment Variables in Vercel
 
