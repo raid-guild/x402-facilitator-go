@@ -28,19 +28,20 @@ func Authenticate(r *http.Request) error {
 	// Get the database URL from the environment
 	databaseURL := os.Getenv("DATABASE_URL")
 
-	// Check if the environment is misconfigured
-	if staticKey != "" && databaseURL != "" {
-		return utils.NewStatusError(
-			errors.New("both static API key and database URL are set"),
-			http.StatusInternalServerError,
-		)
-	}
+	// Check if both static API key and database URL are set
+	bothSet := staticKey != "" && databaseURL != ""
 
 	// Check if the API key is required (static key)
 	if staticKey != "" {
 
-		// Check if the provided key does not match the static key
-		if subtle.ConstantTimeCompare([]byte(providedKey), []byte(staticKey)) != 1 {
+		// Check if the provided key matches the static key
+		if subtle.ConstantTimeCompare([]byte(providedKey), []byte(staticKey)) == 1 {
+			// Static key matches, authentication successful
+			return nil
+		}
+
+		// If only static key is set (not both), return unauthorized
+		if !bothSet {
 			return utils.NewStatusError(
 				errors.New("unauthorized"),
 				http.StatusUnauthorized,
@@ -111,13 +112,17 @@ func Authenticate(r *http.Request) error {
 			)
 		}
 
-		// Check if the API key does not exist
-		if !exists {
-			return utils.NewStatusError(
-				errors.New("unauthorized"),
-				http.StatusUnauthorized,
-			)
+		// Check if the API key exists in the database
+		if exists {
+			return nil
 		}
+
+		// If both are set and database key didn't match, return unauthorized
+		// If only database is set and key didn't match, return unauthorized
+		return utils.NewStatusError(
+			errors.New("unauthorized"),
+			http.StatusUnauthorized,
+		)
 	}
 
 	return nil
