@@ -19,7 +19,7 @@ var (
 // This function is declared as a variable so that it can be overridden in tests.
 var GetDBPool = func(databaseURL string) (*sql.DB, error) {
 
-	// Initialize or reuse the cached database connection pool
+	// Get the cached database connection pool (reused with warm instances)
 	return dbPoolCache.Get(databaseURL, func() (*sql.DB, error) {
 
 		// Open a new database connection pool
