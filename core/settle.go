@@ -16,6 +16,12 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/raid-guild/x402-facilitator-go/types"
+	"github.com/raid-guild/x402-facilitator-go/utils"
+)
+
+var (
+	// transferWithAuthorizationABICache stores the cached transferWithAuthorization ABI (reused with warm instances).
+	transferWithAuthorizationABICache utils.SingleCache[abi.ABI]
 )
 
 // SettleExactConfig is the SettleExact configuration.
@@ -130,11 +136,22 @@ func SettleExact(c SettleExactConfig, p SettleExactParams) (types.SettleResponse
 		"constant": false
 	}]`
 
-	// Parse the contract ABI for transferWithAuthorization
-	contractABI, err := abi.JSON(strings.NewReader(contractJSON))
+	// Get the cached transferWithAuthorization ABI (reused with warm instances)
+	contractABI, err := transferWithAuthorizationABICache.Get(func() (abi.ABI, error) {
+
+		// Parse the contract ABI for transferWithAuthorization
+		parsedABI, err := abi.JSON(strings.NewReader(contractJSON))
+
+		// Check if an error occurred
+		if err != nil {
+			return abi.ABI{}, fmt.Errorf("failed to parse contract ABI: %v", err)
+		}
+
+		return parsedABI, nil
+	})
 	if err != nil {
 		// Return an error that will be handled as an internal server error
-		return types.SettleResponse{}, fmt.Errorf("failed to parse contract ABI: %v", err)
+		return types.SettleResponse{}, err
 	}
 
 	// Convert the authorization nonce to a 32 byte slice

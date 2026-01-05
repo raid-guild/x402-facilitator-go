@@ -10,6 +10,12 @@ import (
 	"github.com/raid-guild/x402-facilitator-go/utils"
 )
 
+var (
+	// databaseQueryValidationCache stores the cached database query validation result (reused with warm instances).
+	// The key is the database query string, and the value is the validation error (nil if valid).
+	databaseQueryValidationCache = utils.NewKeyedCache[error]()
+)
+
 // Authenticate authenticates the request.
 func Authenticate(r *http.Request) error {
 
@@ -58,7 +64,15 @@ func Authenticate(r *http.Request) error {
 
 		// Validate the custom database query if it is set
 		if databaseQuery != "" {
-			if err := utils.ValidateDatabaseQuery(databaseQuery); err != nil {
+
+			// Get the cached validation result (reused with warm instances)
+			validationErr, _ := databaseQueryValidationCache.Get(databaseQuery, func() (error, error) {
+				// Validate the database query
+				return utils.ValidateDatabaseQuery(databaseQuery), nil
+			})
+
+			// Check if the validation returned an error
+			if validationErr != nil {
 				return utils.NewStatusError(
 					errors.New("invalid database query"),
 					http.StatusInternalServerError,

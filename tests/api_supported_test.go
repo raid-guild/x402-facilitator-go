@@ -1,15 +1,20 @@
 package tests
 
+//nolint:paralleltest // Tests use t.Setenv() which is not safe for parallel execution
+
 import (
 	"net/http"
 	"testing"
 
+	handler "github.com/raid-guild/x402-facilitator-go/api"
 	"github.com/raid-guild/x402-facilitator-go/types"
 )
 
 func TestSupported(t *testing.T) {
 
 	t.Run("all supported networks", func(t *testing.T) {
+		handler.ResetSupportedResponseCache()
+
 		t.Setenv("RPC_URL_ETHEREUM", "rpc-url-ethereum")
 		t.Setenv("RPC_URL_BASE", "rpc-url-base")
 		t.Setenv("RPC_URL_SEPOLIA", "rpc-url-sepolia")
@@ -30,6 +35,8 @@ func TestSupported(t *testing.T) {
 	})
 
 	t.Run("only ethereum network", func(t *testing.T) {
+		handler.ResetSupportedResponseCache()
+
 		t.Setenv("RPC_URL_ETHEREUM", "rpc-url-ethereum")
 		t.Setenv("RPC_URL_BASE", "")
 		t.Setenv("RPC_URL_SEPOLIA", "")
@@ -44,6 +51,8 @@ func TestSupported(t *testing.T) {
 	})
 
 	t.Run("only base network", func(t *testing.T) {
+		handler.ResetSupportedResponseCache()
+
 		t.Setenv("RPC_URL_ETHEREUM", "")
 		t.Setenv("RPC_URL_BASE", "rpc-url-base")
 		t.Setenv("RPC_URL_SEPOLIA", "")
@@ -58,6 +67,8 @@ func TestSupported(t *testing.T) {
 	})
 
 	t.Run("only sepolia network", func(t *testing.T) {
+		handler.ResetSupportedResponseCache()
+
 		t.Setenv("RPC_URL_ETHEREUM", "")
 		t.Setenv("RPC_URL_BASE", "")
 		t.Setenv("RPC_URL_SEPOLIA", "rpc-url-sepolia")
@@ -72,6 +83,8 @@ func TestSupported(t *testing.T) {
 	})
 
 	t.Run("only base sepolia network", func(t *testing.T) {
+		handler.ResetSupportedResponseCache()
+
 		t.Setenv("RPC_URL_ETHEREUM", "")
 		t.Setenv("RPC_URL_BASE", "")
 		t.Setenv("RPC_URL_SEPOLIA", "")
@@ -86,6 +99,8 @@ func TestSupported(t *testing.T) {
 	})
 
 	t.Run("no supported networks", func(t *testing.T) {
+		handler.ResetSupportedResponseCache()
+
 		t.Setenv("RPC_URL_ETHEREUM", "")
 		t.Setenv("RPC_URL_BASE", "")
 		t.Setenv("RPC_URL_SEPOLIA", "")

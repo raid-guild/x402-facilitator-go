@@ -16,6 +16,12 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 
 	"github.com/raid-guild/x402-facilitator-go/types"
+	"github.com/raid-guild/x402-facilitator-go/utils"
+)
+
+var (
+	// balanceOfABICache stores the cached balanceOf ABI (reused with warm instances).
+	balanceOfABICache utils.SingleCache[abi.ABI]
 )
 
 // VerifyExactConfig is the VerifyExact configuration.
@@ -263,11 +269,20 @@ func VerifyExact(c VerifyExactConfig, p VerifyExactParams) (types.VerifyResponse
 		"constant": true
 	}]`
 
-	// Parse the contract ABI for balanceOf
-	balanceOfABI, err := abi.JSON(strings.NewReader(balanceOfJSON))
+	// Get the cached balanceOf ABI (reused with warm instances)
+	balanceOfABI, err := balanceOfABICache.Get(func() (abi.ABI, error) {
+
+		// Parse the contract ABI for balanceOf
+		parsedABI, err := abi.JSON(strings.NewReader(balanceOfJSON))
+		if err != nil {
+			return abi.ABI{}, fmt.Errorf("failed to parse balanceOf ABI: %v", err)
+		}
+
+		return parsedABI, nil
+	})
 	if err != nil {
 		// Return an error that will be handled as an internal server error
-		return types.VerifyResponse{}, fmt.Errorf("failed to parse balanceOf ABI: %v", err)
+		return types.VerifyResponse{}, err
 	}
 
 	// Pack the balanceOf function call data

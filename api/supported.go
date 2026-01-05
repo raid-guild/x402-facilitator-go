@@ -9,16 +9,28 @@ import (
 	"github.com/raid-guild/x402-facilitator-go/types"
 	v1 "github.com/raid-guild/x402-facilitator-go/types/v1"
 	v2 "github.com/raid-guild/x402-facilitator-go/types/v2"
+	"github.com/raid-guild/x402-facilitator-go/utils"
+)
+
+var (
+	// supportedResponseCache stores the cached supported response (reused with warm instances).
+	supportedResponseCache utils.SingleCache[[]byte]
 )
 
 // Supported is the handler function called by Vercel.
 func Supported(w http.ResponseWriter, r *http.Request) {
 
-	// Build the supported response
-	response := buildSupportedResponse()
+	// Get the cached supported response JSON bytes (reused with warm instances)
+	responseBytes, err := supportedResponseCache.Get(func() ([]byte, error) {
 
-	// Marshal the response to JSON bytes
-	responseBytes, err := json.Marshal(response)
+		// Build the supported response
+		response := buildSupportedResponse()
+
+		// Marshal the response to JSON bytes
+		return json.Marshal(response)
+	})
+
+	// Check if an error occurred
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -33,6 +45,12 @@ func Supported(w http.ResponseWriter, r *http.Request) {
 		// Header already written so we log the error
 		log.Printf("failed to write response: %v", err)
 	}
+}
+
+// ResetSupportedResponseCache clears the cached supported response.
+// This is primarily useful for testing to ensure test isolation.
+func ResetSupportedResponseCache() {
+	supportedResponseCache.Reset()
 }
 
 // buildSupportedResponse builds the supported response.
