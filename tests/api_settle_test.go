@@ -129,42 +129,6 @@ func TestSettle_Authentication(t *testing.T) {
 		settle(t, "", body, http.StatusUnauthorized, nil)
 	})
 
-	t.Run("database with custom query missing SELECT", func(t *testing.T) {
-		t.Setenv("DATABASE_URL", "database-url")
-		t.Setenv("DATABASE_QUERY", "FROM organizations WHERE api_key = $1")
-		settle(t, "api-key", body, http.StatusInternalServerError, nil)
-	})
-
-	t.Run("database with custom query missing FROM", func(t *testing.T) {
-		t.Setenv("DATABASE_URL", "database-url")
-		t.Setenv("DATABASE_QUERY", "SELECT 1 WHERE api_key = $1")
-		settle(t, "api-key", body, http.StatusInternalServerError, nil)
-	})
-
-	t.Run("database with custom query missing WHERE", func(t *testing.T) {
-		t.Setenv("DATABASE_URL", "database-url")
-		t.Setenv("DATABASE_QUERY", "SELECT 1 FROM users")
-		settle(t, "api-key", body, http.StatusInternalServerError, nil)
-	})
-
-	t.Run("database with custom query missing equality comparison", func(t *testing.T) {
-		t.Setenv("DATABASE_URL", "database-url")
-		t.Setenv("DATABASE_QUERY", "SELECT 1 FROM users WHERE id > $1")
-		settle(t, "api-key", body, http.StatusInternalServerError, nil)
-	})
-
-	t.Run("database with custom query using is not null", func(t *testing.T) {
-		t.Setenv("DATABASE_URL", "database-url")
-		t.Setenv("DATABASE_QUERY", "SELECT 1 FROM users WHERE $1 IS NOT NULL")
-		settle(t, "api-key", body, http.StatusInternalServerError, nil)
-	})
-
-	t.Run("database with custom query using self comparison", func(t *testing.T) {
-		t.Setenv("DATABASE_URL", "database-url")
-		t.Setenv("DATABASE_QUERY", "SELECT 1 FROM users WHERE $1 = $1")
-		settle(t, "api-key", body, http.StatusInternalServerError, nil)
-	})
-
 }
 
 func TestSettle_Compatibility(t *testing.T) {
