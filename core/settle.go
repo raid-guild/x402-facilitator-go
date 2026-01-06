@@ -33,13 +33,13 @@ type SettleExactConfig struct {
 
 // SettleExactParams is the SettleExact parameters.
 type SettleExactParams struct {
-	Signature                string
 	AuthorizationFrom        string
 	AuthorizationTo          string
 	AuthorizationValue       string
 	AuthorizationValidAfter  string
 	AuthorizationValidBefore string
 	AuthorizationNonce       string
+	Signature                string
 	Asset                    string
 	MaxTimeoutSeconds        int64
 }
