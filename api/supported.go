@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"os"
 
@@ -32,6 +31,9 @@ func Supported(w http.ResponseWriter, r *http.Request) {
 
 	// Check if an error occurred
 	if err != nil {
+		// Log internal server error before returning
+		utils.LogInternalServerError(err)
+		// Write http error response and then exit handler
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -43,7 +45,7 @@ func Supported(w http.ResponseWriter, r *http.Request) {
 	// Write the response bytes to the response body
 	if _, err := w.Write(responseBytes); err != nil {
 		// Header already written so we log the error
-		log.Printf("failed to write response: %v", err)
+		utils.LogWriteError(err)
 	}
 }
 

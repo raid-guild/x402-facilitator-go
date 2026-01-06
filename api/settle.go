@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"os"
 
@@ -23,10 +22,16 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		var se utils.StatusError
 		if errors.As(err, &se) {
+			// Log internal server error before returning
+			if se.Status() == http.StatusInternalServerError {
+				utils.LogInternalServerError(err)
+			}
 			// Write http error response and then exit handler
 			http.Error(w, err.Error(), se.Status())
 			return
 		} else {
+			// Log internal server error before returning
+			utils.LogInternalServerError(err)
 			// Write http error response and then exit handler
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -92,6 +97,8 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				// Settle the payment by sending a transaction on the ethereum network
 				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
+					// Log internal server error before returning
+					utils.LogInternalServerError(err)
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
@@ -121,6 +128,8 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				// Settle the payment by sending a transaction on the base network
 				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
+					// Log internal server error before returning
+					utils.LogInternalServerError(err)
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
@@ -150,6 +159,8 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				// Settle the payment by sending a transaction on the sepolia network
 				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
+					// Log internal server error before returning
+					utils.LogInternalServerError(err)
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
@@ -179,6 +190,8 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				// Settle the payment by sending a transaction on the base sepolia network
 				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
+					// Log internal server error before returning
+					utils.LogInternalServerError(err)
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
@@ -259,6 +272,8 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				// Settle the payment by sending a transaction on the ethereum network
 				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
+					// Log internal server error before returning
+					utils.LogInternalServerError(err)
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
@@ -288,6 +303,8 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				// Settle the payment by sending a transaction on the base network
 				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
+					// Log internal server error before returning
+					utils.LogInternalServerError(err)
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
@@ -317,6 +334,8 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				// Settle the payment by sending a transaction on the sepolia network
 				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
+					// Log internal server error before returning
+					utils.LogInternalServerError(err)
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
@@ -346,6 +365,8 @@ func Settle(w http.ResponseWriter, r *http.Request) {
 				// Settle the payment by sending a transaction on the base sepolia network
 				response, err := core.SettleExact(cfg, exactParams)
 				if err != nil {
+					// Log internal server error before returning
+					utils.LogInternalServerError(err)
 					// Write http error response and then exit handler
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
@@ -388,6 +409,9 @@ func writeSettleResponse(w http.ResponseWriter, response types.SettleResponse) {
 	// Marshal the response into JSON bytes
 	responseBytes, err := json.Marshal(response)
 	if err != nil {
+		// Log internal server error before returning
+		utils.LogInternalServerError(err)
+		// Write http error response and then exit handler
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -400,7 +424,7 @@ func writeSettleResponse(w http.ResponseWriter, response types.SettleResponse) {
 	_, err = w.Write(responseBytes)
 	if err != nil {
 		// Header already written so we log the error
-		log.Printf("failed to write response: %v", err)
+		utils.LogWriteError(err)
 	}
 }
 
