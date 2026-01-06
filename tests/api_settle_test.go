@@ -129,6 +129,52 @@ func TestSettle_Authentication(t *testing.T) {
 		settle(t, "", body, http.StatusUnauthorized, nil)
 	})
 
+	t.Run("both static and database with valid static api key", func(t *testing.T) {
+		t.Setenv("STATIC_API_KEY", "static-api-key")
+		t.Setenv("DATABASE_URL", "database-url")
+
+		settle(t, "static-api-key", body, http.StatusOK, nil)
+	})
+
+	t.Run("both static and database with invalid static and valid database api key", func(t *testing.T) {
+		t.Setenv("STATIC_API_KEY", "static-api-key")
+		t.Setenv("DATABASE_URL", "database-url")
+
+		mockDB := setupMockDatabase(t)
+		mockDB.ExpectQuery(`SELECT EXISTS\(SELECT 1 FROM users WHERE api_key = \$1\)`).
+			WithArgs("database-api-key").
+			WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+
+		settle(t, "database-api-key", body, http.StatusOK, nil)
+
+		if err := mockDB.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
+
+	t.Run("both static and database with invalid static and invalid database api key", func(t *testing.T) {
+		t.Setenv("STATIC_API_KEY", "static-api-key")
+		t.Setenv("DATABASE_URL", "database-url")
+
+		mockDB := setupMockDatabase(t)
+		mockDB.ExpectQuery(`SELECT EXISTS\(SELECT 1 FROM users WHERE api_key = \$1\)`).
+			WithArgs("invalid-api-key").
+			WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
+
+		settle(t, "invalid-api-key", body, http.StatusUnauthorized, nil)
+
+		if err := mockDB.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
+
+	t.Run("both static and database with no api key", func(t *testing.T) {
+		t.Setenv("STATIC_API_KEY", "static-api-key")
+		t.Setenv("DATABASE_URL", "database-url")
+
+		settle(t, "", body, http.StatusUnauthorized, nil)
+	})
+
 }
 
 func TestSettle_Compatibility(t *testing.T) {
