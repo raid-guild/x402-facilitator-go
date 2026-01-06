@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/raid-guild/x402-facilitator-go/types"
 	"github.com/raid-guild/x402-facilitator-go/utils"
 )
 
@@ -23,10 +24,10 @@ func Authenticate(r *http.Request) error {
 	providedKey := r.Header.Get("X-API-Key")
 
 	// Get the static API key from the environment
-	staticKey := os.Getenv("STATIC_API_KEY")
+	staticKey := os.Getenv(types.STATIC_API_KEY)
 
 	// Get the database URL from the environment
-	databaseURL := os.Getenv("DATABASE_URL")
+	databaseURL := os.Getenv(types.DATABASE_URL)
 
 	// Check if both static API key and database URL are set
 	bothSet := staticKey != "" && databaseURL != ""
@@ -61,7 +62,7 @@ func Authenticate(r *http.Request) error {
 		}
 
 		// Get the database query from the environment
-		databaseQuery := os.Getenv("DATABASE_QUERY")
+		databaseQuery := os.Getenv(types.DATABASE_QUERY)
 
 		// Validate the custom database query if it is set
 		if databaseQuery != "" {

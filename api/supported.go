@@ -61,7 +61,7 @@ func buildSupportedResponse() types.SupportedResponse {
 	var v2Kinds []types.SupportedKind
 
 	// Check if the ethereum network is supported
-	if rpcURL := os.Getenv("RPC_URL_ETHEREUM"); rpcURL != "" {
+	if rpcURL := os.Getenv(types.RPC_URL_ETHEREUM); rpcURL != "" {
 		// Add v1 ethereum support
 		v1Kinds = append(v1Kinds, types.SupportedKind{
 			X402Version: int(types.X402Version1),
@@ -77,7 +77,7 @@ func buildSupportedResponse() types.SupportedResponse {
 	}
 
 	// Check if the base network is supported
-	if rpcURL := os.Getenv("RPC_URL_BASE"); rpcURL != "" {
+	if rpcURL := os.Getenv(types.RPC_URL_BASE); rpcURL != "" {
 		// Add v1 base support
 		v1Kinds = append(v1Kinds, types.SupportedKind{
 			X402Version: int(types.X402Version1),
@@ -93,7 +93,7 @@ func buildSupportedResponse() types.SupportedResponse {
 	}
 
 	// Check if the sepolia network is supported
-	if rpcURL := os.Getenv("RPC_URL_SEPOLIA"); rpcURL != "" {
+	if rpcURL := os.Getenv(types.RPC_URL_SEPOLIA); rpcURL != "" {
 		// Add v1 sepolia support
 		v1Kinds = append(v1Kinds, types.SupportedKind{
 			X402Version: int(types.X402Version1),
@@ -109,7 +109,7 @@ func buildSupportedResponse() types.SupportedResponse {
 	}
 
 	// Check if the base sepolia network is supported
-	if rpcURL := os.Getenv("RPC_URL_BASE_SEPOLIA"); rpcURL != "" {
+	if rpcURL := os.Getenv(types.RPC_URL_BASE_SEPOLIA); rpcURL != "" {
 		// Add v1 base sepolia support
 		v1Kinds = append(v1Kinds, types.SupportedKind{
 			X402Version: int(types.X402Version1),

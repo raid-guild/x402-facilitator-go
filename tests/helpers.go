@@ -34,7 +34,7 @@ func setupMockDatabase(t *testing.T) sqlmock.Sqlmock {
 	originalGetDBPool := utils.GetDBPool
 	t.Cleanup(func() {
 		utils.GetDBPool = originalGetDBPool
-		if databaseURL := os.Getenv("DATABASE_URL"); databaseURL != "" {
+		if databaseURL := os.Getenv(types.DATABASE_URL); databaseURL != "" {
 			utils.ResetDBPoolCache(databaseURL)
 		}
 		db.Close()

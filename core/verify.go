@@ -32,13 +32,13 @@ type VerifyExactConfig struct {
 
 // VerifyExactParams is the VerifyExact parameters.
 type VerifyExactParams struct {
-	Signature                string
 	AuthorizationFrom        string
 	AuthorizationTo          string
 	AuthorizationValue       string
 	AuthorizationValidAfter  string
 	AuthorizationValidBefore string
 	AuthorizationNonce       string
+	Signature                string
 	Asset                    string
 	PayTo                    string
 	Amount                   string

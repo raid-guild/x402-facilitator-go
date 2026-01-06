@@ -87,13 +87,13 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 			// Set the verify exact parameters
 			exactParams := core.VerifyExactParams{
-				Signature:                paymentPayload.Payload.Signature,
 				AuthorizationFrom:        paymentPayload.Payload.Authorization.From,
 				AuthorizationTo:          paymentPayload.Payload.Authorization.To,
 				AuthorizationValue:       paymentPayload.Payload.Authorization.Value,
 				AuthorizationValidAfter:  paymentPayload.Payload.Authorization.ValidAfter,
 				AuthorizationValidBefore: paymentPayload.Payload.Authorization.ValidBefore,
 				AuthorizationNonce:       paymentPayload.Payload.Authorization.Nonce,
+				Signature:                paymentPayload.Payload.Signature,
 				Asset:                    paymentRequirements.Asset,
 				PayTo:                    paymentRequirements.PayTo,
 				Amount:                   paymentRequirements.MaxAmountRequired,
@@ -107,8 +107,8 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: int64(types.ChainIDEthereum),
-					RPCURL:  os.Getenv("RPC_URL_ETHEREUM"),
+					ChainID: types.ChainIDEthereum,
+					RPCURL:  os.Getenv(types.RPC_URL_ETHEREUM),
 				}
 
 				// Verify the payment that will be settled on the ethereum network
@@ -137,8 +137,8 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: int64(types.ChainIDBase),
-					RPCURL:  os.Getenv("RPC_URL_BASE"),
+					ChainID: types.ChainIDBase,
+					RPCURL:  os.Getenv(types.RPC_URL_BASE),
 				}
 
 				// Verify the payment that will be settled on the base network
@@ -167,8 +167,8 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: int64(types.ChainIDSepolia),
-					RPCURL:  os.Getenv("RPC_URL_SEPOLIA"),
+					ChainID: types.ChainIDSepolia,
+					RPCURL:  os.Getenv(types.RPC_URL_SEPOLIA),
 				}
 
 				// Verify the payment that will be settled on the sepolia network
@@ -197,8 +197,8 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: int64(types.ChainIDBaseSepolia),
-					RPCURL:  os.Getenv("RPC_URL_BASE_SEPOLIA"),
+					ChainID: types.ChainIDBaseSepolia,
+					RPCURL:  os.Getenv(types.RPC_URL_BASE_SEPOLIA),
 				}
 
 				// Verify the payment that will be settled on the base sepolia network
@@ -276,13 +276,13 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 			// Set the verify exact parameters
 			exactParams := core.VerifyExactParams{
-				Signature:                paymentPayload.Payload.Signature,
 				AuthorizationFrom:        paymentPayload.Payload.Authorization.From,
 				AuthorizationTo:          paymentPayload.Payload.Authorization.To,
 				AuthorizationValue:       paymentPayload.Payload.Authorization.Value,
 				AuthorizationValidAfter:  paymentPayload.Payload.Authorization.ValidAfter,
 				AuthorizationValidBefore: paymentPayload.Payload.Authorization.ValidBefore,
 				AuthorizationNonce:       paymentPayload.Payload.Authorization.Nonce,
+				Signature:                paymentPayload.Payload.Signature,
 				Asset:                    paymentRequirements.Asset,
 				PayTo:                    paymentRequirements.PayTo,
 				Amount:                   paymentRequirements.Amount,
@@ -296,8 +296,8 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: int64(types.ChainIDEthereum),
-					RPCURL:  os.Getenv("RPC_URL_ETHEREUM"),
+					ChainID: types.ChainIDEthereum,
+					RPCURL:  os.Getenv(types.RPC_URL_ETHEREUM),
 				}
 
 				// Verify the payment that will be settled on the ethereum network
@@ -326,8 +326,8 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: int64(types.ChainIDBase),
-					RPCURL:  os.Getenv("RPC_URL_BASE"),
+					ChainID: types.ChainIDBase,
+					RPCURL:  os.Getenv(types.RPC_URL_BASE),
 				}
 
 				// Verify the payment that will be settled on the base network
@@ -356,8 +356,8 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: int64(types.ChainIDSepolia),
-					RPCURL:  os.Getenv("RPC_URL_SEPOLIA"),
+					ChainID: types.ChainIDSepolia,
+					RPCURL:  os.Getenv(types.RPC_URL_SEPOLIA),
 				}
 
 				// Verify the payment that will be settled on the sepolia network
@@ -386,8 +386,8 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 
 				// Set the verify exact configuration
 				cfg := core.VerifyExactConfig{
-					ChainID: int64(types.ChainIDBaseSepolia),
-					RPCURL:  os.Getenv("RPC_URL_BASE_SEPOLIA"),
+					ChainID: types.ChainIDBaseSepolia,
+					RPCURL:  os.Getenv(types.RPC_URL_BASE_SEPOLIA),
 				}
 
 				// Verify the payment that will be settled on the base sepolia network
