@@ -6,6 +6,8 @@ A one-click deploy x402 facilitator brought to you by [Raid Guild](https://www.r
 
 [![Deploy](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fraid-guild%2Fx402-facilitator-go)
 
+*(check out [releases](https://github.com/raid-guild/x402-facilitator-go/releases) for stable versions)*
+
 </div>
 
 ## 🚀 Quick Start
@@ -256,13 +258,13 @@ You can secure your facilitator endpoints using one or both authentication metho
 - **`DATABASE_URL`**: A Postgres connection string (`postgres://`). When set, API keys are validated against a database using a SQL query (either the default query or a custom query specified by `DATABASE_QUERY`). All requests to `/verify` and `/settle` must include a valid key in the `X-API-Key` header.
 - **`DATABASE_QUERY`**: (optional) A custom SQL query to validate API keys. The custom query must accept the provided API key as a parameter (`$1`) and return at least one row if the key is valid. The query is wrapped in `EXISTS()`, so it must be written as a subquery (e.g. `SELECT 1 FROM table WHERE column = $1`). If not set, the default query will be used (i.e. `SELECT 1 FROM users WHERE api_key = $1`).
 
+> **Note**: If you are using `DATABASE_URL` with a database managed by [Supabase](https://supabase.com/), use the pooled connection string (includes `.pooler.supabase.com`) which is specifically designed for serverless environments.
+
 **Option 3: Static API Key and Database API Keys**
 
 You can also set both `STATIC_API_KEY` and `DATABASE_URL`. When both are set, the provided API key is checked against the static key. If it matches, authentication succeeds. If the static key doesn't match, the API key is then validated against the database. If it exists in the database, authentication succeeds. If neither check succeeds, authentication fails. This allows you to have a master static key for administrative access while also supporting multiple database-backed API keys for different users or services.
 
 > **Important**: If neither `STATIC_API_KEY` nor `DATABASE_URL` is set, all endpoints will be publicly accessible.
-
-> **Note**: If you are using `DATABASE_URL` with a database managed by [Supabase](https://supabase.com/), use the pooled connection string (includes `.pooler.supabase.com`) which is specifically designed for serverless environments.
 
 ### Setting Environment Variables in Vercel
 
