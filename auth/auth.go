@@ -29,10 +29,10 @@ func Authenticate(r *http.Request) error {
 	// Get the database URL from the environment
 	databaseURL := os.Getenv(types.DATABASE_URL)
 
-	// Check if both static API key and database URL are set
+	// Set whether both static API key and database URL are set
 	bothSet := staticKey != "" && databaseURL != ""
 
-	// Check if the API key is required (static key)
+	// Check if static API key is set
 	if staticKey != "" {
 
 		// Check if the provided key matches the static key
@@ -50,7 +50,7 @@ func Authenticate(r *http.Request) error {
 		}
 	}
 
-	// Check if the API key is required (database key)
+	// Check if database URL is set
 	if databaseURL != "" {
 
 		// Check if the provided key is empty
@@ -64,11 +64,12 @@ func Authenticate(r *http.Request) error {
 		// Get the database query from the environment
 		databaseQuery := os.Getenv(types.DATABASE_QUERY)
 
-		// Validate the custom database query if it is set
+		// Check if custom database query is set
 		if databaseQuery != "" {
 
 			// Get the cached validation result (reused with warm instances)
 			validationErr, _ := databaseQueryValidationCache.Get(databaseQuery, func() (error, error) {
+
 				// Validate the database query
 				return utils.ValidateDatabaseQuery(databaseQuery), nil
 			})
@@ -115,11 +116,11 @@ func Authenticate(r *http.Request) error {
 
 		// Check if the API key exists in the database
 		if exists {
+			// Database key exists, authentication successful
 			return nil
 		}
 
-		// If both are set and database key didn't match, return unauthorized
-		// If only database is set and key didn't match, return unauthorized
+		// Return unauthorized if the API key does not exist
 		return utils.NewStatusError(
 			errors.New("unauthorized"),
 			http.StatusUnauthorized,
